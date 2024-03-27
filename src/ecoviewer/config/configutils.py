@@ -85,14 +85,16 @@ def get_organized_mapping(df_columns, graph_df : pd.DataFrame, field_df : pd.Dat
                     y2_fields.append(column_details)
         if len(y1_fields) == 0:
             if len(y2_fields) > 0:
-                returnDict[row['graph_title']] = {
+                returnDict[index] = {
+                    "title" : row['graph_title'],
                     "y1_units" : y2_units,
                     "y2_units" : y1_units,
                     "y1_fields" : y2_fields,
                     "y2_fields" : y1_fields
                 }
         else:
-            returnDict[row['graph_title']] = {
+            returnDict[index] = {
+                "title" : row['graph_title'],
                 "y1_units" : y1_units,
                 "y2_units" : y2_units,
                 "y1_fields" : y1_fields,

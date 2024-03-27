@@ -32,7 +32,7 @@ def update_graph_time_frame(value, start_date, end_date, df, unit):
 def create_data_dictionary(organized_mapping):
     returnStr = [html.H2('Variable Definitions', style={'font-size': '24px'})]
     for key, value in organized_mapping.items():
-        returnStr.append(html.H3(key, style={'font-size': '18px'}))
+        returnStr.append(html.H3(value["title"], style={'font-size': '18px'}))
         y1_fields = value["y1_fields"]
         y2_fields = value["y2_fields"]
         for field_dict in y1_fields:
@@ -99,7 +99,7 @@ def create_conjoined_graphs(df : pd.DataFrame, organized_mapping, add_state_shad
     subplot_titles = []
     for key, value in organized_mapping.items():
         # Extract the category (e.g., Temperature or Power)
-        category = key
+        category = value["title"]
         subplot_titles.append(f"<b>{category}</b>")
     # Create a new figure for the category
     fig = make_subplots(rows = len(organized_mapping.items()), cols = 1, 
@@ -114,7 +114,7 @@ def create_conjoined_graphs(df : pd.DataFrame, organized_mapping, add_state_shad
     for key, value in organized_mapping.items():
         row += 1
         # Extract the category (e.g., Temperature or Power)
-        category = key
+        category = value["title"]
 
         # Extract the y-axis units
         y1_units = value["y1_units"]
@@ -288,7 +288,7 @@ def _create_summary_pie_graph(df):
     pie_fig = px.pie(names=sums.index, values=sums.values, title='Distribution of Energy')
     return dcc.Graph(figure=pie_fig)
 
-def create_summary_graphs(df, hourly_df, config_df):
+def create_summary_graphs(df, hourly_df, config_df, site_df_row):
 
     graph_components = []
     
@@ -304,11 +304,14 @@ def create_summary_graphs(df, hourly_df, config_df):
         if len(unique_groups) > 1:
             graph_components.append(html.H2(unique_group))
         # Bar Graph
-        graph_components.append(_create_summary_bar_graph(group_df))
+        if site_df_row["summary_bar_graph"]:
+            graph_components.append(_create_summary_bar_graph(group_df))
         # Hourly Power Graph
-        graph_components.append(_create_summary_Hourly_graph(group_df,hourly_df))
+        if site_df_row["summary_hour_graph"]:
+            graph_components.append(_create_summary_Hourly_graph(group_df,hourly_df))
         # Pie Graph
-        graph_components.append(_create_summary_pie_graph(group_df))
+        if site_df_row["summary_pie_chart"]:
+            graph_components.append(_create_summary_pie_graph(group_df))
 
     return graph_components
 
@@ -322,7 +325,7 @@ def create_hourly_shapes(df, organized_mapping):
     subplot_titles = []
     for key, value in organized_mapping.items():
         # Extract the category (e.g., Temperature or Power)
-        category = key
+        category = value["title"]
         subplot_titles.append(f"<b>{category} weekday</b>")
         subplot_titles.append(f"<b>{category} weekend</b>")
 
@@ -340,7 +343,7 @@ def create_hourly_shapes(df, organized_mapping):
 
     for key, value in organized_mapping.items():
         # Extract the category (e.g., Temperature or Power)
-        category = key
+        category = value["title"]
 
         # Extract the y-axis units
         y1_units = value["y1_units"]
