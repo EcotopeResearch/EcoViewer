@@ -288,6 +288,26 @@ def _create_summary_pie_graph(df):
     pie_fig = px.pie(names=sums.index, values=sums.values, title='Distribution of Energy')
     return dcc.Graph(figure=pie_fig)
 
+# Define a function to check if a value is numeric
+def _is_numeric(value):
+    return pd.api.types.is_numeric_dtype(pd.Series([value]))
+
+def _create_summary_gpdpp_histogram(df_daily : pd.DataFrame, site_df_row):
+    if pd.notna(site_df_row['occupant_capacity']) and _is_numeric(site_df_row['occupant_capacity']) and 'Flow_CityWater' in df_daily.columns:
+        nTenants = site_df_row['occupant_capacity'] # TODO get this from central site csv
+        df_daily['DHWDemand'] = df_daily['Flow_CityWater']*60*24/nTenants
+        fig = px.histogram(df_daily, x='DHWDemand', title='Domestic Hot Water Demand (' + str(int(nTenants)) + ' Tenants)',
+                        labels={'DHWDemand': 'Gallons/Person/Day'})
+        return dcc.Graph(figure=fig)
+    else:
+        if not (pd.notna(site_df_row['occupant_capacity']) and _is_numeric(site_df_row['occupant_capacity'])):
+            error_msg = "erroneous occupant_capacity in site configuration."
+        else:
+            error_msg = "daily dataframe missing 'Flow_CityWater'."
+        return html.P(style={'color': 'red'}, children=[
+                    f"Error: could not load GPDPP histogram due to {error_msg}"
+                ])
+
 def create_summary_graphs(df, hourly_df, config_df, site_df_row):
 
     graph_components = []
@@ -312,6 +332,8 @@ def create_summary_graphs(df, hourly_df, config_df, site_df_row):
         # Pie Graph
         if site_df_row["summary_pie_chart"]:
             graph_components.append(_create_summary_pie_graph(group_df))
+        if site_df_row["summary_gpdpp_histogram"]:
+            graph_components.append(_create_summary_gpdpp_histogram(group_df, site_df_row))
 
     return graph_components
 
