@@ -72,11 +72,11 @@ def get_organized_mapping(df_columns, graph_df : pd.DataFrame, field_df : pd.Dat
                 column_details["readable_name"] = field_row['pretty_name']
                 column_details["column_name"] = field_name
                 column_details["description"] = field_row["description"]
-                if not math.isnan(field_row["lower_bound"]):
-                # if not (field_row["lower_bound"] is None or not math.isnan(field_row["lower_bound"])):
+                # if not math.isnan(field_row["lower_bound"]):
+                if field_row["lower_bound"] is not None and not math.isnan(field_row["lower_bound"]):
                     column_details["lower_bound"] = field_row["lower_bound"]
-                if not math.isnan(field_row["upper_bound"]):
-                # if not (field_row["upper_bound"] is None or math.isnan(field_row["upper_bound"])):
+                # if not math.isnan(field_row["upper_bound"]):
+                if field_row["upper_bound"] is not None and math.isnan(field_row["upper_bound"]):
                     column_details["upper_bound"] = field_row["upper_bound"]
                 secondary_y = field_row['secondary_y']
                 if not secondary_y:
