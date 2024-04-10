@@ -4,10 +4,7 @@ import plotly.graph_objects as go
 from dash import dcc, html
 from plotly.subplots import make_subplots
 import plotly.colors
-import mysql.connector
-import math
 import numpy as np
-from datetime import datetime
 
 state_colors = {
     "loadUp" : "green",
