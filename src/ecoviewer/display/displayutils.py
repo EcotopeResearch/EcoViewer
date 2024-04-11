@@ -39,7 +39,7 @@ def create_meta_data_table(site_df : pd.DataFrame, selected_table : str, app : D
     })
 
     return html.Div([
-        html.H2("Building Meta Data"),
+        html.H2("Building Metadata"),
         dash_table.DataTable(
             data=df.to_dict('records'),
             columns=[{"name": i, "id": i, "presentation": "markdown"} for i in df.columns],
