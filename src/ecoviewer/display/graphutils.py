@@ -5,6 +5,7 @@ from dash import dcc, html
 from plotly.subplots import make_subplots
 import plotly.colors
 import numpy as np
+import math
 
 state_colors = {
     "loadUp" : "green",
@@ -192,12 +193,31 @@ def create_conjoined_graphs(df : pd.DataFrame, organized_mapping, add_state_shad
     graph_components.append(dcc.Graph(figure=figure))
     return graph_components
 
-def _create_summary_bar_graph(df):
+def _create_summary_bar_graph(og_df : pd.DataFrame):
     # Filter columns with the prefix "PowerIn_" and exclude "PowerIn_Total"
-    # powerin_columns = [col for col in df.columns if col.startswith('PowerIn_') and col != 'PowerIn_Total' and df[col].dtype == "float64"]
-    powerin_columns = [col for col in df.columns if col.startswith('PowerIn_') and 'PowerIn_Total' not in col and df[col].dtype == "float64"]
-    energy_dataframe = df[powerin_columns].copy()
+    powerin_columns = [col for col in og_df.columns if col.startswith('PowerIn_') and 'PowerIn_Total' not in col and og_df[col].dtype == "float64"]
+    cop_columns = [col for col in og_df.columns if 'COP' in col]
+    df = og_df[powerin_columns+cop_columns].copy()
 
+    # compress to weeks if more than 3 weeks selected
+    compress_to_weeks = False
+    formatting_time_delta = min(4, math.floor(24/(len(cop_columns) +1))) # TODO error if there are more than 23 cop columns
+    if df.index[-1] - df.index[0] >= pd.Timedelta(weeks=3):
+        compress_to_weeks = True
+        df = df.resample('W').mean()
+        formatting_time_delta = formatting_time_delta * 7
+
+    # x_axis_ticktext = []
+    x_axis_tick_val = []
+    x_val = df.index[0]
+    while x_val <= df.index[-1]:
+        x_axis_tick_val.append(x_val)
+        if compress_to_weeks:
+            x_val += pd.Timedelta(weeks=1)
+        else:
+            x_val += pd.Timedelta(days=1)
+
+    energy_dataframe = df[powerin_columns].copy()
     # Multiply all values in the specified columns by 24
     energy_dataframe[powerin_columns] = energy_dataframe[powerin_columns].apply(lambda x: x * 24)
 
@@ -209,29 +229,30 @@ def _create_summary_bar_graph(df):
                 labels={'index': 'Data Point'}, height=400)
     
     num_data_points = len(df)
-    x_shift = pd.Timedelta(hours=4)  # Adjust this value to control the horizontal spacing between the bars
+    x_shift = pd.Timedelta(hours=formatting_time_delta)  # Adjust this value to control the horizontal spacing between the bars
     x_positions_shifted = [x + x_shift for x in df.index]
     # create fake bar for spacing
     stacked_fig.add_trace(go.Bar(x=x_positions_shifted, y=[0]*num_data_points, showlegend=False))
     stacked_fig.update_layout(
         # width=1300,
         yaxis1=dict(
-            title='kWh',
+            title='Avg. Daily kWh' if compress_to_weeks else 'kWh',
         ),
         xaxis=dict(
-            title='Day',
+            title='Week' if compress_to_weeks else 'Day',
+            tickmode = 'array',
+            tickvals = x_axis_tick_val
         ),
         margin=dict(l=10, r=10),
         legend=dict(x=1.1)
     )
 
     # Add the additional columns as separate bars next to the stacks
-    cop_columns = [col for col in df.columns if 'COP' in col]
     if len(cop_columns) > 0:
         for col in cop_columns:
             x_positions_shifted = [x + x_shift for x in df.index]
             stacked_fig.add_trace(go.Bar(x=x_positions_shifted, y=df[col], name=col, yaxis = 'y2'))
-            x_shift += pd.Timedelta(hours=4)
+            x_shift += pd.Timedelta(hours=formatting_time_delta)
         # create fake bar for spacing
         stacked_fig.add_trace(go.Bar(x=df.index, y=[0]*num_data_points, showlegend=False, yaxis = 'y2'))
         # Create a secondary y-axis
@@ -245,7 +266,7 @@ def _create_summary_bar_graph(df):
 
     return dcc.Graph(figure=stacked_fig)
 
-def _create_summary_Hourly_graph(df, hourly_df):
+def _create_summary_Hourly_graph(df : pd.DataFrame, hourly_df : pd.DataFrame):
     powerin_columns = [col for col in df.columns if col.startswith('PowerIn_') and df[col].dtype == "float64"]
 
     nls_df = hourly_df[hourly_df['load_shift_day'] == 0]
