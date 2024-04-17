@@ -6,6 +6,7 @@ from plotly.subplots import make_subplots
 import plotly.colors
 import numpy as np
 import math
+from ecoviewer.config import get_organized_mapping
 
 state_colors = {
     "loadUp" : "green",
@@ -90,7 +91,7 @@ def clean_df(df : pd.DataFrame, organized_mapping):
             if 'upper_bound' in field_dict:
                 df[column_name] = np.where(df[column_name] > field_dict["upper_bound"], np.nan, df[column_name])
 
-def create_conjoined_graphs(df : pd.DataFrame, organized_mapping, add_state_shading = False):
+def create_conjoined_graphs(df : pd.DataFrame, organized_mapping, add_state_shading : bool = False):
     clean_df(df, organized_mapping)
     graph_components = []
     # Load the JSON data from the file
@@ -355,8 +356,9 @@ def create_summary_graphs(df, hourly_df, config_df, site_df_row):
 
     return graph_components
 
-def create_hourly_shapes(df, organized_mapping):
-
+def create_hourly_shapes(df : pd.DataFrame, graph_df : pd.DataFrame, field_df : pd.DataFrame, selected_table : str):
+    hourly_only_field_df = field_df[field_df['hourly_shapes_display'] == True]
+    organized_mapping = get_organized_mapping(df.columns, graph_df, hourly_only_field_df, selected_table)
     graph_components = []
     weekday_df = df[df['weekday'] == True]
     weekend_df = df[df['weekday'] == False]

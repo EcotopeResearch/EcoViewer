@@ -51,3 +51,9 @@ def create_meta_data_table(site_df : pd.DataFrame, selected_table : str, app : D
             },
         ),
     ])
+
+def get_no_raw_retrieve_msg():
+    return html.P(style={'color': 'black', 'textAlign': 'center'}, children=[
+            html.Br(),
+            f"To view raw data, please select the 'Retrieve Raw Data' checkbox and re-run the query. It is recommended to only retrieve raw data for a few days at a time to avoid long loading times."
+        ])
