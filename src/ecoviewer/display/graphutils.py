@@ -177,7 +177,16 @@ def _create_summary_bar_graph(og_df : pd.DataFrame):
     formatting_time_delta = min(4, math.floor(24/(len(cop_columns) +1))) # TODO error if there are more than 23 cop columns
     if df.index[-1] - df.index[0] >= pd.Timedelta(weeks=3):
         compress_to_weeks = True
+        # calculate weekly COPs
+        sum_df = df.copy()
+        sum_df['power_sum'] = sum_df[powerin_columns].sum(axis=1)
+        for cop_column in cop_columns:
+            sum_df[f'heat_out_{cop_column}'] = sum_df['power_sum'] * sum_df[cop_column]
+        sum_df = sum_df.resample('W').sum()
         df = df.resample('W').mean()
+        for cop_column in cop_columns:
+            df[cop_column] = sum_df[f'heat_out_{cop_column}'] / sum_df['power_sum']
+
         formatting_time_delta = formatting_time_delta * 7
 
     # x_axis_ticktext = []
@@ -231,7 +240,7 @@ def _create_summary_bar_graph(og_df : pd.DataFrame):
         # Create a secondary y-axis
         stacked_fig.update_layout(
             yaxis2=dict(
-                title='COP',
+                title='Weekly COP' if compress_to_weeks else 'Daily COP',
                 overlaying='y',
                 side='right'
             ),

@@ -180,3 +180,13 @@ def log_event(user_email, selected_table, start_date, end_date, sql_dash_config)
     cnx.commit()
     cursor.close()
     cnx.close()
+
+def parse_checklists_from_div(div_children : list) -> list:
+    ret_list = []
+    for element in div_children:
+        if 'type' in element:
+            if element['type'] == 'Checklist':
+                ret_list = ret_list + element['props']['value']
+            elif element['type'] == 'Div':
+                ret_list = ret_list + parse_checklists_from_div(element['props']['children'])
+    return ret_list
