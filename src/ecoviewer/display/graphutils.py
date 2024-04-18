@@ -28,34 +28,6 @@ def update_graph_time_frame(value, start_date, end_date, df, unit):
     fig.update_layout(xaxis_title = 'Timestamp', yaxis_title = unit)
     return fig
 
-def create_data_dictionary(organized_mapping):
-    returnStr = [html.H2('Variable Definitions', style={'font-size': '24px'})]
-    for key, value in organized_mapping.items():
-        returnStr.append(html.H3(value["title"], style={'font-size': '18px'}))
-        y1_fields = value["y1_fields"]
-        y2_fields = value["y2_fields"]
-        for field_dict in y1_fields:
-            name = field_dict["readable_name"]
-            descr = field_dict["description"]
-            if descr is None:
-                descr = ''
-            returnStr.append(html.P([
-                html.Span(''+name+'',style={"font-weight": "bold"}),
-                html.Span(' : '+descr,style={"font-weight": "normal"}),
-                ],
-                style={'font-size': '14px', 'text-indent': '40px'}
-            ))
-        for field_dict in y2_fields:
-            name = field_dict["readable_name"]
-            descr = field_dict["description"]
-            returnStr.append(html.P([
-                html.Span(''+name+'',style={"font-weight": "bold"}),
-                html.Span(' : '+descr,style={"font-weight": "normal"}),
-                ],
-                style={'font-size': '14px', 'text-indent': '40px'}
-            ))
-    return returnStr
-
 def create_date_note(site_name, cursor):
     """
     returns [date_note, first_date, last_date]
@@ -378,7 +350,7 @@ def create_hourly_shapes(df : pd.DataFrame, graph_df : pd.DataFrame, field_df : 
     fig = make_subplots(rows = len(organized_mapping.items())*2, cols = 1, 
                 specs=[[{"secondary_y": True}]]*len(organized_mapping.items())*2,
                 shared_xaxes=True,
-                vertical_spacing = 0.025,
+                vertical_spacing = 0.1/max(1, len(organized_mapping.items())),
                 subplot_titles = subplot_titles)
     
     row = 1

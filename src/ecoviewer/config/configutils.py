@@ -56,7 +56,7 @@ def get_user_permissions_from_db(user_email : str, sql_dash_config):
         display_drop_down.append({'label': site_df.loc[name, "pretty_name"], 'value' : name})
     return site_df, graph_df, field_df, display_drop_down
 
-def get_organized_mapping(df_columns, graph_df : pd.DataFrame, field_df : pd.DataFrame, selected_table : str):
+def get_organized_mapping(df_columns, graph_df : pd.DataFrame, field_df : pd.DataFrame, selected_table : str, all_fields : bool = False):
     returnDict = {}
     site_fields = field_df[field_df['site_name'] == selected_table]
     site_fields = site_fields.set_index('field_name')
@@ -67,7 +67,7 @@ def get_organized_mapping(df_columns, graph_df : pd.DataFrame, field_df : pd.Dat
         y1_fields = []
         y2_fields = []
         for field_name, field_row in site_fields[site_fields['graph_id'] == index].iterrows():
-            if field_name in df_columns:
+            if all_fields or field_name in df_columns:
                 column_details = {}
                 column_details["readable_name"] = field_row['pretty_name']
                 column_details["column_name"] = field_name
