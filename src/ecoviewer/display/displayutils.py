@@ -83,14 +83,14 @@ def create_data_dictionary(organized_mapping):
 
 def create_data_dictionary_checklist(graph_df : pd.DataFrame, field_df : pd.DataFrame, selected_table : str):
     organized_mapping = get_organized_mapping([], graph_df, field_df, selected_table, True)
-    returnStr = [html.H2('Variable Definitions', style={'font-size': '24px'})]
+    returnStr = []
     
     for key, value in organized_mapping.items():
         returnStr.append(
             dcc.Checklist(
                 id=f'checkbox-{value["title"]}',
                 options=[
-                    {'label': html.Div([value["title"]], style={'font-size': '18px'}), 
+                    {'label': html.Div([value["title"]], style={'font-size': '18px', "font-weight": "bold"}), 
                      'value': key}
                 ],
                 value = [key],
@@ -125,8 +125,15 @@ def create_data_dictionary_checklist(graph_df : pd.DataFrame, field_df : pd.Data
                         value = sub_values,
                         labelStyle={"display": "flex", "align-items": "center"}
                     ),
+                    html.Br()
                 ],
                 style={'padding-left': '20px'}
             )
         )
     return returnStr
+
+def user_has_no_permisions_message(user_email : str):
+    return html.P(style={'color': 'black', 'textAlign': 'center'}, children=[
+            html.Br(),
+            f"Permissions for {user_email} have not yet been set up. Please contact site administrator for assistance."
+        ])
