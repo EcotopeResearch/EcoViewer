@@ -7,6 +7,7 @@ import plotly.colors
 import numpy as np
 import math
 from ecoviewer.config import get_organized_mapping
+from datetime import datetime
 
 state_colors = {
     "loadUp" : "green",
@@ -166,6 +167,31 @@ def create_conjoined_graphs(df : pd.DataFrame, organized_mapping, add_state_shad
     graph_components.append(dcc.Graph(figure=figure))
     return graph_components
 
+def _format_x_axis_date_str(dt_1 : datetime, dt_2 : datetime = None) -> str:
+    months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    
+    # Extract date components
+    day_1 = dt_1.day
+    month_1 = months[dt_1.month - 1]
+    year_1 = dt_1.year
+
+    if dt_2 is None:
+        return f"{month_1} {day_1}, {year_1}"
+    
+    day_2 = dt_2.day
+    month_2 = months[dt_2.month - 1]
+    year_2 = dt_2.year
+    
+    # Check if the two dates are in the same year
+    if year_1 == year_2:
+        # Check if the two dates are in the same month
+        if month_1 == month_2:
+            return f"{month_1} {day_1} - {day_2}, {year_1}"
+        else:
+            return f"{month_1} {day_1} - {month_2} {day_2}, {year_1}"
+    else:
+        return f"{month_1} {day_1}, {year_1} - {month_2} {day_2}, {year_2}"
+
 def _create_summary_bar_graph(og_df : pd.DataFrame):
     # Filter columns with the prefix "PowerIn_" and exclude "PowerIn_Total"
     powerin_columns = [col for col in og_df.columns if col.startswith('PowerIn_') and 'PowerIn_Total' not in col and og_df[col].dtype == "float64"]
@@ -191,12 +217,21 @@ def _create_summary_bar_graph(og_df : pd.DataFrame):
 
     # x_axis_ticktext = []
     x_axis_tick_val = []
+    x_axis_tick_text = []
     x_val = df.index[0]
     while x_val <= df.index[-1]:
-        x_axis_tick_val.append(x_val)
+        x_axis_tick_val.append(x_val)# + pd.Timedelta(hours=(formatting_time_delta * math.floor(len(cop_column)/2))))
         if compress_to_weeks:
+            first_date = x_val - pd.Timedelta(days=6)
+            last_date = x_val
+            if first_date < og_df.index[0]:
+                first_date = og_df.index[0]
+            if x_val > og_df.index[-1]:
+                last_date = og_df.index[-1]
+            x_axis_tick_text.append(_format_x_axis_date_str(first_date, last_date))
             x_val += pd.Timedelta(weeks=1)
         else:
+            x_axis_tick_text.append(_format_x_axis_date_str(x_val))
             x_val += pd.Timedelta(days=1)
 
     energy_dataframe = df[powerin_columns].copy()
@@ -223,7 +258,8 @@ def _create_summary_bar_graph(og_df : pd.DataFrame):
         xaxis=dict(
             title='Week' if compress_to_weeks else 'Day',
             tickmode = 'array',
-            tickvals = x_axis_tick_val
+            tickvals = x_axis_tick_val,
+            ticktext = x_axis_tick_text  
         ),
         margin=dict(l=10, r=10),
         legend=dict(x=1.1)
@@ -233,14 +269,25 @@ def _create_summary_bar_graph(og_df : pd.DataFrame):
     if len(cop_columns) > 0:
         for col in cop_columns:
             x_positions_shifted = [x + x_shift for x in df.index]
-            stacked_fig.add_trace(go.Bar(x=x_positions_shifted, y=df[col], name=col, yaxis = 'y2'))
+            stacked_fig.add_trace(go.Bar(
+                x=x_positions_shifted, 
+                y=df[col], 
+                name=col, 
+                yaxis = 'y2',
+                customdata=np.transpose([x_axis_tick_text, [col]*len(x_axis_tick_text)]),
+                hovertemplate="<br>".join([
+                    "variable=%{customdata[1]}",
+                    "time_pt=%{customdata[0]}",
+                    "value=%{y}",
+                ])
+                ))
             x_shift += pd.Timedelta(hours=formatting_time_delta)
         # create fake bar for spacing
         stacked_fig.add_trace(go.Bar(x=df.index, y=[0]*num_data_points, showlegend=False, yaxis = 'y2'))
         # Create a secondary y-axis
         stacked_fig.update_layout(
             yaxis2=dict(
-                title='Weekly COP' if compress_to_weeks else 'Daily COP',
+                title='COP',
                 overlaying='y',
                 side='right'
             ),
