@@ -190,3 +190,18 @@ def parse_checklists_from_div(div_children : list) -> list:
             elif element['type'] == 'Div':
                 ret_list = ret_list + parse_checklists_from_div(element['props']['children'])
     return ret_list
+
+def get_df_from_query(query : str, cursor) -> pd.DataFrame:
+    cursor.execute(query)
+    result = cursor.fetchall()
+    column_names = [desc[0] for desc in cursor.description]
+    df = pd.DataFrame(result, columns=column_names)
+
+    # round float columns to 3 decimal places
+    df = round_df_to_3_decimal(df)
+    return df
+
+def round_df_to_3_decimal(df : pd.DataFrame) -> pd.DataFrame:
+    float_cols = df.select_dtypes(include=['float64'])
+    df[float_cols.columns] = float_cols.round(3)
+    return df

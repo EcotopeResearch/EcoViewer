@@ -6,7 +6,7 @@ from plotly.subplots import make_subplots
 import plotly.colors
 import numpy as np
 import math
-from ecoviewer.config import get_organized_mapping
+from ecoviewer.config import get_organized_mapping, round_df_to_3_decimal
 from datetime import datetime
 
 state_colors = {
@@ -212,6 +212,7 @@ def _create_summary_bar_graph(og_df : pd.DataFrame):
         df = df.resample('W').mean()
         for cop_column in cop_columns:
             df[cop_column] = sum_df[f'heat_out_{cop_column}'] / sum_df['power_sum']
+        df = round_df_to_3_decimal(df)
 
         formatting_time_delta = formatting_time_delta * 7
 
@@ -302,8 +303,14 @@ def _create_summary_Hourly_graph(df : pd.DataFrame, hourly_df : pd.DataFrame):
     ls_df = hourly_df[hourly_df['load_shift_day'] == 1]
 
     ls_df = ls_df.groupby('hr').mean(numeric_only = True)
+    ls_df = round_df_to_3_decimal(ls_df)
+
     nls_df = nls_df.groupby('hr').mean(numeric_only = True)
+    nls_df = round_df_to_3_decimal(nls_df)
+
     power_df = hourly_df.groupby('hr').mean(numeric_only = True)
+    power_df = round_df_to_3_decimal(power_df)
+
     power_fig = px.line(title = "Average Daily Power")
     
     for column_name in powerin_columns:
@@ -393,7 +400,9 @@ def create_hourly_shapes(df : pd.DataFrame, graph_df : pd.DataFrame, field_df : 
     weekday_df = df[df['weekday'] == True]
     weekend_df = df[df['weekday'] == False]
     weekday_df = weekday_df.groupby('hr').mean(numeric_only = True)
+    weekday_df = round_df_to_3_decimal(weekday_df)
     weekend_df = weekend_df.groupby('hr').mean(numeric_only = True)
+    weekend_df = round_df_to_3_decimal(weekend_df)
     subplot_titles = []
     for key, value in organized_mapping.items():
         # Extract the category (e.g., Temperature or Power)
