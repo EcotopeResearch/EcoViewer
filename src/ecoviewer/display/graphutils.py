@@ -77,7 +77,7 @@ def create_conjoined_graphs(df : pd.DataFrame, organized_mapping, add_state_shad
     fig = make_subplots(rows = len(organized_mapping.items()), cols = 1, 
                 specs=[[{"secondary_y": True}]]*len(organized_mapping.items()),
                 shared_xaxes=True,
-                vertical_spacing = 0.05,
+                vertical_spacing = 0.02,
                 subplot_titles = subplot_titles)
     
     row = 0
