@@ -102,7 +102,22 @@ def create_conjoined_graphs(df : pd.DataFrame, organized_mapping, add_state_shad
             column_name = field_dict["column_name"]
             y_axis = 'y1'
             secondary_y = False
-            fig.add_trace(go.Scatter(x=df.index, y=df[column_name], name=name, yaxis=y_axis, mode='lines'), row=row, col = 1, secondary_y=secondary_y)
+            fig.add_trace(
+                go.Scatter(
+                    x=df.index, 
+                    y=df[column_name], 
+                    name=name, 
+                    yaxis=y_axis, 
+                    mode='lines',
+                    hovertemplate="<br>".join([
+                        f"{name}",
+                        "time_pt=%{x}",
+                        "value=%{y}",
+                    ])
+                ), 
+                row=row, 
+                col = 1, 
+                secondary_y=secondary_y)
         for field_dict in y2_fields:
             name = field_dict["readable_name"]
             column_name = field_dict["column_name"]
@@ -110,7 +125,22 @@ def create_conjoined_graphs(df : pd.DataFrame, organized_mapping, add_state_shad
                 cop_columns.append(column_name)
             y_axis = 'y2'
             secondary_y = True
-            fig.add_trace(go.Scatter(x=df.index, y=df[column_name], name=name, yaxis=y_axis, mode='lines'), row=row, col = 1, secondary_y=secondary_y)
+            fig.add_trace(
+                go.Scatter(
+                    x=df.index, 
+                    y=df[column_name], 
+                    name=name, 
+                    yaxis=y_axis, 
+                    mode='lines',
+                    hovertemplate="<br>".join([
+                        f"{name}",
+                        "time_pt=%{x}",
+                        "value=%{y}",
+                    ])
+                ), 
+                row=row, 
+                col = 1, 
+                secondary_y=secondary_y)
 
         fig.update_yaxes(title_text="<b>"+y1_units+"</b>", row=row, col = 1, secondary_y = False)
         fig.update_yaxes(title_text="<b>"+y2_units+"</b>", row=row, col = 1, secondary_y = True)
@@ -442,8 +472,18 @@ def create_hourly_shapes(df : pd.DataFrame, graph_df : pd.DataFrame, field_df : 
             column_name = field_dict["column_name"]
             if column_name in weekday_df.columns:
                 weekday_trace = go.Scatter(x=weekday_df.index, y=weekday_df[column_name], name=name, legendgroup=name, yaxis=y_axis, mode='lines',
+                                            hovertemplate="<br>".join([
+                                                f"{name}",
+                                                "hour=%{x}",
+                                                "value=%{y}",
+                                            ]), 
                                             line=dict(color = colors[color_num]))
                 weekend_trace = go.Scatter(x=weekend_df.index, y=weekend_df[column_name], name=name, legendgroup=name, yaxis=y_axis, mode='lines', 
+                                            hovertemplate="<br>".join([
+                                                f"{name}",
+                                                "hour=%{x}",
+                                                "value=%{y}",
+                                            ]), 
                                             showlegend=False, line=dict(color = colors[color_num]))
                 fig.add_trace(weekday_trace, row=row, col = 1, secondary_y=secondary_y)
                 fig.add_trace(weekend_trace, row=row+1, col = 1, secondary_y=secondary_y)
@@ -457,8 +497,18 @@ def create_hourly_shapes(df : pd.DataFrame, graph_df : pd.DataFrame, field_df : 
             column_name = field_dict["column_name"]
             if column_name in weekday_df.columns:
                 weekday_trace = go.Scatter(x=weekday_df.index, y=weekday_df[column_name], name=name, legendgroup=name, yaxis=y_axis, mode='lines',
+                                            hovertemplate="<br>".join([
+                                                f"{name}",
+                                                "hour=%{x}",
+                                                "value=%{y}",
+                                            ]),
                                             line=dict(color = colors[color_num]))
-                weekend_trace = go.Scatter(x=weekend_df.index, y=weekend_df[column_name], name=name, legendgroup=name, yaxis=y_axis, mode='lines', 
+                weekend_trace = go.Scatter(x=weekend_df.index, y=weekend_df[column_name], name=name, legendgroup=name, yaxis=y_axis, mode='lines',
+                                            hovertemplate="<br>".join([
+                                                f"{name}",
+                                                "hour=%{x}",
+                                                "value=%{y}",
+                                            ]), 
                                             showlegend=False, line=dict(color = colors[color_num]))
                 fig.add_trace(weekday_trace, row=row, col = 1, secondary_y=secondary_y)
                 fig.add_trace(weekend_trace, row=row+1, col = 1, secondary_y=secondary_y)
