@@ -9,7 +9,7 @@ import math
 import numpy as np
 from datetime import datetime
 
-def get_user_permissions_from_db(user_email : str, sql_dash_config):
+def get_user_permissions_from_db(user_email : str, sql_dash_config, exclude_csv_only_fields : bool = True):
     email_groups = [user_email, user_email.split('@')[-1]]
     
     cnx = mysql.connector.connect(**sql_dash_config)
@@ -39,14 +39,18 @@ def get_user_permissions_from_db(user_email : str, sql_dash_config):
         graph_df = pd.DataFrame(result, columns=column_names)
         graph_df = graph_df.set_index('graph_id')
 
-        field_query = site_query = """
+        field_query = """
             SELECT * FROM field
             WHERE site_name IN ({})
         """.format(', '.join(['%s'] * len(table_names)))
+        if exclude_csv_only_fields:
+            field_query = f"{field_query} AND graph_id IS NOT NULL" 
+        
         cursor.execute(field_query, table_names)
         result = cursor.fetchall()
         column_names = [desc[0] for desc in cursor.description]
         field_df = pd.DataFrame(result, columns=column_names)
+        print("field df length", len(field_df.index))
 
     cursor.close()
     cnx.close()
