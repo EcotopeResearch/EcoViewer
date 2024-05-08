@@ -29,7 +29,7 @@ def update_graph_time_frame(value, start_date, end_date, df, unit):
     fig.update_layout(xaxis_title = 'Timestamp', yaxis_title = unit)
     return fig
 
-def create_date_note(site_name, cursor):
+def create_date_note(site_name, cursor, pretty_name):
     """
     returns [date_note, first_date, last_date]
     """
@@ -46,7 +46,7 @@ def create_date_note(site_name, cursor):
     last_date = result[0][0]
 
     return [
-            f"Possible range for {site_name}:",
+            f"Possible range for {pretty_name}:",
             html.Br(),
             f"{first_date.strftime('%m/%d/%y')} - {last_date.strftime('%m/%d/%y')}"
     ]
