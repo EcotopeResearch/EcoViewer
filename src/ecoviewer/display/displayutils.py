@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 from dash import dcc, html, Dash, dash_table
 from ecoviewer.config import get_organized_mapping
 
-def create_meta_data_table(site_df : pd.DataFrame, selected_table : str, app : Dash):
+def create_meta_data_table(site_df : pd.DataFrame, selected_table : str, app : Dash, anonymize_data : bool = True):
     wh_unit_name = site_df.loc[selected_table, 'wh_unit_name']
     wh_manufacturer = site_df.loc[selected_table, 'wh_manufacturer']
     swing_tank_volume = site_df.loc[selected_table, 'swing_tank_volume']
@@ -14,11 +14,17 @@ def create_meta_data_table(site_df : pd.DataFrame, selected_table : str, app : D
         "Building Specifications" : site_df.loc[selected_table, 'building_specs'] if site_df.loc[selected_table, 'building_specs'] is not None else "Unknown", 
         "Primary System Model" : f"{wh_manufacturer} {wh_unit_name}" if not wh_manufacturer is None and not wh_unit_name is None else None, 
         "Primary HPWHs" : site_df.loc[selected_table, 'number_heat_pumps'], 
-        "Primary Tank Volume" : site_df.loc[selected_table, 'tank_size_gallons'], 
-        "Swing Tank Element" : site_df.loc[selected_table, 'swing_element_kw'], 
-        "Temperature Maintenance Storage Volume" : site_df.loc[selected_table, 'swing_tank_volume'],
+        "Primary Tank Volume" : f"{site_df.loc[selected_table, 'tank_size_gallons']} Gallons" if site_df.loc[selected_table, 'tank_size_gallons'] is not None else None, 
+        "Swing Tank Element" : f"{site_df.loc[selected_table, 'swing_element_kw']} kW" if site_df.loc[selected_table, 'swing_element_kw'] is not None else None, 
+        "Temperature Maintenance Storage Volume" : f"{swing_tank_volume} Gallons" if not (swing_tank_volume is None or pd.isna(swing_tank_volume)) else None,
         "Schematic Drawing": f"![]({app.get_asset_url('schematic-swingtank.jpg')})" if not (swing_tank_volume is None or pd.isna(swing_tank_volume)) else None
     }
+
+    if anonymize_data:
+        mapping['Address'] = None
+        zip_code = site_df.loc[selected_table, 'zip_code']
+        mapping['Zip Code'] = f"{zip_code}" if not (zip_code is None or pd.isna(zip_code)) else "Unknown"
+
 
     detail = []
     info = []
