@@ -21,7 +21,7 @@ def get_user_permissions_from_db(user_email : str, sql_dash_config, exclude_csv_
         WHERE site_name IN
         (SELECT site_name from site_access WHERE user_group IN (
         SELECT user_group from user_groups WHERE email_address IN ({})
-        ))
+        )) ORDER BY pretty_name
     """.format(', '.join(['%s'] * len(email_groups)))
     cursor.execute(site_query, email_groups)
     result = cursor.fetchall()

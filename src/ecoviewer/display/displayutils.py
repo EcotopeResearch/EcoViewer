@@ -14,7 +14,7 @@ def create_meta_data_table(site_df : pd.DataFrame, selected_table : str, app : D
 
     mapping = {
         "Address" : site_df.loc[selected_table, 'address'] if site_df.loc[selected_table, 'address'] is not None else "Unknown", 
-        "Zip Code" : f"{zip_code}" if not (zip_code is None or pd.isna(zip_code)) else "Unknown",
+        "Zip Code" : zip_code if not (zip_code is None or pd.isna(zip_code)) else "Unknown",
         "Building Specifications" : site_df.loc[selected_table, 'building_specs'] if site_df.loc[selected_table, 'building_specs'] is not None else "Unknown", 
         "Primary System Model" : f"{wh_manufacturer} {wh_unit_name}" if not wh_manufacturer is None and not wh_unit_name is None else None, 
         "Primary HPWHs" : site_df.loc[selected_table, 'number_heat_pumps'], 
