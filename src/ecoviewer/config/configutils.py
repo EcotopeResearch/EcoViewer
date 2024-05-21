@@ -50,7 +50,6 @@ def get_user_permissions_from_db(user_email : str, sql_dash_config, exclude_csv_
         result = cursor.fetchall()
         column_names = [desc[0] for desc in cursor.description]
         field_df = pd.DataFrame(result, columns=column_names)
-        print("field df length", len(field_df.index))
 
     cursor.close()
     cnx.close()

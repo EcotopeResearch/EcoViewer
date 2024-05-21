@@ -7,21 +7,36 @@ from ecoviewer.config import get_organized_mapping
 def create_meta_data_table(site_df : pd.DataFrame, selected_table : str, app : Dash, anonymize_data : bool = True):
     wh_unit_name = site_df.loc[selected_table, 'wh_unit_name']
     wh_manufacturer = site_df.loc[selected_table, 'wh_manufacturer']
+    primary_model = None
+    if not wh_manufacturer is None and not wh_unit_name is None:
+        primary_model = f"{wh_manufacturer} {wh_unit_name}"
+    elif not wh_manufacturer is None:
+         primary_model = f"{wh_manufacturer}"
+    elif not wh_unit_name is None:
+         primary_model = f"{wh_unit_name}"
     swing_tank_volume = site_df.loc[selected_table, 'swing_tank_volume']
     zip_code = site_df.loc[selected_table, 'zip_code']
     swing_t_elem = site_df.loc[selected_table, 'swing_element_kw']
     primary_volume = site_df.loc[selected_table, 'tank_size_gallons']
+    installation_year = site_df.loc[selected_table, 'unit_installation_year']
+    building_specs = "Unknown"
+    if site_df.loc[selected_table, 'building_specs'] is not None:
+        building_specs = site_df.loc[selected_table, 'building_specs']
+    elif site_df.loc[selected_table, 'building_type'] is not None:
+        building_specs = site_df.loc[selected_table, 'building_type']
 
     mapping = {
         "Address" : site_df.loc[selected_table, 'address'] if site_df.loc[selected_table, 'address'] is not None else "Unknown", 
         "Zip Code" : zip_code if not (zip_code is None or pd.isna(zip_code)) else "Unknown",
-        "Building Specifications" : site_df.loc[selected_table, 'building_specs'] if site_df.loc[selected_table, 'building_specs'] is not None else "Unknown", 
-        "Primary System Model" : f"{wh_manufacturer} {wh_unit_name}" if not wh_manufacturer is None and not wh_unit_name is None else None, 
+        "Building Specifications/Type" : building_specs, 
+        "Primary System Model" : primary_model, 
         "Primary HPWHs" : site_df.loc[selected_table, 'number_heat_pumps'], 
         "Primary Tank Volume" : f"{primary_volume} Gallons" if not (primary_volume is None or pd.isna(primary_volume)) else None, 
         "Swing Tank Element" : f"{swing_t_elem} kW" if not (swing_t_elem is None or pd.isna(swing_t_elem)) else None, 
         "Temperature Maintenance Storage Volume" : f"{swing_tank_volume} Gallons" if not (swing_tank_volume is None or pd.isna(swing_tank_volume)) else None,
-        "Schematic Drawing": f"![]({app.get_asset_url('schematic-swingtank.jpg')})" if not (swing_tank_volume is None or pd.isna(swing_tank_volume)) else None
+        "Schematic Drawing": f"![]({app.get_asset_url('schematic-swingtank.jpg')})" if not (swing_tank_volume is None or pd.isna(swing_tank_volume)) else None,
+        "Installation Year" : installation_year if not (installation_year is None or pd.isna(installation_year)) else None,
+        "Operation Hours" : site_df.loc[selected_table, 'operation_hours'] if site_df.loc[selected_table, 'operation_hours'] is not None else None,
     }
 
     if anonymize_data:
