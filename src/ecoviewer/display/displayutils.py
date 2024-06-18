@@ -3,6 +3,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from dash import dcc, html, Dash, dash_table
 from ecoviewer.config import get_organized_mapping
+from ecoviewer.constants.constants import *
 
 def create_meta_data_table(site_df : pd.DataFrame, selected_table : str, app : Dash, anonymize_data : bool = True):
     wh_unit_name = site_df.loc[selected_table, 'wh_unit_name']
@@ -73,7 +74,7 @@ def create_meta_data_table(site_df : pd.DataFrame, selected_table : str, app : D
 def get_no_raw_retrieve_msg():
     return html.P(style={'color': 'black', 'textAlign': 'center'}, children=[
             html.Br(),
-            f"Time frame is too large to retrieve raw data. To view raw data, set time frame to 7 days or less and ensure the 'Retrieve Raw Data' checkbox is selected."
+            f"Time frame is too large to retrieve raw data. To view raw data, set time frame to {max_raw_data_days} days or less and ensure the 'Retrieve Raw Data' checkbox is selected."
         ])
 
 def create_data_dictionary(organized_mapping):

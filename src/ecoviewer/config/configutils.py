@@ -8,6 +8,7 @@ import mysql.connector
 import math
 import numpy as np
 from datetime import datetime, timedelta
+from ecoviewer.constants.constants import *
 
 def get_user_permissions_from_db(user_email : str, sql_dash_config, exclude_csv_only_fields : bool = True):
     email_groups = [user_email, user_email.split('@')[-1]]
@@ -210,7 +211,7 @@ def is_within_raw_data_limit(date_str1 : str, date_str2 : str):
     date1 = datetime.strptime(date_str1, '%Y-%m-%d')
     date2 = datetime.strptime(date_str2, '%Y-%m-%d')
     difference = abs(date1 - date2)
-    return difference <= timedelta(days=7)
+    return difference <= timedelta(days=max_raw_data_days)
 
 def round_df_to_3_decimal(df : pd.DataFrame) -> pd.DataFrame:
     float_cols = df.select_dtypes(include=['float64'])
