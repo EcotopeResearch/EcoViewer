@@ -73,7 +73,7 @@ def create_meta_data_table(site_df : pd.DataFrame, selected_table : str, app : D
 def get_no_raw_retrieve_msg():
     return html.P(style={'color': 'black', 'textAlign': 'center'}, children=[
             html.Br(),
-            f"To view raw data, please select the 'Retrieve Raw Data' checkbox and re-run the query. It is recommended to only retrieve raw data for a few days at a time to avoid long loading times."
+            f"Time frame is too large to retrieve raw data. To view raw data, set time frame to 7 days or less and ensure the 'Retrieve Raw Data' checkbox is selected."
         ])
 
 def create_data_dictionary(organized_mapping):
@@ -106,10 +106,10 @@ def create_data_dictionary(organized_mapping):
 
 def create_data_dictionary_checklist(graph_df : pd.DataFrame, field_df : pd.DataFrame, selected_table : str):
     organized_mapping = get_organized_mapping([], graph_df, field_df, selected_table, True)
-    returnStr = []
+    returnDiv = []
     
     for key, value in organized_mapping.items():
-        returnStr.append(
+        returnDiv.append(
             dcc.Checklist(
                 id=f'checkbox-{value["title"]}',
                 options=[
@@ -139,7 +139,7 @@ def create_data_dictionary_checklist(graph_df : pd.DataFrame, field_df : pd.Data
                 'value' : field_dict["column_name"]
             })
             sub_values.append(field_dict["column_name"])
-        returnStr.append(
+        returnDiv.append(
             html.Div(
                 [
                     dcc.Checklist(
@@ -153,7 +153,7 @@ def create_data_dictionary_checklist(graph_df : pd.DataFrame, field_df : pd.Data
                 style={'padding-left': '20px'}
             )
         )
-    return returnStr
+    return returnDiv
 
 def user_has_no_permisions_message(user_email : str):
     return html.P(style={'color': 'black', 'textAlign': 'center'}, children=[
