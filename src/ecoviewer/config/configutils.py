@@ -7,7 +7,8 @@ import plotly.colors
 import mysql.connector
 import math
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timedelta
+from ecoviewer.constants.constants import *
 
 def get_user_permissions_from_db(user_email : str, sql_dash_config, exclude_csv_only_fields : bool = True):
     email_groups = [user_email, user_email.split('@')[-1]]
@@ -204,7 +205,32 @@ def get_df_from_query(query : str, cursor) -> pd.DataFrame:
     df = round_df_to_3_decimal(df)
     return df
 
+def is_within_raw_data_limit(date_str1 : str, date_str2 : str):
+    if date_str1 is None or date_str2 is None:
+        return True
+    date1 = datetime.strptime(date_str1, '%Y-%m-%d')
+    date2 = datetime.strptime(date_str2, '%Y-%m-%d')
+    difference = abs(date1 - date2)
+    return difference <= timedelta(days=max_raw_data_days)
+
 def round_df_to_3_decimal(df : pd.DataFrame) -> pd.DataFrame:
     float_cols = df.select_dtypes(include=['float64'])
     df[float_cols.columns] = float_cols.round(3)
     return df
+
+def get_all_graph_ids(sql_dash_config):
+    
+    cnx = mysql.connector.connect(**sql_dash_config)
+    cursor = cnx.cursor() 
+
+    cursor.execute("SELECT DISTINCT graph_id FROM graph_display;")
+    result = cursor.fetchall()
+
+    column_names = [desc[0] for desc in cursor.description]
+    graph_df = pd.DataFrame(result, columns=column_names)
+    graph_ids = graph_df["graph_id"].values.tolist()
+
+    cursor.close()
+    cnx.close()
+    
+    return graph_ids
