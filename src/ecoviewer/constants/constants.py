@@ -1,1 +1,1 @@
-max_raw_data_days = 7
+max_raw_data_days = 14
