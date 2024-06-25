@@ -63,7 +63,7 @@ def calc_daily_peakyness(daily_table, hourly_table):
     daily_table['peak_volumes'] = daily_table['peak_volumes']*60 # convert to gallons
     daily_table['peak_hours'] = peak_hours
     daily_table['peak_norm'] = peak_norm
-    print(peak_norm)
+    
     return daily_table
 
 def extract_percentile_days(daily_table, percentile, cursor, hourly_table):
@@ -106,16 +106,26 @@ def extract_percentile_days(daily_table, percentile, cursor, hourly_table):
     for series in [highVolWeekdayProfile, highPeakWeekdayProfile, highVolWeekendProfile, highPeakWeekendProfile]:
         series.index = series.index.hour
 
-    print(highVolWeekdayProfile)
    # return highVolWeekdayDate, highPeakWeekdayDate, highVolWeekendDate, highPeakWeekendDate
     return highVolWeekdayProfile, highPeakWeekdayProfile, highVolWeekendProfile, highPeakWeekendProfile
 
 
-def query_cop_data(daily_table, cursor):
+def query_daily_data(daily_table, cursor):
 
     query = f"SELECT * FROM {daily_table};"
     cursor.execute(query)
     daily_df = cursor.fetchall()
     daily_df = pd.DataFrame(daily_df, columns = cursor.column_names)
+    daily_df.set_index('time_pt', inplace = True)
 
     return daily_df
+
+def query_hourly_data(hourly_table, cursor):
+
+    query = f"SELECT * FROM {hourly_table};"
+    cursor.execute(query)
+    hourly_df = cursor.fetchall()
+    hourly_df = pd.DataFrame(hourly_df, columns = cursor.column_names)
+    hourly_df.set_index('time_pt', inplace = True)
+
+    return hourly_df
