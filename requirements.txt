@@ -3,3 +3,4 @@ plotly
 dash
 mysql-connector-python==8.0.32
 numpy
+statsmodels
