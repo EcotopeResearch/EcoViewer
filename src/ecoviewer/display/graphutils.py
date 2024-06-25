@@ -8,11 +8,12 @@ import numpy as np
 import math
 from ecoviewer.config import get_organized_mapping, round_df_to_3_decimal
 from datetime import datetime
+#import statsmodels.api as sm
+from .graphhelper import query_daily_flow_percentiles, calc_daily_peakyness, extract_percentile_days, query_daily_data, query_hourly_data
 
 state_colors = {
     "loadUp" : "green",
-    "shed" : "blue"
-}
+    "shed" : "blue"}
 
 def get_state_colors():
     return state_colors
@@ -372,6 +373,170 @@ def _create_summary_pie_graph(df):
     pie_fig = px.pie(names=sums.index, values=sums.values, title='Distribution of Energy')
     return dcc.Graph(figure=pie_fig)
 
+def _create_summary_gpdpp_timeseries(site_df_row, cursor):
+
+    df_daily = query_daily_data(site_df_row.daily_table, cursor)
+
+    df_daily['Flow_CityWater_Total'] = df_daily['Flow_CityWater'] * (60 * 24) #average GPM * 60min/hr * 24hr/day
+    df_daily['Flow_CityWater_PP'] = round(df_daily['Flow_CityWater_Total'] / site_df_row.occupant_capacity, 2)
+
+    mean_daily_usage, high_daily_usage = query_daily_flow_percentiles(site_df_row.daily_table, 0.95, cursor) / site_df_row.occupant_capacity 
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily.Flow_CityWater_PP, mode = 'markers',
+                             marker = dict(size=5, color = 'darkblue'), showlegend=False))
+    
+    fig.add_trace(go.Scatter(
+    x=[df_daily.index.min() - pd.Timedelta(hours = 23), df_daily.index.max() + pd.Timedelta(hours = 23)],
+    y=[mean_daily_usage, mean_daily_usage],
+    mode="lines",
+    line=dict(color="darkred", dash="dash"),
+    name="Mean Daily Usage",
+    hoverinfo="text",
+    hovertext=f"Mean Daily Usage: {mean_daily_usage:.2f} Gallons/Person/Day"))
+    
+    fig.add_trace(go.Scatter(
+    x=[df_daily.index.min() - pd.Timedelta(hours = 23), df_daily.index.max() + pd.Timedelta(hours = 23)],
+    y=[high_daily_usage, high_daily_usage],
+    mode="lines",
+    line=dict(color="darkgreen", dash="dash"),
+    name="95th Percentile Usage",
+    hoverinfo="text",
+    hovertext=f"95th Percentile Usage: {high_daily_usage:.2f} Gallons/Person/Day"))
+
+    fig.update_layout(title = '<b>Daily Hot Water Usage')
+    fig.update_yaxes(title = '<b>Gallons/Person/Day')
+    fig.update_xaxes(title = '<b>Time')
+
+    return dcc.Graph(figure=fig)
+
+
+def _create_summary_peak_norm(df_hourly, df_daily, site_df_row):
+    
+    df_daily_with_peak = calc_daily_peakyness(df_daily, df_hourly)
+    
+    df_daily_with_peak['Flow_CityWater_PP'] = df_daily_with_peak['Flow_CityWater']  * 60 * 24 / site_df_row.occupant_capacity
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df_daily_with_peak['Flow_CityWater_PP'], y=df_daily_with_peak['peak_norm'], mode='markers', marker=dict(color='darkblue')))
+    fig.update_layout(title = '<b>Daily Peak Norm')
+    fig.update_yaxes(title = '<b>Daily Max Fraction of DHW Consumed in 3-Hour Period')
+    fig.update_xaxes(title = '<b>Gallons/Person/Day')
+
+    return dcc.Graph(figure=fig)
+
+
+def _create_summary_hourly_flow(df_hourly, df_daily, site_df_row, cursor):
+
+    df_hourly['weekday'] = np.where(df_hourly.index.weekday <= 4, 1, 0)
+    df_hourly['hour'] = df_hourly.index.hour
+    df_hourly['date'] = df_hourly.index.date
+
+    weekday = df_hourly.loc[df_hourly.weekday == 1]
+    weekend = df_hourly.loc[df_hourly.weekday == 0]
+    
+    weekday = weekday.pivot(index = 'hour', columns = 'date', values = 'Flow_CityWater')
+    weekend = weekend.pivot(index = 'hour', columns = 'date', values = 'Flow_CityWater')
+    
+    highVolWeekdayProfile, highPeakWeekdayProfile, highVolWeekendProfile, highPeakWeekendProfile = extract_percentile_days(site_df_row.daily_table, 0.98, cursor, site_df_row.hour_table)
+    
+    fig = make_subplots(rows=1, cols=2, vertical_spacing = 0.025, horizontal_spacing = 0.025, shared_xaxes=False)
+    
+    for i in range(len(weekday.columns)):
+        fig.add_trace(go.Scatter(
+            x = weekday.index,
+            y = weekday.iloc[:,i] * 60 / site_df_row.occupant_capacity,
+            name = i,
+            opacity = 0.2,
+            marker = dict(color = "grey"),
+            showlegend = False),
+            row = 1,
+            col = 1)
+        
+    for i in range(len(weekend.columns)):
+        fig.add_trace(go.Scatter(
+            x = weekend.index,
+            y = weekend.iloc[:,i] * 60 / site_df_row.occupant_capacity,
+            name = i,
+            opacity = 0.2,
+            marker = dict(color = "grey"),
+            showlegend = False),
+            row = 1,
+            col = 2)
+    
+    fig.add_trace(go.Scatter(x = weekday.index, y = highVolWeekdayProfile / site_df_row.occupant_capacity, name = 'Peak Volume', marker = dict(color = "darkblue")), row = 1, col = 1)
+    fig.add_trace(go.Scatter(x = weekday.index, y = highPeakWeekdayProfile / site_df_row.occupant_capacity, name = 'Peak Norm', marker = dict(color = "darkred")), row = 1, col = 1)
+    fig.add_trace(go.Scatter(x = weekend.index, y = highVolWeekendProfile / site_df_row.occupant_capacity, name = 'Peak Volume', marker = dict(color = "darkblue"), showlegend = False), row = 1, col = 2)
+    fig.add_trace(go.Scatter(x = weekend.index, y = highPeakWeekendProfile / site_df_row.occupant_capacity, name = 'Peak Norm', marker = dict(color = "darkred"), showlegend = False), row = 1, col = 2)
+
+
+    fig.update_layout(title = '<b>Hourly DHW Flow')
+    fig.update_xaxes(title = '<b>Weekday', row = 1, col = 1)
+    fig.update_xaxes(title = '<b>Weekend', row = 1, col = 2)
+    fig.update_yaxes(title = '<b>Gallons', row = 1, col = 1)
+
+    return dcc.Graph(figure=fig)
+
+
+def _create_summary_cop_regression(site_df_row, cursor):
+    
+    df_daily = query_daily_data(site_df_row.daily_table, cursor)
+    
+    df_daily['Temp_OutdoorAir'] = df_daily['Temp_OAT']
+    df_daily['SystemCOP'] = df_daily['COP_BoundaryMethod']
+
+    fig = px.scatter(df_daily, x='Temp_OutdoorAir', y='SystemCOP',
+                 title='<b>Outdoor Air Temperature & System COP Regression', trendline="ols", 
+                 labels={'Temp_OutdoorAir': '<b>Outdoor Air Temperature', 'SystemCOP': '<b>System COP', 
+                         'PrimaryEneryRatio': 'Primary Energy Ratio', 'Site': '<b>Site'},
+    color_discrete_sequence=["darkblue"]
+                         )
+    
+
+    return dcc.Graph(figure=fig)
+
+def _create_summary_cop_timeseries(site_df_row, cursor):
+
+    df_daily = query_daily_data(site_df_row.daily_table, cursor)
+
+    df_daily['SystemCOP'] = df_daily['COP_BoundaryMethod']
+    df_daily['Temp_OutdoorAir'] = df_daily['Temp_OAT']
+
+    fig = make_subplots(specs = [[{'secondary_y':True}]])
+    fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily.SystemCOP,
+                             mode = 'markers', name = 'System COP',
+                             marker=dict(color='darkred')), secondary_y = True)
+    
+    fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily.Temp_OutdoorAir,
+                             mode = 'markers', name = 'Outdoor Air Temerature',
+                              marker=dict(color='darkgreen')), secondary_y = False)
+    
+    fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily.Temp_CityWater,
+                             mode = 'markers', name = 'City Water Temperature',
+                            marker=dict(color='darkblue')), secondary_y = False)
+
+    fig.update_layout(title = '<b>System COP')
+    fig.update_xaxes(title = '<b>Date')
+    fig.update_yaxes(title = '<b>System COP', secondary_y = True)
+    fig.update_yaxes(title = '<b>Daily Average Air and Water Temperature (F)', secondary_y = False)
+
+    return dcc.Graph(figure=fig)
+
+def _create_summary_boxwhisker_flow(cursor, site_df_row):
+
+    hourly_df = query_hourly_data(site_df_row.hour_table, cursor)
+    hourly_df['hour'] = hourly_df.index.hour
+    hourly_df['Flow_CityWater_PerTenant'] = hourly_df['Flow_CityWater'] * 60 / site_df_row.occupant_capacity
+
+    fig = px.box(hourly_df, x = 'hour', y = 'Flow_CityWater_PerTenant', color_discrete_sequence=['darkblue'])
+    fig.update_layout(title = '<b>Hourly DHW Usage')
+    fig.update_xaxes(title = '<b>Hour')
+    fig.update_yaxes(title = '<b>Gallons/Tenant')
+
+
+
+    return dcc.Graph(figure=fig)
+
 # Define a function to check if a value is numeric
 def _is_numeric(value):
     return pd.api.types.is_numeric_dtype(pd.Series([value]))
@@ -392,7 +557,7 @@ def _create_summary_gpdpp_histogram(df_daily : pd.DataFrame, site_df_row):
                     f"Error: could not load GPDPP histogram due to {error_msg}"
                 ])
 
-def create_summary_graphs(df, hourly_df, config_df, site_df_row):
+def create_summary_graphs(daily_df, hourly_df, config_df, site_df_row, cursor):
 
     graph_components = []
     
@@ -401,9 +566,9 @@ def create_summary_graphs(df, hourly_df, config_df, site_df_row):
     unique_groups = filtered_df['summary_group'].unique()
     for unique_group in unique_groups:
         filtered_group_df = config_df[config_df['summary_group']==unique_group]
-        group_columns = [col for col in df.columns if col in filtered_group_df['field_name'].tolist()]
+        group_columns = [col for col in daily_df.columns if col in filtered_group_df['field_name'].tolist()]
         
-        group_df = df[group_columns]
+        group_df = daily_df[group_columns]
         # Title if multiple groups:
         if len(unique_groups) > 1:
             graph_components.append(html.H2(unique_group))
@@ -418,6 +583,24 @@ def create_summary_graphs(df, hourly_df, config_df, site_df_row):
             graph_components.append(_create_summary_pie_graph(group_df))
         if site_df_row["summary_gpdpp_histogram"]:
             graph_components.append(_create_summary_gpdpp_histogram(group_df, site_df_row))
+        # GPDPP Timeseries
+        if site_df_row['summary_gpdpp_timeseries']:
+            graph_components.append(_create_summary_gpdpp_timeseries(site_df_row, cursor))
+        # Peak Norm Scatter
+        if site_df_row['summary_peaknorm']:
+            graph_components.append(_create_summary_peak_norm(hourly_df, group_df, site_df_row))
+        # Hourly Flow Percentiles
+        if site_df_row['summary_hourly_flow']:
+            graph_components.append(_create_summary_hourly_flow(hourly_df, group_df, site_df_row, cursor))
+        # COP Regression
+        if site_df_row['summary_cop_regression']:
+            graph_components.append(_create_summary_cop_regression(site_df_row, cursor))
+        # COP Timeseries
+        if site_df_row['summary_cop_timeseries']:
+            graph_components.append(_create_summary_cop_timeseries(site_df_row, cursor))
+        # DHW Box and Whisker
+        if site_df_row['summary_flow_boxwhisker']:
+            graph_components.append(_create_summary_boxwhisker_flow(cursor, site_df_row))
 
     return graph_components
 
