@@ -486,7 +486,7 @@ def _create_summary_cop_regression(site_df_row, cursor):
     df_daily['SystemCOP'] = df_daily['COP_BoundaryMethod']
 
     fig = px.scatter(df_daily, x='Temp_OutdoorAir', y='SystemCOP',
-                 title='<b>Outdoor Air Temperature & System COP Regression',# trendline="ols", 
+                 title='<b>Outdoor Air Temperature & System COP Regression', trendline="ols", 
                  labels={'Temp_OutdoorAir': '<b>Outdoor Air Temperature', 'SystemCOP': '<b>System COP', 
                          'PrimaryEneryRatio': 'Primary Energy Ratio', 'Site': '<b>Site'},
     color_discrete_sequence=["darkblue"]
