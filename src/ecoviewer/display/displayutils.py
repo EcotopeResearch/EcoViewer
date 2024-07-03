@@ -5,7 +5,7 @@ from dash import dcc, html, Dash, dash_table
 from ecoviewer.config import get_organized_mapping
 from ecoviewer.constants.constants import *
 
-def create_meta_data_table(site_df : pd.DataFrame, selected_table : str, app : Dash, anonymize_data : bool = True):
+def create_meta_data_table(site_df : pd.DataFrame, selected_table : str, asset_string : str, anonymize_data : bool = True):
     wh_unit_name = site_df.loc[selected_table, 'wh_unit_name']
     wh_manufacturer = site_df.loc[selected_table, 'wh_manufacturer']
     primary_model = None
@@ -35,7 +35,7 @@ def create_meta_data_table(site_df : pd.DataFrame, selected_table : str, app : D
         "Primary Tank Volume" : f"{primary_volume} Gallons" if not (primary_volume is None or pd.isna(primary_volume)) else None, 
         "Swing Tank Element" : f"{swing_t_elem} kW" if not (swing_t_elem is None or pd.isna(swing_t_elem)) else None, 
         "Temperature Maintenance Storage Volume" : f"{swing_tank_volume} Gallons" if not (swing_tank_volume is None or pd.isna(swing_tank_volume)) else None,
-        "Schematic Drawing": f"![]({app.get_asset_url('schematic-swingtank.jpg')})" if not (swing_tank_volume is None or pd.isna(swing_tank_volume)) else None,
+        "Schematic Drawing": f"![]({asset_string})" if not (swing_tank_volume is None or pd.isna(swing_tank_volume)) else None,
         "Installation Year" : installation_year if not (installation_year is None or pd.isna(installation_year)) else None,
         "Operation Hours" : site_df.loc[selected_table, 'operation_hours'] if site_df.loc[selected_table, 'operation_hours'] is not None else None,
     }
