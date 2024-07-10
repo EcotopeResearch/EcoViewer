@@ -5,7 +5,24 @@ from dash import dcc, html, Dash, dash_table
 from ecoviewer.config import get_organized_mapping
 from ecoviewer.constants.constants import *
 
-def create_meta_data_table(site_df : pd.DataFrame, selected_table : str, app : Dash, anonymize_data : bool = True):
+def create_meta_data_table(site_df : pd.DataFrame, selected_table : str, app : Dash, anonymize_data : bool = True) -> html.Div:
+    """
+    Parameters
+    ----------
+    site_df: pd.Dataframe
+        Pandas dataframe representing containing all meta data for each data site the user has access to.
+    selected_table : str
+        Name of the site that the meta data table is being created for. This string should corespond to an index in site_df
+    app: Dash
+        The dash application that this table is being created for. This parameter must be passed to access it's assets for schematic images
+    anonymize_data : bool
+        set to True to remove sensitive identifying data (e.g. the building's address) from the data table. False to leave it in. Defaults to True 
+
+    Returns
+    -------
+    meta_data_table: html.Div
+        html div that contains a two column table to describe the site's meta data
+    """
     wh_unit_name = site_df.loc[selected_table, 'wh_unit_name']
     wh_manufacturer = site_df.loc[selected_table, 'wh_manufacturer']
     primary_model = None
@@ -71,13 +88,29 @@ def create_meta_data_table(site_df : pd.DataFrame, selected_table : str, app : D
         ),
     ])
 
-def get_no_raw_retrieve_msg():
+def get_no_raw_retrieve_msg() -> html.P:
+    """
+    Returns
+    -------
+    no_raw_retrieval_msg: html.P
+        html component to communicate that time frame is too large to retrieve raw data
+    """
     return html.P(style={'color': 'black', 'textAlign': 'center'}, children=[
             html.Br(),
             f"Time frame is too large to retrieve raw data. To view raw data, set time frame to {max_raw_data_days} days or less and ensure the 'Retrieve Raw Data' checkbox is selected."
         ])
 
 def create_data_dictionary(organized_mapping):
+    """
+    Parameters
+    ----------
+    organized_mapping: pd.Dataframe
+    
+    Returns
+    -------
+    data_dictionary: list
+        html div that contains a two column table to describe the site's meta data
+    """
     returnStr = [html.H2('Variable Definitions', style={'font-size': '24px'})]
     for key, value in organized_mapping.items():
         returnStr.append(html.H3(value["title"], style={'font-size': '18px'}))

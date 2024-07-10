@@ -1,14 +1,179 @@
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
-from dash import dcc, html
-from plotly.subplots import make_subplots
-import plotly.colors
 import mysql.connector
 import math
-import numpy as np
 from datetime import datetime, timedelta
 from ecoviewer.constants.constants import *
+import os
+import configparser
+
+def get_site_df_from_ini(config_file_path : str):
+    """
+    Parameters
+    ----------
+    config_file_path : str
+        File Path to the config.ini file for the pipeline a user wishes to create the site_df from
+
+    Returns
+    -------
+    site_df : pandas.DataFrame
+        a data frame containing summary configuration and meta data for each site available in the dashapp for a user
+    """
+    os.chdir(os.getcwd())
+
+    if not os.path.exists(config_file_path):
+        raise Exception(f"File path '{config_file_path}' does not exist.")
+    
+    configure = configparser.ConfigParser()
+    configure.read(config_file_path)
+
+    if not 'minute' in configure:
+        raise Exception(f"Missing minute table configuration in '{config_file_path}'.")
+    
+    data = {
+        'site_name': [configure.get("minute", 'table_name')],
+        'minute_table': [configure.get("minute", 'table_name')],
+        'daily_table': [configure.get("day", 'table_name') if 'day' in configure else configure.get("minute", 'table_name')],
+        'hour_table': [configure.get("hour", 'table_name') if 'hour' in configure else configure.get("minute", 'table_name')],
+        'db_name': [configure.get('database', 'database')],
+        'db_host': [configure.get('database', 'host')],
+        'db_pw': [configure.get('database', 'password')],
+        'db_user': [configure.get('database', 'user')]
+    }
+
+    for var_name in ["construction_year","zip_code","square_feet","sector","building_type","operation_hours",
+                     "commercial_occupancy_type","occupant_capacity","cwh_location","wh_unit_name",
+                        "wh_manufacturer","unit_installation_year","model_number","model_type","tank_size_gallons",
+                        "address","building_specs","swing_tank_volume","swing_element_kw","number_heat_pumps","pretty_name"]:
+        if configure.has_section('meta_data') and configure.has_option('meta_data', var_name):
+            data[var_name] = [configure.get('meta_data', var_name)]
+        elif var_name == "pretty_name":
+            data[var_name] = [configure.get("minute", 'table_name')]
+        else:
+            data[var_name] = [None]
+
+    for var_name in ["summary_bar_graph","summary_hour_graph","summary_pie_chart",
+                          "summary_gpdpp_histogram",'summary_gpdpp_timeseries', 'summary_peaknorm', 'summary_hourly_flow',
+                          'summary_cop_regression', 'summary_cop_timeseries','summary_flow_boxwhisker', "state_tracking",
+                            "load_shift_tracking"]:
+        if configure.has_section('summary_options') and configure.has_option('summary_options', var_name) and configure.get('summary_options', var_name).lower() == 'true':
+            data[var_name] = [True]
+        else:
+            data[var_name] = [False]
+        
+    # Create DataFrame
+    df = pd.DataFrame(data)
+    table_names = df["site_name"].values.tolist()
+    df = df.set_index('site_name')
+
+    display_drop_down = []
+    for name in table_names:
+        display_drop_down.append({'label': df.loc[name, "pretty_name"], 'value' : name})
+
+    return df, display_drop_down
+
+def get_graph_df_from_csv(graph_csv_path : str):
+    """
+    Parameters
+    ----------
+    graph_csv_path : str
+        File Path to the Graph_Config.csv file for the pipeline a user wishes to create the graph_df from
+
+    Returns
+    -------
+    graph_df : pandas.DataFrame
+        a data frame containing graph configuration data for each graph available in the dashapp for a user
+    """
+    if os.path.isfile(graph_csv_path):
+        # Read the CSV file into a pandas DataFrame
+        graph_df = pd.read_csv(graph_csv_path)
+        required_columns = {'graph_id', 'graph_title', 'y_1_title', 'y_2_title'}
+        if required_columns.issubset(graph_df.columns):
+            graph_df['graph_title'] = graph_df.apply(lambda row: row['graph_id'] if pd.isnull(row['graph_title']) else row['graph_title'], axis=1)
+            graph_df['y_1_title'] = graph_df.apply(lambda row: '' if pd.isnull(row['y_1_title']) else row['y_1_title'], axis=1)
+            graph_df['y_2_title'] = graph_df.apply(lambda row: '' if pd.isnull(row['y_2_title']) else row['y_2_title'], axis=1)
+            graph_df = graph_df.set_index('graph_id')
+            return graph_df
+        else:
+            raise Exception(f"Column(s) missing from config file. could not process. Ensure all columns in {required_columns} are present in graph configuration csv")
+    else:
+        raise Exception(f"{graph_csv_path} does not exist.")
+    
+def get_field_df_from_csv(field_csv_path : str, site_name : str):
+    """
+    Parameters
+    ----------
+    field_csv_path : str
+        File Path to the Variable_Names.csv file for the pipeline a user wishes to create the field_df from
+
+    Returns
+    -------
+    field_df : pandas.DataFrame
+        a data frame containing field configuration data for each field available in the dashapp for a user
+    """
+    if os.path.isfile(field_csv_path):
+        # Read the CSV file into a pandas DataFrame
+        field_df = pd.read_csv(field_csv_path)
+        required_columns = {'data_type', "variable_name", "graph_id", "pretty_name", "descr", "secondary_axis"}
+        if required_columns.issubset(field_df.columns):
+            # pretty_names_df = field_df.copy()
+            # pretty_names_df = pretty_names_df[(pretty_names_df['data_type'].isna()) & (pretty_names_df['pretty_name'].notnull())]
+
+            # Filter rows with non-null data_type
+            field_df = field_df[field_df['data_type'].notna()]
+            # TODO also add filtering for system where neccessary
+    
+            # Iterate over the DataFrame and insert rows into the 'field' table
+            field_df['field_name'] = field_df['variable_name']
+            field_df['pretty_name'] = field_df.apply(lambda row: row['field_name'] if pd.isnull(row['pretty_name']) else row['pretty_name'], axis=1)
+            field_df['description'] = field_df.apply(lambda row: row['pretty_name'] if pd.isnull(row['descr']) else row['descr'], axis=1)
+            field_df['secondary_y'] = field_df.apply(lambda row: _getGraphInfo(row['data_type'], row['graph_id'], row['secondary_axis'])[1], axis=1)
+            field_df['graph_id'] = field_df.apply(lambda row: _getGraphInfo(row['data_type'], row['graph_id'], row['secondary_axis'])[0], axis=1)
+            field_df['site_name'] = site_name
+
+            optional_fields = ['summary_group','upper_bound','lower_bound',"hourly_shapes_display"]
+            for optional_field in optional_fields:
+                    if optional_field in field_df.columns:
+                        field_df[optional_field] = field_df.apply(lambda row: None if pd.isnull(row[optional_field]) else row[optional_field], axis=1)
+           
+            return field_df
+    
+        else:
+            raise Exception(f"Column(s) missing from config file. could not process. Ensure all columns in {required_columns} are present in graph configuration csv")
+    else:
+        raise Exception(f"{field_csv_path} does not exist.")
+    
+# Function to get graph_id and secondary_y based on data_type
+def _getGraphInfo(data_type, graph_input, secondary_axis):
+    if graph_input != "default" and not pd.isna(graph_input):
+        if not secondary_axis is None and isinstance(secondary_axis, bool):
+            return(graph_input, secondary_axis)
+        return(graph_input, False)
+    if data_type == 'temp' or data_type == 'f':
+        return ("tmp_default", False)
+    elif data_type == 'heat_kw':
+        return ("pwr_kw_default", True)
+    elif data_type == 'kw':
+        return ("pwr_kw_default", False)
+    elif data_type == 'gpm':
+        return ("flw_default", False)
+    elif data_type == 'other':
+        return ("cnds_default", True)
+    elif data_type == 'gallons':
+        return ("vlm_default", False)
+    elif data_type == 'cop':
+        return ("cop_default", False)
+    elif data_type == 'cfm':
+        return ("airflw_default", False)
+    elif data_type == 'cop_instantaneous':
+        return ("cop_efc_default", False)
+    elif data_type == 'efficiency':
+        return ("cop_efc_default", True)
+    elif data_type == 'w':
+        return("pwr_w_default", False)
+    elif data_type == 'btuhr':
+        return("pwr_w_default", True)
+    else:
+        return (None, None)
 
 def get_user_permissions_from_db(user_email : str, sql_dash_config, exclude_csv_only_fields : bool = True):
     email_groups = [user_email, user_email.split('@')[-1]]
@@ -61,6 +226,44 @@ def get_user_permissions_from_db(user_email : str, sql_dash_config, exclude_csv_
     return site_df, graph_df, field_df, display_drop_down
 
 def get_organized_mapping(df_columns, graph_df : pd.DataFrame, field_df : pd.DataFrame, selected_table : str, all_fields : bool = False):
+    """
+    Parameters
+    ----------
+    df_columns: list
+        list of all the column names present in the Pandas dataframe containing data from the site
+    graph_df: pd.Dataframe
+        Pandas dataframe containing all data for graphs from site configuration database. this should include 
+        graph_id as the index,
+        y_1_title as the title of y axis 1 for the graph
+        y_2_title as the title of y axis 2 for the graph
+        graph_title as the displayed title of the graph
+    field_df: pd.Dataframe
+        Pandas dataframe containing all data for fields from site configuration database. this should include 
+        field_name - index of the df
+        graph_id coresponding to the index of graph_df
+        pretty_name as the displayed name of the field
+        description as a description of the field for the data dictionary tab
+        secondary_y - boolean column to determine which Y axis the field belongs to on the graph
+        optional: lower_bound and upper_bound for filtering outliers out
+    selected_table : str
+        Name of the site that the mapping is being created for
+    all_fields : bool
+        set to True to get all fields including those not in the dataframe of site data 
+
+    Returns
+    -------
+    organized_mapping: dictionary
+        dictionary mapping each graph to a list of site data dataframe columns that belong to that graph in the form
+        {
+            graph_id : {
+                "title" : graph_title,
+                "y1_units" : y1_units,
+                "y2_units" : y2_units,
+                "y1_fields" : y1_fields,
+                "y2_fields" : y2_fields
+            }
+        }
+    """
     returnDict = {}
     site_fields = field_df[field_df['site_name'] == selected_table]
     site_fields = site_fields.set_index('field_name')
@@ -176,7 +379,6 @@ def log_event(user_email, selected_table, start_date, end_date, sql_dash_config)
         values.append(f'"{end_date}"')
 
     insert_query = f"INSERT INTO dash_activity_log ({', '.join(fields)}) VALUES ({', '.join(values)});"
-    print(insert_query)
 
     cursor.execute(insert_query)
     
