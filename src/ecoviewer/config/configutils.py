@@ -175,7 +175,36 @@ def _getGraphInfo(data_type, graph_input, secondary_axis):
     else:
         return (None, None)
 
-def get_user_permissions_from_db(user_email : str, sql_dash_config, exclude_csv_only_fields : bool = True):
+def get_user_permissions_from_db(user_email : str, sql_dash_config : dict, exclude_csv_only_fields : bool = True):
+    """
+    retrieves site_df, graph_df, field_df and table_names based on the permisions a user email has
+
+    Parameters
+    ----------
+    user_email : str
+        The email address of the user accessing the dash application
+    sql_dash_config : dict
+        a dictionary containing the sql access information for the site configuration database. this should be in the form
+        {
+            'host':"host_name",
+            'user':"mysql_user_name",
+            'password':"mysql_pw",
+            'database':"Site_Config_database_name"
+        }
+    exclude_csv_only_fields : bool
+        boolean to indicate whether to exclude fields  from field_df that should only be present when users download raw data csvs
+
+    Returns
+    -------
+    site_df : pandas.DataFrame
+        a data frame containing site configuration data for each datasite available in the dashapp for a user
+    graph_df : pandas.DataFrame
+        a data frame containing configuration data for each graph used in the dashapp
+    field_df : pandas.DataFrame
+        a data frame containing field configuration data for each field available in the dashapp for a user
+    table_names : list
+        a list of dictionaries that contain the appropriate displayed name and value for the dash applications site dropdown, taylored for the permissions of the user
+    """
     email_groups = [user_email, user_email.split('@')[-1]]
     
     cnx = mysql.connector.connect(**sql_dash_config)
