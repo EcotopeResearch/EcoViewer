@@ -577,15 +577,21 @@ def _create_summary_erv_performance(df : pd.DataFrame):
     fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.Workspace_East_CO2_passive, name = 'East Workspace CO2 Passive', marker=dict(color='darkblue')), row = 1, col = 1)
     fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.Workspace_West_CO2_passive, name = 'West Workspace CO2 Passive', marker=dict(color='darkred')), row = 1, col = 1)
     fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.Outside_Air_CO2_passive, name = 'Outside Air CO2 Passive', marker=dict(color='darkolivegreen')), row = 1, col = 1)
-    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.ERV_Total_Power_Demand_kW_passive, name = 'ERV Power Draw Passive', marker=dict(color='darkcyan')), row = 2, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.PowerIn_ERV3_passive, name = 'ERV 3 Power Draw Passive', marker=dict(color='lightblue')), row = 2, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.PowerIn_ERV4_passive, name = 'ERV 4 Power Draw Passive', marker=dict(color='darkcyan')), row = 2, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.ERV_3_Supply_Air_Flow_passive, name = "ERV 3 Supply Air Flow Passive", marker=dict(color='goldenrod')), row = 3, col = 1)
     fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.ERV_4_Supply_Air_Flow_passive, name = "ERV 4 Supply Air Flow Passive", marker=dict(color='palevioletred')), row = 3, col = 1)
+    
     
     fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.Workspace_East_CO2_active, name = 'East Workspace CO2 Active', marker=dict(color='darkblue'), line=dict(dash = 'dash')), row = 1, col = 1)
     fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.Workspace_West_CO2_active, name = 'West Workspace CO2 Active', marker=dict(color='darkred'), line=dict(dash = 'dash')), row = 1, col = 1)
     fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.Outside_Air_CO2_active, name = 'Outside Air CO2 Active', marker=dict(color='darkolivegreen'), line=dict(dash = 'dash')), row = 1, col = 1)
-    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.ERV_Total_Power_Demand_kW_active, name = 'ERV Power Draw Active', marker=dict(color='darkcyan'), line=dict(dash = 'dash')), row = 2, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.PowerIn_ERV3_active, name = 'ERV 3 Power Draw Active', marker=dict(color='lightblue'), line=dict(dash = 'dash')), row = 2, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.PowerIn_ERV4_active, name = 'ERV 4 Power Draw Active', marker=dict(color='darkcyan'), line=dict(dash = 'dash')), row = 2, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.ERV_3_Supply_Air_Flow_active, name = "ERV 3 Supply Air Flow Active", marker=dict(color='goldenrod'), line=dict(dash = 'dash')), row = 3, col = 1)
     fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.ERV_4_Supply_Air_Flow_active, name = "ERV 4 Supply Air Flow Active", marker=dict(color='palevioletred'), line=dict(dash = 'dash')), row = 3, col = 1)
     
+
     fig.update_yaxes(title = '<b>Power (kW)', row = 2, col = 1)
     fig.update_yaxes(title = '<b>CO2 PPM', row = 1, col = 1)
     fig.update_yaxes(title = "<b>CFM", row = 3, col = 1)
@@ -643,23 +649,15 @@ def _create_summary_ohp_performance(df : pd.DataFrame):
         fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged[temp], name = name, marker=dict(color=color), line=dict(dash = line_style)), row = 2, col = 1)
 
     fig.update_layout(height=1100)
-    fig.update_yaxes(title = '<b>Power (kW)', row = 2, col = 1)
-    fig.update_yaxes(title = '<b>Temp(F)', row = 1, col = 1)
+    fig.update_yaxes(title = '<b>Power (kW)', row = 1, col = 1)
+    fig.update_yaxes(title = '<b>Temp(F)', row = 2, col = 1)
     fig.update_layout(title = '<b>OHP Performance: Active vs Passive Mode')
 
     return dcc.Graph(figure=fig)
 
 def _create_summary_SERA_pie(df):
 
-    df['Lighting'] = df['Panel_4E52_Power_kW'] + df['Panel_4E51_Power_kW']
-    df['HVAC'] = df['Panel_4M52_Power_kW'] + df['Panel_2M52_Power_kW'] 
-    df['Plugs/Misc'] = df['Panel_2E52_Power_kW'] + df['Panel_2E57_Power_kW'] #2E51
-    
-    df['Ventilation'] = df['ERV_Total_Power_Demand_kW']
-    df['Heating/Cooling'] = df['Panel_4M52_Power_kW'] + df['Panel_2M52_Power_kW'] - df['PowerIn_HPWH1'] - df['ERV_Total_Power_Demand_kW']
-    df['DHW'] = df['PowerIn_HPWH1']
-
-    power_cols = ['Lighting', 'Plugs/Misc', 'Ventilation', 'Heating/Cooling', 'DHW']
+    power_cols = ['PowerIn_Lighting', 'PowerIn_PlugsMisc', 'PowerIn_Ventilation', 'PowerIn_HeatingCooling', 'PowerIn_DHW']
     power_data = df[power_cols].mean()
     colors = px.colors.qualitative.Antique
 
