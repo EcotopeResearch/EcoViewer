@@ -8,6 +8,7 @@ import numpy as np
 import math
 from ecoviewer.config import get_organized_mapping, round_df_to_3_decimal
 from datetime import datetime
+from datetime import time
 #import statsmodels.api as sm
 from .graphhelper import query_daily_flow_percentiles, calc_daily_peakyness, extract_percentile_days, query_daily_data, query_hourly_data
 
@@ -556,6 +557,114 @@ def _create_summary_gpdpp_histogram(df_daily : pd.DataFrame, site_df_row):
         return html.P(style={'color': 'red'}, children=[
                     f"Error: could not load GPDPP histogram due to {error_msg}"
                 ])
+    
+def _create_summary_erv_performance(df : pd.DataFrame):
+    
+    passive = df.loc[df['Active_Mode'] == 1]
+    active = df.loc[df['Passive_Mode'] == 1]
+    
+    average_day_passive = passive.groupby(passive.index.time).mean()
+    average_day_active = active.groupby(active.index.time).mean()
+    
+    average_day_passive.sort_index(inplace = True)
+    average_day_active.sort_index(inplace = True)
+    
+    df_merged = pd.merge(average_day_passive, average_day_active, left_index=True, right_index=True, how='outer', suffixes=('_passive', '_active'))
+    df_merged = df_merged.loc[(df_merged.index >= time(7,0)) & (df_merged.index <= time(19,0))]
+
+    fig = make_subplots(rows=3, cols=1, shared_xaxes=True, vertical_spacing=0.05) 
+    
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.Workspace_East_CO2_passive, name = 'East Workspace CO2 Passive', marker=dict(color='darkblue')), row = 1, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.Workspace_West_CO2_passive, name = 'West Workspace CO2 Passive', marker=dict(color='darkred')), row = 1, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.Outside_Air_CO2_passive, name = 'Outside Air CO2 Passive', marker=dict(color='darkolivegreen')), row = 1, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.PowerIn_ERV3_passive, name = 'ERV 3 Power Draw Passive', marker=dict(color='lightblue')), row = 2, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.PowerIn_ERV4_passive, name = 'ERV 4 Power Draw Passive', marker=dict(color='darkcyan')), row = 2, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.ERV_3_Supply_Air_Flow_passive, name = "ERV 3 Supply Air Flow Passive", marker=dict(color='goldenrod')), row = 3, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.ERV_4_Supply_Air_Flow_passive, name = "ERV 4 Supply Air Flow Passive", marker=dict(color='palevioletred')), row = 3, col = 1)
+    
+    
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.Workspace_East_CO2_active, name = 'East Workspace CO2 Active', marker=dict(color='darkblue'), line=dict(dash = 'dash')), row = 1, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.Workspace_West_CO2_active, name = 'West Workspace CO2 Active', marker=dict(color='darkred'), line=dict(dash = 'dash')), row = 1, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.Outside_Air_CO2_active, name = 'Outside Air CO2 Active', marker=dict(color='darkolivegreen'), line=dict(dash = 'dash')), row = 1, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.PowerIn_ERV3_active, name = 'ERV 3 Power Draw Active', marker=dict(color='lightblue'), line=dict(dash = 'dash')), row = 2, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.PowerIn_ERV4_active, name = 'ERV 4 Power Draw Active', marker=dict(color='darkcyan'), line=dict(dash = 'dash')), row = 2, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.ERV_3_Supply_Air_Flow_active, name = "ERV 3 Supply Air Flow Active", marker=dict(color='goldenrod'), line=dict(dash = 'dash')), row = 3, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.ERV_4_Supply_Air_Flow_active, name = "ERV 4 Supply Air Flow Active", marker=dict(color='palevioletred'), line=dict(dash = 'dash')), row = 3, col = 1)
+    
+
+    fig.update_yaxes(title = '<b>Power (kW)', row = 2, col = 1)
+    fig.update_yaxes(title = '<b>CO2 PPM', row = 1, col = 1)
+    fig.update_yaxes(title = "<b>CFM", row = 3, col = 1)
+    fig.update_layout(title = '<b>ERV Performance: Active vs Passive Mode')
+    fig.update_layout(height=1100)
+
+    return dcc.Graph(figure=fig)
+
+
+def _create_summary_ohp_performance(df : pd.DataFrame):
+
+    passive = df.loc[df['Active_Mode'] == 1]
+    active = df.loc[df['Passive_Mode'] == 1]
+    
+    average_day_passive = passive.groupby(passive.index.time).mean()
+    average_day_active = active.groupby(active.index.time).mean()
+    
+    average_day_passive.sort_index(inplace = True)
+    average_day_active.sort_index(inplace = True)
+    
+    df_merged = pd.merge(average_day_passive, average_day_active, left_index=True, right_index=True, how='outer', suffixes=('_passive', '_active'))
+    df_merged = df_merged.loc[(df_merged.index >= time(7,0)) & (df_merged.index <= time(19,0))]
+
+    power_cols = [col for col in df_merged.columns if 'OHP' in col and 'Power' in col]
+    temp_cols = [col for col in df_merged.columns if 'IHP' in col and 'Space_Temp' in col]
+    colors = ['darkblue', 'darkred', 'darkolivegreen', 'darkcyan', 'palevioletred', 'lightblue', 'khaki', 'sienna',
+              'indianred', 'mediumseagreen', 'goldenrod']
+
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.05)
+
+    prefix_color_map = {}
+    color_index = [0]  # Use a list to hold the color index
+
+    def get_color_for_prefix(prefix):
+        if prefix not in prefix_color_map:
+            prefix_color_map[prefix] = colors[color_index[0] % len(colors)]
+            color_index[0] += 1
+        return prefix_color_map[prefix]
+
+
+    for power in power_cols:
+        prefix = '_'.join(power.split('_')[:-1])  
+        color = get_color_for_prefix(prefix)
+        name = power.replace('_', ' ')
+        line_style = 'dash' if 'active' in power else 'solid'
+         
+        fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged[power], name = name, marker=dict(color=color), line=dict(dash = line_style)), row = 1, col = 1)
+
+    for temp in temp_cols:
+        prefix = '_'.join(temp.split('_')[:-1])  
+        color = get_color_for_prefix(prefix)
+        name = temp.replace('_', ' ')
+        line_style = 'dash' if 'active' in temp else 'solid'
+
+        fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged[temp], name = name, marker=dict(color=color), line=dict(dash = line_style)), row = 2, col = 1)
+
+    fig.update_layout(height=1100)
+    fig.update_yaxes(title = '<b>Power (kW)', row = 1, col = 1)
+    fig.update_yaxes(title = '<b>Temp(F)', row = 2, col = 1)
+    fig.update_layout(title = '<b>OHP Performance: Active vs Passive Mode')
+
+    return dcc.Graph(figure=fig)
+
+def _create_summary_SERA_pie(df):
+
+    power_cols = ['PowerIn_Lighting', 'PowerIn_PlugsMisc', 'PowerIn_Ventilation', 'PowerIn_HeatingCooling', 'PowerIn_DHW']
+    power_data = df[power_cols].mean()
+    colors = px.colors.qualitative.Antique
+
+    fig = px.pie(names = power_data.index, values = power_data.values, title = '<b>Energy Consumption',
+                 color_discrete_sequence = [colors[1], colors[2], colors[3], colors[4], colors[5]])
+
+    return dcc.Graph(figure=fig)
 
 def create_summary_graphs(daily_df, hourly_df, config_df, site_df_row, cursor):
 
@@ -567,7 +676,6 @@ def create_summary_graphs(daily_df, hourly_df, config_df, site_df_row, cursor):
     for unique_group in unique_groups:
         filtered_group_df = config_df[config_df['summary_group']==unique_group]
         group_columns = [col for col in daily_df.columns if col in filtered_group_df['field_name'].tolist()]
-        
         group_df = daily_df[group_columns]
         # Title if multiple groups:
         if len(unique_groups) > 1:
@@ -601,6 +709,17 @@ def create_summary_graphs(daily_df, hourly_df, config_df, site_df_row, cursor):
         # DHW Box and Whisker
         if site_df_row['summary_flow_boxwhisker']:
             graph_components.append(_create_summary_boxwhisker_flow(cursor, site_df_row))
+        
+        # ERV active vs passive hourly profile
+        if site_df_row['summary_erv_performance']:
+            graph_components.append(_create_summary_erv_performance(group_df))
+
+        if site_df_row['summary_ohp_performance']:
+            graph_components.append(_create_summary_ohp_performance(group_df))
+
+        # SERA office summary
+        if site_df_row['summary_SERA_pie']:
+            graph_components.append(_create_summary_SERA_pie(group_df))
 
     return graph_components
 
