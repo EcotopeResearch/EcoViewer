@@ -139,6 +139,7 @@ def create_data_dictionary(organized_mapping):
     return returnStr
 
 def create_data_dictionary_checklist(graph_df : pd.DataFrame, field_df : pd.DataFrame, selected_table : str):
+    
     organized_mapping = get_organized_mapping([], graph_df, field_df, selected_table, True)
     returnDiv = []
     
@@ -190,6 +191,17 @@ def create_data_dictionary_checklist(graph_df : pd.DataFrame, field_df : pd.Data
     return returnDiv
 
 def user_has_no_permisions_message(user_email : str):
+    """
+    Parameters
+    ----------
+    user_email : str
+        The email address of the user attempting to access data on dash app
+
+    Returns
+    -------
+    no_permission_message : html.P
+        an html element to tell the user they do not have appropriate permissions to view the data they are attempting to access
+    """
     return html.P(style={'color': 'black', 'textAlign': 'center'}, children=[
             html.Br(),
             f"Permissions for {user_email} have not yet been set up. Please contact site administrator for assistance."

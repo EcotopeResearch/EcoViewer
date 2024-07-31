@@ -1,0 +1,9 @@
+from ecoviewer.objects.GraphObject import GraphObject
+from ecoviewer.objects.DataManager import DataManager
+
+class RawDataSubPlots(GraphObject):
+    def __init__(self, title : str, y1_title : str, y2_title : str, dm : DataManager):
+          super().__init__(title, y1_title, y2_title, dm)
+
+    def create_graph(self, dm : DataManager):
+        return None
