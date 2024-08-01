@@ -37,6 +37,8 @@ def create_meta_data_table(site_df : pd.DataFrame, selected_table : str, app : D
     swing_t_elem = site_df.loc[selected_table, 'swing_element_kw']
     primary_volume = site_df.loc[selected_table, 'tank_size_gallons']
     installation_year = site_df.loc[selected_table, 'unit_installation_year']
+    notes = site_df.loc[selected_table, 'notes']
+    occupant_capacity = site_df.loc[selected_table, 'occupant_capacity']
     building_specs = "Unknown"
     if site_df.loc[selected_table, 'building_specs'] is not None:
         building_specs = site_df.loc[selected_table, 'building_specs']
@@ -46,7 +48,8 @@ def create_meta_data_table(site_df : pd.DataFrame, selected_table : str, app : D
     mapping = {
         "Address" : site_df.loc[selected_table, 'address'] if site_df.loc[selected_table, 'address'] is not None else "Unknown", 
         "Zip Code" : zip_code if not (zip_code is None or pd.isna(zip_code)) else "Unknown",
-        "Building Specifications/Type" : building_specs, 
+        "Building Specifications/Type" : building_specs,
+        "Number of Occupants" : f"{round(occupant_capacity)} Occupants" if not (occupant_capacity is None or pd.isna(occupant_capacity)) else None,
         "Primary System Model" : primary_model, 
         "Primary HPWHs" : site_df.loc[selected_table, 'number_heat_pumps'], 
         "Primary Tank Volume" : f"{primary_volume} Gallons" if not (primary_volume is None or pd.isna(primary_volume)) else None, 
@@ -55,6 +58,7 @@ def create_meta_data_table(site_df : pd.DataFrame, selected_table : str, app : D
         "Installation Year" : installation_year if not (installation_year is None or pd.isna(installation_year)) else None,
         "Operation Hours" : site_df.loc[selected_table, 'operation_hours'] if site_df.loc[selected_table, 'operation_hours'] is not None else None,
         "Schematic Drawing": f"![]({app.get_asset_url('schematic-swingtank.jpg')})" if not (swing_tank_volume is None or pd.isna(swing_tank_volume)) else None,
+        "Notes" : notes if not (notes is None or pd.isna(notes)) else None,
     }
 
     if anonymize_data:
