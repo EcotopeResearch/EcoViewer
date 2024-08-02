@@ -10,7 +10,7 @@ from ecoviewer.config import get_organized_mapping, round_df_to_3_decimal
 from datetime import datetime
 from datetime import time
 #import statsmodels.api as sm
-from .graphhelper import query_daily_flow_percentiles, calc_daily_peakyness, extract_percentile_days, query_daily_data, query_hourly_data
+from .graphhelper import query_daily_flow_percentiles, calc_daily_peakyness, extract_percentile_days, query_daily_data, query_hourly_data, apply_event_filters_to_df
 
 state_colors = {
     "loadUp" : "green",
@@ -371,14 +371,18 @@ def _create_summary_Hourly_graph(df : pd.DataFrame, hourly_df : pd.DataFrame):
 def _create_summary_pie_graph(df):
     powerin_columns = [col for col in df.columns if col.startswith('PowerIn_') and 'PowerIn_Total' not in col and df[col].dtype == "float64"]
     sums = df[powerin_columns].sum()
-    pie_fig = px.pie(names=sums.index, values=sums.values, title='Distribution of Energy')
+    colors = px.colors.qualitative.Antique
+    pie_fig = px.pie(names=sums.index, values=sums.values, title='Distribution of Energy'#,
+                    #  color_discrete_sequence=[colors[i] for i in range(len(powerin_columns))]
+                     )
     return dcc.Graph(figure=pie_fig)
 
-def _create_summary_gpdpp_timeseries(site_df_row, cursor):
+def _create_summary_gpdpp_timeseries(site_df_row, cursor, flow_variable_name = 'Flow_CityWater'):
 
     df_daily = query_daily_data(site_df_row.daily_table, cursor)
+    df_daily = apply_event_filters_to_df(df_daily,site_df_row.minute_table,['HW_LOSS'],cursor)
 
-    df_daily['Flow_CityWater_Total'] = df_daily['Flow_CityWater'] * (60 * 24) #average GPM * 60min/hr * 24hr/day
+    df_daily['Flow_CityWater_Total'] = df_daily[flow_variable_name] * (60 * 24) #average GPM * 60min/hr * 24hr/day
     df_daily['Flow_CityWater_PP'] = round(df_daily['Flow_CityWater_Total'] / site_df_row.occupant_capacity, 2)
 
     mean_daily_usage, high_daily_usage = query_daily_flow_percentiles(site_df_row.daily_table, 0.95, cursor) / site_df_row.occupant_capacity 
@@ -412,11 +416,11 @@ def _create_summary_gpdpp_timeseries(site_df_row, cursor):
     return dcc.Graph(figure=fig)
 
 
-def _create_summary_peak_norm(df_hourly, df_daily, site_df_row):
+def _create_summary_peak_norm(df_hourly, df_daily, site_df_row, flow_variable_name = 'Flow_CityWater'):
     
     df_daily_with_peak = calc_daily_peakyness(df_daily, df_hourly)
     
-    df_daily_with_peak['Flow_CityWater_PP'] = df_daily_with_peak['Flow_CityWater']  * 60 * 24 / site_df_row.occupant_capacity
+    df_daily_with_peak['Flow_CityWater_PP'] = df_daily_with_peak[flow_variable_name]  * 60 * 24 / site_df_row.occupant_capacity
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=df_daily_with_peak['Flow_CityWater_PP'], y=df_daily_with_peak['peak_norm'], mode='markers', marker=dict(color='darkblue')))
@@ -427,7 +431,7 @@ def _create_summary_peak_norm(df_hourly, df_daily, site_df_row):
     return dcc.Graph(figure=fig)
 
 
-def _create_summary_hourly_flow(df_hourly, df_daily, site_df_row, cursor):
+def _create_summary_hourly_flow(df_hourly, df_daily, site_df_row, cursor, flow_variable_name = 'Flow_CityWater'):
 
     df_hourly['weekday'] = np.where(df_hourly.index.weekday <= 4, 1, 0)
     df_hourly['hour'] = df_hourly.index.hour
@@ -436,8 +440,8 @@ def _create_summary_hourly_flow(df_hourly, df_daily, site_df_row, cursor):
     weekday = df_hourly.loc[df_hourly.weekday == 1]
     weekend = df_hourly.loc[df_hourly.weekday == 0]
     
-    weekday = weekday.pivot(index = 'hour', columns = 'date', values = 'Flow_CityWater')
-    weekend = weekend.pivot(index = 'hour', columns = 'date', values = 'Flow_CityWater')
+    weekday = weekday.pivot(index = 'hour', columns = 'date', values = flow_variable_name)
+    weekend = weekend.pivot(index = 'hour', columns = 'date', values = flow_variable_name)
     
     highVolWeekdayProfile, highPeakWeekdayProfile, highVolWeekendProfile, highPeakWeekendProfile = extract_percentile_days(site_df_row.daily_table, 0.98, cursor, site_df_row.hour_table)
     
@@ -672,6 +676,10 @@ def create_summary_graphs(daily_df, hourly_df, config_df, site_df_row, cursor):
     
     filtered_df = config_df[config_df['summary_group'].notna()]
 
+    # flow_variable = site_df_row['flow_variable_name']
+    # if flow_variable is None:
+    flow_variable = "Flow_CityWater"
+
     unique_groups = filtered_df['summary_group'].unique()
     for unique_group in unique_groups:
         filtered_group_df = config_df[config_df['summary_group']==unique_group]
@@ -693,13 +701,13 @@ def create_summary_graphs(daily_df, hourly_df, config_df, site_df_row, cursor):
             graph_components.append(_create_summary_gpdpp_histogram(group_df, site_df_row))
         # GPDPP Timeseries
         if site_df_row['summary_gpdpp_timeseries']:
-            graph_components.append(_create_summary_gpdpp_timeseries(site_df_row, cursor))
+            graph_components.append(_create_summary_gpdpp_timeseries(site_df_row, cursor, flow_variable))
         # Peak Norm Scatter
         if site_df_row['summary_peaknorm']:
-            graph_components.append(_create_summary_peak_norm(hourly_df, group_df, site_df_row))
+            graph_components.append(_create_summary_peak_norm(hourly_df, group_df, site_df_row, flow_variable))
         # Hourly Flow Percentiles
         if site_df_row['summary_hourly_flow']:
-            graph_components.append(_create_summary_hourly_flow(hourly_df, group_df, site_df_row, cursor))
+            graph_components.append(_create_summary_hourly_flow(hourly_df, group_df, site_df_row, cursor, flow_variable))
         # COP Regression
         if site_df_row['summary_cop_regression']:
             graph_components.append(_create_summary_cop_regression(site_df_row, cursor))

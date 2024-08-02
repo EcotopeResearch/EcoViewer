@@ -109,6 +109,24 @@ def extract_percentile_days(daily_table, percentile, cursor, hourly_table):
    # return highVolWeekdayDate, highPeakWeekdayDate, highVolWeekendDate, highPeakWeekendDate
     return highVolWeekdayProfile, highPeakWeekdayProfile, highVolWeekendProfile, highPeakWeekendProfile
 
+def apply_event_filters_to_df(df : pd.DataFrame, site_name : str, events_to_filter : list, cursor):
+    query = f"SELECT start_time_pt, end_time_pt FROM site_events WHERE site_name = '{site_name}' AND event_type IN ("
+    if len(events_to_filter) > 0:
+        query = f"{query}'{events_to_filter[0]}'"
+        for event_type in events_to_filter[1:]:
+            query = f"{query},'{event_type}'"
+    query = f"{query});"
+
+    cursor.execute(query)
+    time_ranges = cursor.fetchall()
+
+    time_ranges = [(pd.to_datetime(start_time), pd.to_datetime(end_time)) for start_time, end_time in time_ranges]
+
+    # Remove points in the DataFrame whose indexes fall within the time ranges
+    for start_time, end_time in time_ranges:
+        df = df[~((df.index >= start_time) & (df.index <= end_time))]
+
+    return df
 
 def query_daily_data(daily_table, cursor):
 
