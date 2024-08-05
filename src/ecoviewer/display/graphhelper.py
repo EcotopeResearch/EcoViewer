@@ -11,6 +11,12 @@ from datetime import datetime
 import mysql.connector
 
 
+def get_summary_error_msg(e : Exception, summary_graph_name : str = "summary graph"):
+    return html.P(style={'color': 'red', 'textAlign': 'center'}, children=[
+                                        html.Br(),
+                                        f"Could not generate {summary_graph_name}: {str(e)}"
+                                    ])
+
 def query_daily_flow_percentiles(daily_table, percentile, cursor):
 
     query = f"SELECT time_pt, Flow_CityWater FROM {daily_table};"
@@ -124,7 +130,7 @@ def apply_event_filters_to_df(df : pd.DataFrame, site_name : str, events_to_filt
 
     # Remove points in the DataFrame whose indexes fall within the time ranges
     for start_time, end_time in time_ranges:
-        df = df[~((df.index >= start_time) & (df.index <= end_time))]
+        df = df.loc[~((df.index >= start_time) & (df.index <= end_time))]
 
     return df
 

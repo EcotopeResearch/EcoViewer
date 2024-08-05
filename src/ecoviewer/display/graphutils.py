@@ -10,7 +10,7 @@ from ecoviewer.config import get_organized_mapping, round_df_to_3_decimal
 from datetime import datetime
 from datetime import time
 #import statsmodels.api as sm
-from .graphhelper import query_daily_flow_percentiles, calc_daily_peakyness, extract_percentile_days, query_daily_data, query_hourly_data, apply_event_filters_to_df
+from .graphhelper import query_daily_flow_percentiles, calc_daily_peakyness, extract_percentile_days, query_daily_data, query_hourly_data, apply_event_filters_to_df, get_summary_error_msg
 
 state_colors = {
     "loadUp" : "green",
@@ -275,7 +275,7 @@ def _create_summary_bar_graph(og_df : pd.DataFrame):
 
 
     # Create a stacked bar graph using Plotly Express
-    stacked_fig = px.bar(energy_dataframe, x=energy_dataframe.index, y=powerin_columns, title='Energy and COP',
+    stacked_fig = px.bar(energy_dataframe, x=energy_dataframe.index, y=powerin_columns, title='<b>Energy and COP',
                 labels={'index': 'Data Point'}, height=400)
     
     num_data_points = len(df)
@@ -286,10 +286,10 @@ def _create_summary_bar_graph(og_df : pd.DataFrame):
     stacked_fig.update_layout(
         # width=1300,
         yaxis1=dict(
-            title='Avg. Daily kWh' if compress_to_weeks else 'kWh',
+            title='<b>Avg. Daily kWh' if compress_to_weeks else '<b>kWh',
         ),
         xaxis=dict(
-            title='Week' if compress_to_weeks else 'Day',
+            title='<b>Week' if compress_to_weeks else '<b>Day',
             tickmode = 'array',
             tickvals = x_axis_tick_val,
             ticktext = x_axis_tick_text  
@@ -343,7 +343,7 @@ def _create_summary_Hourly_graph(df : pd.DataFrame, hourly_df : pd.DataFrame):
     power_df = hourly_df.groupby('hr').mean(numeric_only = True)
     power_df = round_df_to_3_decimal(power_df)
 
-    power_fig = px.line(title = "Average Daily Power")
+    power_fig = px.line(title = "<b>Average Daily Power")
     
     for column_name in powerin_columns:
         if column_name in power_df.columns:
@@ -357,10 +357,10 @@ def _create_summary_Hourly_graph(df : pd.DataFrame, hourly_df : pd.DataFrame):
     power_fig.update_layout(
         # width=1300,
         yaxis1=dict(
-            title='kW',
+            title='<b>kW',
         ),
         xaxis=dict(
-            title='Hour',
+            title='<b>Hour',
         ),
         legend=dict(x=1.2),
         margin=dict(l=10, r=10),
@@ -372,7 +372,7 @@ def _create_summary_pie_graph(df):
     powerin_columns = [col for col in df.columns if col.startswith('PowerIn_') and 'PowerIn_Total' not in col and df[col].dtype == "float64"]
     sums = df[powerin_columns].sum()
     colors = px.colors.qualitative.Antique
-    pie_fig = px.pie(names=sums.index, values=sums.values, title='Distribution of Energy'#,
+    pie_fig = px.pie(names=sums.index, values=sums.values, title='<b>Distribution of Energy'#,
                     #  color_discrete_sequence=[colors[i] for i in range(len(powerin_columns))]
                      )
     return dcc.Graph(figure=pie_fig)
@@ -416,9 +416,16 @@ def _create_summary_gpdpp_timeseries(site_df_row, cursor, flow_variable_name = '
     return dcc.Graph(figure=fig)
 
 
-def _create_summary_peak_norm(df_hourly, df_daily, site_df_row, flow_variable_name = 'Flow_CityWater'):
+def _create_summary_peak_norm(df_hourly, df_daily, site_df_row, cursor, flow_variable_name = 'Flow_CityWater'):
     
-    df_daily_with_peak = calc_daily_peakyness(df_daily, df_hourly)
+    df_daily_filtered = apply_event_filters_to_df(df_daily.copy(),site_df_row.minute_table,['HW_LOSS'],cursor)
+    df_hourly_filtered = apply_event_filters_to_df(df_hourly.copy(),site_df_row.minute_table,['HW_LOSS'],cursor)
+    
+    df_daily_with_peak = calc_daily_peakyness(df_daily_filtered, df_hourly_filtered)
+
+    if df_daily_with_peak.empty:
+        # no data to display
+        return None
     
     df_daily_with_peak['Flow_CityWater_PP'] = df_daily_with_peak[flow_variable_name]  * 60 * 24 / site_df_row.occupant_capacity
 
@@ -431,7 +438,7 @@ def _create_summary_peak_norm(df_hourly, df_daily, site_df_row, flow_variable_na
     return dcc.Graph(figure=fig)
 
 
-def _create_summary_hourly_flow(df_hourly, df_daily, site_df_row, cursor, flow_variable_name = 'Flow_CityWater'):
+def _create_summary_hourly_flow(df_hourly, site_df_row, cursor, flow_variable_name = 'Flow_CityWater'):
 
     df_hourly['weekday'] = np.where(df_hourly.index.weekday <= 4, 1, 0)
     df_hourly['hour'] = df_hourly.index.hour
@@ -483,12 +490,12 @@ def _create_summary_hourly_flow(df_hourly, df_daily, site_df_row, cursor, flow_v
     return dcc.Graph(figure=fig)
 
 
-def _create_summary_cop_regression(site_df_row, cursor):
+def _create_summary_cop_regression(site_df_row, cursor, oat_variable = 'Temp_OAT', cop_variable = 'COP_BoundaryMethod'):
     
     df_daily = query_daily_data(site_df_row.daily_table, cursor)
     
-    df_daily['Temp_OutdoorAir'] = df_daily['Temp_OAT']
-    df_daily['SystemCOP'] = df_daily['COP_BoundaryMethod']
+    df_daily['Temp_OutdoorAir'] = df_daily[oat_variable]
+    df_daily['SystemCOP'] = df_daily[cop_variable]
 
     fig = px.scatter(df_daily, x='Temp_OutdoorAir', y='SystemCOP',
                  title='<b>Outdoor Air Temperature & System COP Regression', trendline="ols", 
@@ -679,6 +686,12 @@ def create_summary_graphs(daily_df, hourly_df, config_df, site_df_row, cursor):
     # flow_variable = site_df_row['flow_variable_name']
     # if flow_variable is None:
     flow_variable = "Flow_CityWater"
+    oat_variable= "Temp_OAT"
+    sys_cop_variable = "COP_BoundaryMethod"
+    if not site_df_row.oat_variable_name is None:
+        oat_variable = site_df_row.oat_variable_name
+    if not site_df_row.sys_cop_variable_name is None:
+        sys_cop_variable = site_df_row.sys_cop_variable_name
 
     unique_groups = filtered_df['summary_group'].unique()
     for unique_group in unique_groups:
@@ -690,44 +703,83 @@ def create_summary_graphs(daily_df, hourly_df, config_df, site_df_row, cursor):
             graph_components.append(html.H2(unique_group))
         # Bar Graph
         if site_df_row["summary_bar_graph"]:
-            graph_components.append(_create_summary_bar_graph(group_df))
+            try:
+                graph_components.append(_create_summary_bar_graph(group_df))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "Energy and COP Bar Graph")) 
         # Hourly Power Graph
         if site_df_row["summary_hour_graph"]:
-            graph_components.append(_create_summary_Hourly_graph(group_df,hourly_df))
+            try:
+                graph_components.append(_create_summary_Hourly_graph(group_df,hourly_df))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "Average Daily Power Graph"))
         # Pie Graph
         if site_df_row["summary_pie_chart"]:
-            graph_components.append(_create_summary_pie_graph(group_df))
+            try:
+                graph_components.append(_create_summary_pie_graph(group_df))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "Distribution of Energy Pie Chart"))
         if site_df_row["summary_gpdpp_histogram"]:
-            graph_components.append(_create_summary_gpdpp_histogram(group_df, site_df_row))
+            try:
+                graph_components.append(_create_summary_gpdpp_histogram(group_df, site_df_row))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "Daily Hot Water Usage Histogram"))
         # GPDPP Timeseries
         if site_df_row['summary_gpdpp_timeseries']:
-            graph_components.append(_create_summary_gpdpp_timeseries(site_df_row, cursor, flow_variable))
+            try:
+                graph_components.append(_create_summary_gpdpp_timeseries(site_df_row, cursor, flow_variable))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "Daily Hot Water Usage Graph"))
         # Peak Norm Scatter
         if site_df_row['summary_peaknorm']:
-            graph_components.append(_create_summary_peak_norm(hourly_df, group_df, site_df_row, flow_variable))
+            try:
+                graph_components.append(_create_summary_peak_norm(hourly_df, group_df, site_df_row, cursor, flow_variable))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "Peak Norm"))
         # Hourly Flow Percentiles
         if site_df_row['summary_hourly_flow']:
-            graph_components.append(_create_summary_hourly_flow(hourly_df, group_df, site_df_row, cursor, flow_variable))
+            try:
+                graph_components.append(_create_summary_hourly_flow(hourly_df, site_df_row, cursor, flow_variable))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "Hourly Flow"))
         # COP Regression
         if site_df_row['summary_cop_regression']:
-            graph_components.append(_create_summary_cop_regression(site_df_row, cursor))
+            try:
+                graph_components.append(_create_summary_cop_regression(site_df_row, cursor, oat_variable, sys_cop_variable))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "COP Regression"))
         # COP Timeseries
         if site_df_row['summary_cop_timeseries']:
-            graph_components.append(_create_summary_cop_timeseries(site_df_row, cursor))
+            try:
+                graph_components.append(_create_summary_cop_timeseries(site_df_row, cursor))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "COP Timeseries"))
         # DHW Box and Whisker
         if site_df_row['summary_flow_boxwhisker']:
-            graph_components.append(_create_summary_boxwhisker_flow(cursor, site_df_row))
+            try:
+                graph_components.append(_create_summary_boxwhisker_flow(cursor, site_df_row))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "Flow Boxwhisker"))
         
         # ERV active vs passive hourly profile
         if site_df_row['summary_erv_performance']:
-            graph_components.append(_create_summary_erv_performance(group_df))
+            try:
+                graph_components.append(_create_summary_erv_performance(group_df))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "ERV Performance"))
 
         if site_df_row['summary_ohp_performance']:
-            graph_components.append(_create_summary_ohp_performance(group_df))
+            try:
+                graph_components.append(_create_summary_ohp_performance(group_df))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "OHP Performance"))
 
         # SERA office summary
         if site_df_row['summary_SERA_pie']:
-            graph_components.append(_create_summary_SERA_pie(group_df))
+            try:
+                graph_components.append(_create_summary_SERA_pie(group_df))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "SERA Graph"))
 
     return graph_components
 
