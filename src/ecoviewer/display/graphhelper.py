@@ -17,12 +17,14 @@ def get_summary_error_msg(e : Exception, summary_graph_name : str = "summary gra
                                         f"Could not generate {summary_graph_name}: {str(e)}"
                                     ])
 
-def query_daily_flow_percentiles(daily_table, percentile, cursor):
+def query_daily_flow_percentiles(daily_table, percentile, cursor, site_name):
 
     query = f"SELECT time_pt, Flow_CityWater FROM {daily_table};"
     cursor.execute(query)
     daily_df = cursor.fetchall()
     daily_df = pd.DataFrame(daily_df, columns = cursor.column_names)
+    daily_df.set_index('time_pt', inplace = True)
+    daily_df = apply_event_filters_to_df(daily_df,site_name,['HW_LOSS'],cursor)
 
     mean_day = daily_df['Flow_CityWater'].mean() * 24 * 60
     percentile_day = daily_df['Flow_CityWater'].quantile(percentile) * 24 * 60

@@ -390,7 +390,7 @@ def _create_summary_gpdpp_timeseries(site_df_row, cursor, flow_variable_name = '
     df_daily['Flow_CityWater_Total'] = df_daily[flow_variable_name] * (60 * 24) #average GPM * 60min/hr * 24hr/day
     df_daily['Flow_CityWater_PP'] = round(df_daily['Flow_CityWater_Total'] / site_df_row.occupant_capacity, 2)
 
-    mean_daily_usage, high_daily_usage = query_daily_flow_percentiles(site_df_row.daily_table, 0.95, cursor) / site_df_row.occupant_capacity 
+    mean_daily_usage, high_daily_usage = query_daily_flow_percentiles(site_df_row.daily_table, 0.95, cursor, site_df_row.minute_table) / site_df_row.occupant_capacity 
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily.Flow_CityWater_PP, mode = 'markers',
