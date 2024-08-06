@@ -498,6 +498,7 @@ def _create_summary_hourly_flow(df_hourly, site_df_row, cursor, flow_variable_na
 def _create_summary_cop_regression(site_df_row, cursor, oat_variable = 'Temp_OAT', cop_variable = 'COP_BoundaryMethod'):
     
     df_daily = query_daily_data(site_df_row.daily_table, cursor)
+    df_daily = apply_event_filters_to_df(df_daily,site_df_row.minute_table,['EQUIPMENT_MALFUNCTION'],cursor)
     
     df_daily['Temp_OutdoorAir'] = df_daily[oat_variable]
     df_daily['SystemCOP'] = df_daily[cop_variable]
