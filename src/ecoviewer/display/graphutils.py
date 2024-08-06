@@ -66,9 +66,14 @@ def clean_df(df : pd.DataFrame, organized_mapping):
             if 'upper_bound' in field_dict:
                 df[column_name] = np.where(df[column_name] > field_dict["upper_bound"], np.nan, df[column_name])
 
-def create_conjoined_graphs(df : pd.DataFrame, organized_mapping, add_state_shading : bool = False):
+def create_conjoined_graphs(df : pd.DataFrame, organized_mapping, add_state_shading : bool = False, reset_to_default_date_msg : bool = False):
     clean_df(df, organized_mapping)
     graph_components = []
+    if reset_to_default_date_msg:
+        graph_components.append(html.P(style={'color': 'red', 'textAlign': 'center'}, children=[
+            html.Br(),
+            "No data available for date range selected. Defaulting to most recent data."
+        ]))
     # Load the JSON data from the file
     subplot_titles = []
     for key, value in organized_mapping.items():
@@ -677,9 +682,14 @@ def _create_summary_SERA_pie(df):
 
     return dcc.Graph(figure=fig)
 
-def create_summary_graphs(daily_df, hourly_df, config_df, site_df_row, cursor):
+def create_summary_graphs(daily_df, hourly_df, config_df, site_df_row, cursor, reset_to_default_date_msg : bool = False):
 
     graph_components = []
+    if reset_to_default_date_msg:
+        graph_components.append(html.P(style={'color': 'red', 'textAlign': 'center'}, children=[
+            html.Br(),
+            "No data available for date range selected. Defaulting to most recent data."
+        ]))
     
     filtered_df = config_df[config_df['summary_group'].notna()]
 
@@ -783,12 +793,17 @@ def create_summary_graphs(daily_df, hourly_df, config_df, site_df_row, cursor):
 
     return graph_components
 
-def create_hourly_shapes(df : pd.DataFrame, graph_df : pd.DataFrame, field_df : pd.DataFrame, selected_table : str):
+def create_hourly_shapes(df : pd.DataFrame, graph_df : pd.DataFrame, field_df : pd.DataFrame, selected_table : str, reset_to_default_date_msg : bool = False):
     hourly_only_field_df = field_df
     if 'hourly_shapes_display' in field_df.columns:
         hourly_only_field_df = field_df[field_df['hourly_shapes_display'] == True]
     organized_mapping = get_organized_mapping(df.columns, graph_df, hourly_only_field_df, selected_table)
     graph_components = []
+    if reset_to_default_date_msg:
+        graph_components.append(html.P(style={'color': 'red', 'textAlign': 'center'}, children=[
+            html.Br(),
+            "No data available for date range selected. Defaulting to most recent data."
+        ]))
     weekday_df = df[df['weekday'] == True]
     weekend_df = df[df['weekday'] == False]
     weekday_df = weekday_df.groupby('hr').mean(numeric_only = True)
