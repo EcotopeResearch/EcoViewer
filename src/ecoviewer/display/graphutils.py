@@ -18,7 +18,7 @@ state_colors = {
 
 def get_state_colors():
     return state_colors
-test
+
 def update_graph_time_frame(value, start_date, end_date, df, unit):
     dff = pd.DataFrame()
     if not isinstance(value, list):
