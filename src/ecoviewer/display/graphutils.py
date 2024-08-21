@@ -10,7 +10,7 @@ from ecoviewer.config import get_organized_mapping, round_df_to_3_decimal
 from datetime import datetime
 from datetime import time
 #import statsmodels.api as sm
-from .graphhelper import query_daily_flow_percentiles, calc_daily_peakyness, extract_percentile_days, query_daily_data, query_hourly_data, apply_event_filters_to_df, get_summary_error_msg
+from .graphhelper import query_daily_flow_percentiles, calc_daily_peakyness, extract_percentile_days, query_daily_data, query_hourly_data, apply_event_filters_to_df, get_summary_error_msg, query_annual_data
 
 state_colors = {
     "loadUp" : "green",
@@ -672,14 +672,85 @@ def _create_summary_ohp_performance(df : pd.DataFrame):
 
     return dcc.Graph(figure=fig)
 
-def _create_summary_SERA_pie(df):
+def _create_summary_SERA_pie(site_df_row, cursor):
 
+    df, start_date, end_date = query_annual_data(site_df_row.minute_table, cursor)
+    
+    df = df.resample('T').asfreq()
+    df = df.bfill()
+    
     power_cols = ['PowerIn_Lighting', 'PowerIn_PlugsMisc', 'PowerIn_Ventilation', 'PowerIn_HeatingCooling', 'PowerIn_DHW']
-    power_data = df[power_cols].mean()
+    power_data = df[power_cols].sum() / 60 * 3.41 / 39010
+
+    name_mapping = {'PowerIn_Lighting':'Lighting', 'PowerIn_PlugsMisc':'Plugs/Misc', 'PowerIn_Ventilation':'Ventilation',
+                    'PowerIn_HeatingCooling':'Heating/Cooling', 'PowerIn_DHW':'Domestic Hot Water'}
+
+    mapped_names = power_data.index.map(name_mapping)
+    
     colors = px.colors.qualitative.Antique
 
-    fig = px.pie(names = power_data.index, values = power_data.values, title = '<b>Energy Consumption',
+    if start_date == '08/01/2023':
+        power_data['PowerIn_PlugsMisc'] += 2805 * 3.41 / 39010
+
+    fig = px.pie(names = mapped_names, values = power_data.values.round(2), title = '<b>Annual EUI:</b><br>' + start_date + ' - ' + end_date,
                  color_discrete_sequence = [colors[1], colors[2], colors[3], colors[4], colors[5]])
+    
+    fig.update_traces(
+        textinfo='percent+label',  
+        texttemplate='%{percent:.1%}<br>%{value}', 
+        hovertemplate='%{percent:.1%}<br>%{value}')
+    
+    return dcc.Graph(figure=fig)
+
+
+
+def _create_summary_SERA_monthly(site_df_row, cursor):
+
+    df, start_date, end_date = query_annual_data(site_df_row.minute_table, cursor)
+    
+    df['month'] = df.index.month
+    df = df.resample('T').asfreq()
+    df = df.bfill()
+
+    power_cols = ['PowerIn_Lighting', 'PowerIn_PlugsMisc', 'PowerIn_Ventilation', 'PowerIn_HeatingCooling', 'PowerIn_DHW','Panel_2E57_Power_kW']
+    power_data = df[power_cols] 
+
+    monthly_data = power_data.resample('M').sum() / 60 
+    
+    if start_date == '08/01/2023':
+        monthlyAvg = monthly_data.loc[monthly_data.index != '2023-08-31', 'Panel_2E57_Power_kW'].mean()        
+        monthly_data.loc[monthly_data.index == '2023-08-31', 'PowerIn_PlugsMisc'] += monthlyAvg
+
+    monthly_data.drop(columns = {'Panel_2E57_Power_kW'}, inplace = True)
+    power_data.drop(columns = {'Panel_2E57_Power_kW'}, inplace = True)
+    
+    name_mapping = {'PowerIn_Lighting':'Lighting', 'PowerIn_PlugsMisc':'Plugs/Misc', 'PowerIn_Ventilation':'Ventilation',
+                    'PowerIn_HeatingCooling':'Heating/Cooling', 'PowerIn_DHW':'Domestic Hot Water'}
+    colors = px.colors.qualitative.Antique
+
+    EUI = monthly_data.sum(axis=1).sum() * 3.41 / 39010
+
+    fig = go.Figure()
+    
+    for i, col in enumerate(power_data.columns):
+        fig.add_trace(go.Bar(
+        x=monthly_data.index.strftime('%b'), 
+        y=monthly_data[col].round(2), 
+        name=name_mapping[col],  
+        marker=dict(color=colors[i + 1]),
+        hovertemplate='%{y:.0f} kWh<extra></extra>' 
+    ))
+        
+    fig.update_layout(
+    barmode='stack',  
+    title='<b>Monthly Energy Consumption</b><br>' + str(int(round(EUI, 0))) + ' kBTU/sf/yr',
+    xaxis_title='<b>Month',
+    yaxis_title='<b>Energy Consumption (kWh)',
+    legend_title='Category',
+    title_x=0.5,  
+    template='plotly_white' 
+)
+
 
     return dcc.Graph(figure=fig)
 
@@ -771,27 +842,30 @@ def create_summary_graphs(daily_df, hourly_df, config_df, site_df_row, cursor, r
                 graph_components.append(_create_summary_boxwhisker_flow(cursor, site_df_row))
             except Exception as e:
                 graph_components.append(get_summary_error_msg(e, "Flow Boxwhisker"))
-        
         # ERV active vs passive hourly profile
         if site_df_row['summary_erv_performance']:
             try:
                 graph_components.append(_create_summary_erv_performance(group_df))
             except Exception as e:
                 graph_components.append(get_summary_error_msg(e, "ERV Performance"))
-
+        # OHP active vs passive hourly profile
         if site_df_row['summary_ohp_performance']:
             try:
                 graph_components.append(_create_summary_ohp_performance(group_df))
             except Exception as e:
                 graph_components.append(get_summary_error_msg(e, "OHP Performance"))
-
         # SERA office summary
         if site_df_row['summary_SERA_pie']:
             try:
-                graph_components.append(_create_summary_SERA_pie(group_df))
+                graph_components.append(_create_summary_SERA_pie(site_df_row, cursor))
             except Exception as e:
                 graph_components.append(get_summary_error_msg(e, "SERA Graph"))
-
+        # SERA monthly energy consumption
+        if site_df_row['summary_SERA_monthly']:
+            try:
+                graph_components.append(_create_summary_SERA_monthly(site_df_row, cursor))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "SERA Monthly Graph"))
     return graph_components
 
 def create_hourly_shapes(df : pd.DataFrame, graph_df : pd.DataFrame, field_df : pd.DataFrame, selected_table : str, reset_to_default_date_msg : bool = False):
