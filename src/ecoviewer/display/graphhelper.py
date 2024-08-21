@@ -155,3 +155,18 @@ def query_hourly_data(hourly_table, cursor):
     hourly_df.set_index('time_pt', inplace = True)
 
     return hourly_df
+
+def query_annual_data(table, cursor):
+
+    query = f"SELECT * FROM {table};"
+    cursor.execute(query)
+    annual_df = cursor.fetchall()
+    annual_df = pd.DataFrame(annual_df, columns = cursor.column_names)
+    annual_df.set_index('time_pt', inplace = True)
+
+    last_day = annual_df.index.max()
+    first_day = last_day - pd.DateOffset(years=1) + pd.DateOffset(days=1)
+    
+    annual_df = annual_df.loc[(annual_df.index >= first_day) & (annual_df.index <= last_day)]
+    print(annual_df)
+    return annual_df, first_day.strftime('%m/%d/%Y'), last_day.strftime('%m/%d/%Y')
