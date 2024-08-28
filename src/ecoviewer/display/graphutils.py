@@ -679,7 +679,6 @@ def _create_summary_SERA_pie(site_df_row, cursor):
     df = df.resample('T').asfreq()
     df = df.bfill()
     
-    power_cols = ['PowerIn_Lighting', 'PowerIn_PlugsMisc', 'PowerIn_Ventilation', 'PowerIn_HeatingCooling', 'PowerIn_DHW']
     power_data = df[['PowerIn_Lighting', 'PowerIn_PlugsMisc', 'PowerIn_Ventilation', 'PowerIn_HeatingCooling', 'PowerIn_DHW']].sum() / 60 * 3.41 / 39010
 
     name_mapping = {'PowerIn_Lighting':'Lighting', 'PowerIn_PlugsMisc':'Plugs/Misc', 'PowerIn_Ventilation':'Ventilation',
@@ -713,7 +712,6 @@ def _create_summary_SERA_monthly(site_df_row, cursor):
     df = df.bfill()
 
     power_cols = ['PowerIn_Lighting', 'PowerIn_PlugsMisc', 'PowerIn_Ventilation', 'PowerIn_HeatingCooling', 'PowerIn_DHW','Panel_2E57_Power_kW']
-    #power_data = df[power_cols] 
     power_data = df[['PowerIn_Lighting', 'PowerIn_PlugsMisc', 'PowerIn_Ventilation', 'PowerIn_HeatingCooling', 'PowerIn_DHW','Panel_2E57_Power_kW']]
 
     monthly_data = power_data.resample('M').sum() / 60 
