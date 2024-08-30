@@ -11,12 +11,20 @@ from datetime import datetime
 import mysql.connector
 
 
-def query_daily_flow_percentiles(daily_table, percentile, cursor):
+def get_summary_error_msg(e : Exception, summary_graph_name : str = "summary graph"):
+    return html.P(style={'color': 'red', 'textAlign': 'center'}, children=[
+                                        html.Br(),
+                                        f"Could not generate {summary_graph_name}: {str(e)}"
+                                    ])
+
+def query_daily_flow_percentiles(daily_table, percentile, cursor, site_name):
 
     query = f"SELECT time_pt, Flow_CityWater FROM {daily_table};"
     cursor.execute(query)
     daily_df = cursor.fetchall()
     daily_df = pd.DataFrame(daily_df, columns = cursor.column_names)
+    daily_df.set_index('time_pt', inplace = True)
+    daily_df = apply_event_filters_to_df(daily_df,site_name,['HW_LOSS'],cursor)
 
     mean_day = daily_df['Flow_CityWater'].mean() * 24 * 60
     percentile_day = daily_df['Flow_CityWater'].quantile(percentile) * 24 * 60
@@ -109,6 +117,24 @@ def extract_percentile_days(daily_table, percentile, cursor, hourly_table):
    # return highVolWeekdayDate, highPeakWeekdayDate, highVolWeekendDate, highPeakWeekendDate
     return highVolWeekdayProfile, highPeakWeekdayProfile, highVolWeekendProfile, highPeakWeekendProfile
 
+def apply_event_filters_to_df(df : pd.DataFrame, site_name : str, events_to_filter : list, cursor):
+    query = f"SELECT start_time_pt, end_time_pt FROM site_events WHERE site_name = '{site_name}' AND event_type IN ("
+    if len(events_to_filter) > 0:
+        query = f"{query}'{events_to_filter[0]}'"
+        for event_type in events_to_filter[1:]:
+            query = f"{query},'{event_type}'"
+    query = f"{query});"
+
+    cursor.execute(query)
+    time_ranges = cursor.fetchall()
+
+    time_ranges = [(pd.to_datetime(start_time), pd.to_datetime(end_time)) for start_time, end_time in time_ranges]
+
+    # Remove points in the DataFrame whose indexes fall within the time ranges
+    for start_time, end_time in time_ranges:
+        df = df.loc[~((df.index >= start_time) & (df.index <= end_time))]
+
+    return df
 
 def query_daily_data(daily_table, cursor):
 
@@ -129,3 +155,18 @@ def query_hourly_data(hourly_table, cursor):
     hourly_df.set_index('time_pt', inplace = True)
 
     return hourly_df
+
+def query_annual_data(table, cursor):
+
+    query = f"SELECT * FROM {table};"
+    cursor.execute(query)
+    annual_df = cursor.fetchall()
+    annual_df = pd.DataFrame(annual_df, columns = cursor.column_names)
+    annual_df.set_index('time_pt', inplace = True)
+
+    last_day = annual_df.index.max()
+    first_day = last_day - pd.DateOffset(years=1) + pd.DateOffset(days=1)
+    
+    annual_df = annual_df.loc[(annual_df.index >= first_day) & (annual_df.index <= last_day)]
+    print(annual_df)
+    return annual_df, first_day.strftime('%m/%d/%Y'), last_day.strftime('%m/%d/%Y')

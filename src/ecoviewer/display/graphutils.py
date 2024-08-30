@@ -8,8 +8,9 @@ import numpy as np
 import math
 from ecoviewer.config import get_organized_mapping, round_df_to_3_decimal
 from datetime import datetime
+from datetime import time
 #import statsmodels.api as sm
-from .graphhelper import query_daily_flow_percentiles, calc_daily_peakyness, extract_percentile_days, query_daily_data, query_hourly_data
+from .graphhelper import query_daily_flow_percentiles, calc_daily_peakyness, extract_percentile_days, query_daily_data, query_hourly_data, apply_event_filters_to_df, get_summary_error_msg, query_annual_data
 
 state_colors = {
     "loadUp" : "green",
@@ -65,9 +66,14 @@ def clean_df(df : pd.DataFrame, organized_mapping):
             if 'upper_bound' in field_dict:
                 df[column_name] = np.where(df[column_name] > field_dict["upper_bound"], np.nan, df[column_name])
 
-def create_conjoined_graphs(df : pd.DataFrame, organized_mapping, add_state_shading : bool = False):
+def create_conjoined_graphs(df : pd.DataFrame, organized_mapping, add_state_shading : bool = False, reset_to_default_date_msg : bool = False):
     clean_df(df, organized_mapping)
     graph_components = []
+    if reset_to_default_date_msg:
+        graph_components.append(html.P(style={'color': 'red', 'textAlign': 'center'}, children=[
+            html.Br(),
+            "No data available for date range selected. Defaulting to most recent data."
+        ]))
     # Load the JSON data from the file
     subplot_titles = []
     for key, value in organized_mapping.items():
@@ -274,7 +280,7 @@ def _create_summary_bar_graph(og_df : pd.DataFrame):
 
 
     # Create a stacked bar graph using Plotly Express
-    stacked_fig = px.bar(energy_dataframe, x=energy_dataframe.index, y=powerin_columns, title='Energy and COP',
+    stacked_fig = px.bar(energy_dataframe, x=energy_dataframe.index, y=powerin_columns, title='<b>Energy and COP',
                 labels={'index': 'Data Point'}, height=400)
     
     num_data_points = len(df)
@@ -285,10 +291,10 @@ def _create_summary_bar_graph(og_df : pd.DataFrame):
     stacked_fig.update_layout(
         # width=1300,
         yaxis1=dict(
-            title='Avg. Daily kWh' if compress_to_weeks else 'kWh',
+            title='<b>Avg. Daily kWh' if compress_to_weeks else '<b>kWh',
         ),
         xaxis=dict(
-            title='Week' if compress_to_weeks else 'Day',
+            title='<b>Week' if compress_to_weeks else '<b>Day',
             tickmode = 'array',
             tickvals = x_axis_tick_val,
             ticktext = x_axis_tick_text  
@@ -342,7 +348,7 @@ def _create_summary_Hourly_graph(df : pd.DataFrame, hourly_df : pd.DataFrame):
     power_df = hourly_df.groupby('hr').mean(numeric_only = True)
     power_df = round_df_to_3_decimal(power_df)
 
-    power_fig = px.line(title = "Average Daily Power")
+    power_fig = px.line(title = "<b>Average Daily Power")
     
     for column_name in powerin_columns:
         if column_name in power_df.columns:
@@ -356,10 +362,10 @@ def _create_summary_Hourly_graph(df : pd.DataFrame, hourly_df : pd.DataFrame):
     power_fig.update_layout(
         # width=1300,
         yaxis1=dict(
-            title='kW',
+            title='<b>kW',
         ),
         xaxis=dict(
-            title='Hour',
+            title='<b>Hour',
         ),
         legend=dict(x=1.2),
         margin=dict(l=10, r=10),
@@ -370,17 +376,21 @@ def _create_summary_Hourly_graph(df : pd.DataFrame, hourly_df : pd.DataFrame):
 def _create_summary_pie_graph(df):
     powerin_columns = [col for col in df.columns if col.startswith('PowerIn_') and 'PowerIn_Total' not in col and df[col].dtype == "float64"]
     sums = df[powerin_columns].sum()
-    pie_fig = px.pie(names=sums.index, values=sums.values, title='Distribution of Energy')
+    colors = px.colors.qualitative.Antique
+    pie_fig = px.pie(names=sums.index, values=sums.values, title='<b>Distribution of Energy'#,
+                    #  color_discrete_sequence=[colors[i] for i in range(len(powerin_columns))]
+                     )
     return dcc.Graph(figure=pie_fig)
 
-def _create_summary_gpdpp_timeseries(site_df_row, cursor):
+def _create_summary_gpdpp_timeseries(site_df_row, cursor, flow_variable_name = 'Flow_CityWater'):
 
     df_daily = query_daily_data(site_df_row.daily_table, cursor)
+    df_daily = apply_event_filters_to_df(df_daily,site_df_row.minute_table,['HW_LOSS'],cursor)
 
-    df_daily['Flow_CityWater_Total'] = df_daily['Flow_CityWater'] * (60 * 24) #average GPM * 60min/hr * 24hr/day
+    df_daily['Flow_CityWater_Total'] = df_daily[flow_variable_name] * (60 * 24) #average GPM * 60min/hr * 24hr/day
     df_daily['Flow_CityWater_PP'] = round(df_daily['Flow_CityWater_Total'] / site_df_row.occupant_capacity, 2)
 
-    mean_daily_usage, high_daily_usage = query_daily_flow_percentiles(site_df_row.daily_table, 0.95, cursor) / site_df_row.occupant_capacity 
+    mean_daily_usage, high_daily_usage = query_daily_flow_percentiles(site_df_row.daily_table, 0.95, cursor, site_df_row.minute_table) / site_df_row.occupant_capacity 
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily.Flow_CityWater_PP, mode = 'markers',
@@ -411,11 +421,18 @@ def _create_summary_gpdpp_timeseries(site_df_row, cursor):
     return dcc.Graph(figure=fig)
 
 
-def _create_summary_peak_norm(df_hourly, df_daily, site_df_row):
+def _create_summary_peak_norm(df_hourly, df_daily, site_df_row, cursor, flow_variable_name = 'Flow_CityWater'):
     
-    df_daily_with_peak = calc_daily_peakyness(df_daily, df_hourly)
+    df_daily_filtered = apply_event_filters_to_df(df_daily.copy(),site_df_row.minute_table,['HW_LOSS'],cursor)
+    df_hourly_filtered = apply_event_filters_to_df(df_hourly.copy(),site_df_row.minute_table,['HW_LOSS'],cursor)
     
-    df_daily_with_peak['Flow_CityWater_PP'] = df_daily_with_peak['Flow_CityWater']  * 60 * 24 / site_df_row.occupant_capacity
+    df_daily_with_peak = calc_daily_peakyness(df_daily_filtered, df_hourly_filtered)
+
+    if df_daily_with_peak.empty:
+        # no data to display
+        return None
+    
+    df_daily_with_peak['Flow_CityWater_PP'] = df_daily_with_peak[flow_variable_name]  * 60 * 24 / site_df_row.occupant_capacity
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=df_daily_with_peak['Flow_CityWater_PP'], y=df_daily_with_peak['peak_norm'], mode='markers', marker=dict(color='darkblue')))
@@ -426,7 +443,7 @@ def _create_summary_peak_norm(df_hourly, df_daily, site_df_row):
     return dcc.Graph(figure=fig)
 
 
-def _create_summary_hourly_flow(df_hourly, df_daily, site_df_row, cursor):
+def _create_summary_hourly_flow(df_hourly, site_df_row, cursor, flow_variable_name = 'Flow_CityWater'):
 
     df_hourly['weekday'] = np.where(df_hourly.index.weekday <= 4, 1, 0)
     df_hourly['hour'] = df_hourly.index.hour
@@ -435,8 +452,8 @@ def _create_summary_hourly_flow(df_hourly, df_daily, site_df_row, cursor):
     weekday = df_hourly.loc[df_hourly.weekday == 1]
     weekend = df_hourly.loc[df_hourly.weekday == 0]
     
-    weekday = weekday.pivot(index = 'hour', columns = 'date', values = 'Flow_CityWater')
-    weekend = weekend.pivot(index = 'hour', columns = 'date', values = 'Flow_CityWater')
+    weekday = weekday.pivot(index = 'hour', columns = 'date', values = flow_variable_name)
+    weekend = weekend.pivot(index = 'hour', columns = 'date', values = flow_variable_name)
     
     highVolWeekdayProfile, highPeakWeekdayProfile, highVolWeekendProfile, highPeakWeekendProfile = extract_percentile_days(site_df_row.daily_table, 0.98, cursor, site_df_row.hour_table)
     
@@ -478,12 +495,13 @@ def _create_summary_hourly_flow(df_hourly, df_daily, site_df_row, cursor):
     return dcc.Graph(figure=fig)
 
 
-def _create_summary_cop_regression(site_df_row, cursor):
+def _create_summary_cop_regression(site_df_row, cursor, oat_variable = 'Temp_OAT', cop_variable = 'COP_BoundaryMethod'):
     
     df_daily = query_daily_data(site_df_row.daily_table, cursor)
+    df_daily = apply_event_filters_to_df(df_daily,site_df_row.minute_table,['EQUIPMENT_MALFUNCTION'],cursor)
     
-    df_daily['Temp_OutdoorAir'] = df_daily['Temp_OAT']
-    df_daily['SystemCOP'] = df_daily['COP_BoundaryMethod']
+    df_daily['Temp_OutdoorAir'] = df_daily[oat_variable]
+    df_daily['SystemCOP'] = df_daily[cop_variable]
 
     fig = px.scatter(df_daily, x='Temp_OutdoorAir', y='SystemCOP',
                  title='<b>Outdoor Air Temperature & System COP Regression', trendline="ols", 
@@ -556,60 +574,310 @@ def _create_summary_gpdpp_histogram(df_daily : pd.DataFrame, site_df_row):
         return html.P(style={'color': 'red'}, children=[
                     f"Error: could not load GPDPP histogram due to {error_msg}"
                 ])
+    
+def _create_summary_erv_performance(df : pd.DataFrame):
+    
+    passive = df.loc[df['Active_Mode'] == 1]
+    active = df.loc[df['Passive_Mode'] == 1]
+    
+    average_day_passive = passive.groupby(passive.index.time).mean()
+    average_day_active = active.groupby(active.index.time).mean()
+    
+    average_day_passive.sort_index(inplace = True)
+    average_day_active.sort_index(inplace = True)
+    
+    df_merged = pd.merge(average_day_passive, average_day_active, left_index=True, right_index=True, how='outer', suffixes=('_passive', '_active'))
+    df_merged = df_merged.loc[(df_merged.index >= time(7,0)) & (df_merged.index <= time(19,0))]
 
-def create_summary_graphs(daily_df, hourly_df, config_df, site_df_row, cursor):
+    fig = make_subplots(rows=3, cols=1, shared_xaxes=True, vertical_spacing=0.05) 
+    
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.Workspace_East_CO2_passive, name = 'East Workspace CO2 Passive', marker=dict(color='darkblue')), row = 1, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.Workspace_West_CO2_passive, name = 'West Workspace CO2 Passive', marker=dict(color='darkred')), row = 1, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.Outside_Air_CO2_passive, name = 'Outside Air CO2 Passive', marker=dict(color='darkolivegreen')), row = 1, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.PowerIn_ERV3_passive, name = 'ERV 3 Power Draw Passive', marker=dict(color='lightblue')), row = 2, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.PowerIn_ERV4_passive, name = 'ERV 4 Power Draw Passive', marker=dict(color='darkcyan')), row = 2, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.ERV_3_Supply_Air_Flow_passive, name = "ERV 3 Supply Air Flow Passive", marker=dict(color='goldenrod')), row = 3, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.ERV_4_Supply_Air_Flow_passive, name = "ERV 4 Supply Air Flow Passive", marker=dict(color='palevioletred')), row = 3, col = 1)
+    
+    
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.Workspace_East_CO2_active, name = 'East Workspace CO2 Active', marker=dict(color='darkblue'), line=dict(dash = 'dash')), row = 1, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.Workspace_West_CO2_active, name = 'West Workspace CO2 Active', marker=dict(color='darkred'), line=dict(dash = 'dash')), row = 1, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.Outside_Air_CO2_active, name = 'Outside Air CO2 Active', marker=dict(color='darkolivegreen'), line=dict(dash = 'dash')), row = 1, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.PowerIn_ERV3_active, name = 'ERV 3 Power Draw Active', marker=dict(color='lightblue'), line=dict(dash = 'dash')), row = 2, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.PowerIn_ERV4_active, name = 'ERV 4 Power Draw Active', marker=dict(color='darkcyan'), line=dict(dash = 'dash')), row = 2, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.ERV_3_Supply_Air_Flow_active, name = "ERV 3 Supply Air Flow Active", marker=dict(color='goldenrod'), line=dict(dash = 'dash')), row = 3, col = 1)
+    fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged.ERV_4_Supply_Air_Flow_active, name = "ERV 4 Supply Air Flow Active", marker=dict(color='palevioletred'), line=dict(dash = 'dash')), row = 3, col = 1)
+    
+
+    fig.update_yaxes(title = '<b>Power (kW)', row = 2, col = 1)
+    fig.update_yaxes(title = '<b>CO2 PPM', row = 1, col = 1)
+    fig.update_yaxes(title = "<b>CFM", row = 3, col = 1)
+    fig.update_layout(title = '<b>ERV Performance: Active vs Passive Mode')
+    fig.update_layout(height=1100)
+
+    return dcc.Graph(figure=fig)
+
+
+def _create_summary_ohp_performance(df : pd.DataFrame):
+
+    passive = df.loc[df['Active_Mode'] == 1]
+    active = df.loc[df['Passive_Mode'] == 1]
+    
+    average_day_passive = passive.groupby(passive.index.time).mean()
+    average_day_active = active.groupby(active.index.time).mean()
+    
+    average_day_passive.sort_index(inplace = True)
+    average_day_active.sort_index(inplace = True)
+    
+    df_merged = pd.merge(average_day_passive, average_day_active, left_index=True, right_index=True, how='outer', suffixes=('_passive', '_active'))
+    df_merged = df_merged.loc[(df_merged.index >= time(7,0)) & (df_merged.index <= time(19,0))]
+
+    power_cols = [col for col in df_merged.columns if 'OHP' in col and 'Power' in col]
+    temp_cols = [col for col in df_merged.columns if 'IHP' in col and 'Space_Temp' in col]
+    colors = ['darkblue', 'darkred', 'darkolivegreen', 'darkcyan', 'palevioletred', 'lightblue', 'khaki', 'sienna',
+              'indianred', 'mediumseagreen', 'goldenrod']
+
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.05)
+
+    prefix_color_map = {}
+    color_index = [0]  # Use a list to hold the color index
+
+    def get_color_for_prefix(prefix):
+        if prefix not in prefix_color_map:
+            prefix_color_map[prefix] = colors[color_index[0] % len(colors)]
+            color_index[0] += 1
+        return prefix_color_map[prefix]
+
+
+    for power in power_cols:
+        prefix = '_'.join(power.split('_')[:-1])  
+        color = get_color_for_prefix(prefix)
+        name = power.replace('_', ' ')
+        line_style = 'dash' if 'active' in power else 'solid'
+         
+        fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged[power], name = name, marker=dict(color=color), line=dict(dash = line_style)), row = 1, col = 1)
+
+    for temp in temp_cols:
+        prefix = '_'.join(temp.split('_')[:-1])  
+        color = get_color_for_prefix(prefix)
+        name = temp.replace('_', ' ')
+        line_style = 'dash' if 'active' in temp else 'solid'
+
+        fig.add_trace(go.Scatter(x = df_merged.index, y = df_merged[temp], name = name, marker=dict(color=color), line=dict(dash = line_style)), row = 2, col = 1)
+
+    fig.update_layout(height=1100)
+    fig.update_yaxes(title = '<b>Power (kW)', row = 1, col = 1)
+    fig.update_yaxes(title = '<b>Temp(F)', row = 2, col = 1)
+    fig.update_layout(title = '<b>OHP Performance: Active vs Passive Mode')
+
+    return dcc.Graph(figure=fig)
+
+def _create_summary_SERA_pie(site_df_row, cursor):
+
+    df, start_date, end_date = query_annual_data(site_df_row.minute_table, cursor)
+    
+    df = df.resample('T').asfreq()
+    df = df.bfill()
+    
+    power_data = df[['PowerIn_Lighting', 'PowerIn_PlugsMisc', 'PowerIn_Ventilation', 'PowerIn_HeatingCooling', 'PowerIn_DHW']].sum() / 60 * 3.41 / 39010
+
+    name_mapping = {'PowerIn_Lighting':'Lighting', 'PowerIn_PlugsMisc':'Plugs/Misc', 'PowerIn_Ventilation':'Ventilation',
+                    'PowerIn_HeatingCooling':'Heating/Cooling', 'PowerIn_DHW':'Domestic Hot Water'}
+
+    mapped_names = power_data.index.map(name_mapping)
+    
+    colors = px.colors.qualitative.Antique
+
+    if start_date == '08/01/2023':
+        power_data['PowerIn_PlugsMisc'] += 2805 * 3.41 / 39010
+
+    fig = px.pie(names = mapped_names, values = power_data.values.round(2), title = '<b>Annual EUI:</b><br>' + start_date + ' - ' + end_date,
+                 color_discrete_sequence = [colors[4], colors[1], colors[2], colors[3], colors[5]])
+    
+    fig.update_traces(
+        textinfo='percent+label',  
+        texttemplate='%{percent:.1%}<br>%{value}', 
+        hovertemplate='%{percent:.1%}<br>%{value}')
+    
+    return dcc.Graph(figure=fig)
+
+
+
+def _create_summary_SERA_monthly(site_df_row, cursor):
+
+    df, start_date, end_date = query_annual_data(site_df_row.minute_table, cursor)
+    
+    df['month'] = df.index.month
+    df = df.resample('T').asfreq()
+    df = df.bfill()
+
+    power_cols = ['PowerIn_Lighting', 'PowerIn_PlugsMisc', 'PowerIn_Ventilation', 'PowerIn_HeatingCooling', 'PowerIn_DHW','Panel_2E57_Power_kW']
+    power_data = df[['PowerIn_Lighting', 'PowerIn_PlugsMisc', 'PowerIn_Ventilation', 'PowerIn_HeatingCooling', 'PowerIn_DHW','Panel_2E57_Power_kW']]
+
+    monthly_data = power_data.resample('M').sum() / 60 
+    
+    if start_date == '08/01/2023':
+        monthlyAvg = monthly_data.loc[monthly_data.index != '2023-08-31', 'Panel_2E57_Power_kW'].mean()        
+        monthly_data.loc[monthly_data.index == '2023-08-31', 'PowerIn_PlugsMisc'] += monthlyAvg
+
+    monthly_data.drop(columns = {'Panel_2E57_Power_kW'}, inplace = True)
+    power_data.drop(columns = {'Panel_2E57_Power_kW'}, inplace = True)
+    
+    name_mapping = {'PowerIn_Lighting':'Lighting', 'PowerIn_PlugsMisc':'Plugs/Misc', 'PowerIn_Ventilation':'Ventilation',
+                    'PowerIn_HeatingCooling':'Heating/Cooling', 'PowerIn_DHW':'Domestic Hot Water'}
+    colors = px.colors.qualitative.Antique
+
+    EUI = monthly_data.sum(axis=1).sum() * 3.41 / 39010
+
+    fig = go.Figure()
+    
+    for i, col in enumerate(power_data.columns):
+        fig.add_trace(go.Bar(
+        x=monthly_data.index.strftime('%b'), 
+        y=monthly_data[col].round(2), 
+        name=name_mapping[col],  
+        marker=dict(color=colors[i + 1]),
+        hovertemplate='%{y:.0f} kWh<extra></extra>' 
+    ))
+        
+    fig.update_layout(
+    barmode='stack',  
+    title='<b>Monthly Energy Consumption</b><br>' + str(int(round(EUI, 0))) + ' kBTU/sf/yr',
+    xaxis_title='<b>Month',
+    yaxis_title='<b>Energy Consumption (kWh)',
+    legend_title='Category',
+    title_x=0.5,  
+    template='plotly_white' 
+)
+
+
+    return dcc.Graph(figure=fig)
+
+def create_summary_graphs(daily_df, hourly_df, config_df, site_df_row, cursor, reset_to_default_date_msg : bool = False):
 
     graph_components = []
+    if reset_to_default_date_msg:
+        graph_components.append(html.P(style={'color': 'red', 'textAlign': 'center'}, children=[
+            html.Br(),
+            "No data available for date range selected. Defaulting to most recent data."
+        ]))
     
     filtered_df = config_df[config_df['summary_group'].notna()]
+
+    # flow_variable = site_df_row['flow_variable_name']
+    # if flow_variable is None:
+    flow_variable = "Flow_CityWater"
+    oat_variable= "Temp_OAT"
+    sys_cop_variable = "COP_BoundaryMethod"
+    if not site_df_row.oat_variable_name is None:
+        oat_variable = site_df_row.oat_variable_name
+    if not site_df_row.sys_cop_variable_name is None:
+        sys_cop_variable = site_df_row.sys_cop_variable_name
 
     unique_groups = filtered_df['summary_group'].unique()
     for unique_group in unique_groups:
         filtered_group_df = config_df[config_df['summary_group']==unique_group]
         group_columns = [col for col in daily_df.columns if col in filtered_group_df['field_name'].tolist()]
-        
         group_df = daily_df[group_columns]
         # Title if multiple groups:
         if len(unique_groups) > 1:
             graph_components.append(html.H2(unique_group))
         # Bar Graph
         if site_df_row["summary_bar_graph"]:
-            graph_components.append(_create_summary_bar_graph(group_df))
+            try:
+                graph_components.append(_create_summary_bar_graph(group_df))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "Energy and COP Bar Graph")) 
         # Hourly Power Graph
         if site_df_row["summary_hour_graph"]:
-            graph_components.append(_create_summary_Hourly_graph(group_df,hourly_df))
+            try:
+                graph_components.append(_create_summary_Hourly_graph(group_df,hourly_df))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "Average Daily Power Graph"))
         # Pie Graph
         if site_df_row["summary_pie_chart"]:
-            graph_components.append(_create_summary_pie_graph(group_df))
+            try:
+                graph_components.append(_create_summary_pie_graph(group_df))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "Distribution of Energy Pie Chart"))
         if site_df_row["summary_gpdpp_histogram"]:
-            graph_components.append(_create_summary_gpdpp_histogram(group_df, site_df_row))
+            try:
+                graph_components.append(_create_summary_gpdpp_histogram(group_df, site_df_row))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "Daily Hot Water Usage Histogram"))
         # GPDPP Timeseries
         if site_df_row['summary_gpdpp_timeseries']:
-            graph_components.append(_create_summary_gpdpp_timeseries(site_df_row, cursor))
+            try:
+                graph_components.append(_create_summary_gpdpp_timeseries(site_df_row, cursor, flow_variable))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "Daily Hot Water Usage Graph"))
         # Peak Norm Scatter
         if site_df_row['summary_peaknorm']:
-            graph_components.append(_create_summary_peak_norm(hourly_df, group_df, site_df_row))
+            try:
+                graph_components.append(_create_summary_peak_norm(hourly_df, group_df, site_df_row, cursor, flow_variable))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "Peak Norm"))
         # Hourly Flow Percentiles
         if site_df_row['summary_hourly_flow']:
-            graph_components.append(_create_summary_hourly_flow(hourly_df, group_df, site_df_row, cursor))
+            try:
+                graph_components.append(_create_summary_hourly_flow(hourly_df, site_df_row, cursor, flow_variable))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "Hourly Flow"))
         # COP Regression
         if site_df_row['summary_cop_regression']:
-            graph_components.append(_create_summary_cop_regression(site_df_row, cursor))
+            try:
+                graph_components.append(_create_summary_cop_regression(site_df_row, cursor, oat_variable, sys_cop_variable))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "COP Regression"))
         # COP Timeseries
         if site_df_row['summary_cop_timeseries']:
-            graph_components.append(_create_summary_cop_timeseries(site_df_row, cursor))
+            try:
+                graph_components.append(_create_summary_cop_timeseries(site_df_row, cursor))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "COP Timeseries"))
         # DHW Box and Whisker
         if site_df_row['summary_flow_boxwhisker']:
-            graph_components.append(_create_summary_boxwhisker_flow(cursor, site_df_row))
-
+            try:
+                graph_components.append(_create_summary_boxwhisker_flow(cursor, site_df_row))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "Flow Boxwhisker"))
+        # ERV active vs passive hourly profile
+        if site_df_row['summary_erv_performance']:
+            try:
+                graph_components.append(_create_summary_erv_performance(group_df))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "ERV Performance"))
+        # OHP active vs passive hourly profile
+        if site_df_row['summary_ohp_performance']:
+            try:
+                graph_components.append(_create_summary_ohp_performance(group_df))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "OHP Performance"))
+        # SERA office summary
+        if site_df_row['summary_SERA_pie']:
+            try:
+                graph_components.append(_create_summary_SERA_pie(site_df_row, cursor))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "SERA Graph"))
+        # SERA monthly energy consumption
+        if site_df_row['summary_SERA_monthly']:
+            try:
+                graph_components.append(_create_summary_SERA_monthly(site_df_row, cursor))
+            except Exception as e:
+                graph_components.append(get_summary_error_msg(e, "SERA Monthly Graph"))
     return graph_components
 
-def create_hourly_shapes(df : pd.DataFrame, graph_df : pd.DataFrame, field_df : pd.DataFrame, selected_table : str):
+def create_hourly_shapes(df : pd.DataFrame, graph_df : pd.DataFrame, field_df : pd.DataFrame, selected_table : str, reset_to_default_date_msg : bool = False):
     hourly_only_field_df = field_df
     if 'hourly_shapes_display' in field_df.columns:
         hourly_only_field_df = field_df[field_df['hourly_shapes_display'] == True]
     organized_mapping = get_organized_mapping(df.columns, graph_df, hourly_only_field_df, selected_table)
     graph_components = []
+    if reset_to_default_date_msg:
+        graph_components.append(html.P(style={'color': 'red', 'textAlign': 'center'}, children=[
+            html.Br(),
+            "No data available for date range selected. Defaulting to most recent data."
+        ]))
     weekday_df = df[df['weekday'] == True]
     weekend_df = df[df['weekday'] == False]
     weekday_df = weekday_df.groupby('hr').mean(numeric_only = True)
