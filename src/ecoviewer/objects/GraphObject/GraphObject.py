@@ -19,6 +19,7 @@ class GraphObject:
             self.graph = self.get_error_msg(e)
 
     def create_graph(self, dm : DataManager):
+        # TODO add reset to default date message
         return None
     
     def get_graph(self):

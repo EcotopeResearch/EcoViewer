@@ -160,6 +160,7 @@ class DataManager:
         df = pd.DataFrame(result, columns=column_names)
         cursor.close()
         cnx.close()
+        df = df.dropna(axis=1, how='all')
         if not df.empty:
             df = df.set_index('time_pt')
             # round float columns to 3 decimal places
@@ -167,12 +168,20 @@ class DataManager:
 
         return df
     
-    def get_raw_data_df(self, all_fields : bool = False) -> pd.DataFrame: 
+    def get_raw_data_df(self, all_fields : bool = False, hourly_fields_only : bool = False) -> pd.DataFrame: 
         if self.raw_df is None:
             # raw df has not already been generated
             query = self.generate_raw_data_query()
             self.raw_df = self.get_df_from_query(query)
-        if self.organized_mapping is None:
+            cop_columns = [col for col in self.raw_df.columns if 'COP' in col]
+            self.raw_df[cop_columns] = self.raw_df[cop_columns].fillna(method='ffill')
+            if 'OAT_NOAA' in self.raw_df.columns:
+                self.raw_df["OAT_NOAA"] = self.raw_df["OAT_NOAA"].fillna(method='ffill')
+            if 'system_state' in self.raw_df.columns:
+                self.raw_df["system_state"] = self.raw_df["system_state"].fillna(method='ffill')
+        if hourly_fields_only:
+            return self.raw_df, self.get_organized_mapping(self.raw_df.columns, all_fields, hourly_fields_only)
+        elif self.organized_mapping is None:
             self.organized_mapping = self.get_organized_mapping(self.raw_df.columns, all_fields)
         return self.raw_df, self.organized_mapping
 
@@ -204,7 +213,7 @@ class DataManager:
             query = f"SELECT * FROM ({query}) AS subquery ORDER BY subquery.time_pt ASC;"
 
         return query
-    def get_organized_mapping(self, df_columns : list, all_fields : bool = False):
+    def get_organized_mapping(self, df_columns : list, all_fields : bool = False, hourly_fields_only : bool = False):
         """
         Parameters
         ----------
@@ -229,6 +238,8 @@ class DataManager:
         """
         returnDict = {}
         site_fields = self.field_df[self.field_df['site_name'] == self.selected_table]
+        if hourly_fields_only:
+            site_fields = site_fields[site_fields['hourly_shapes_display'] == True]
         site_fields = site_fields.set_index('field_name')
         for index, row in self.graph_df.iterrows():
             # Extract the y-axis units
