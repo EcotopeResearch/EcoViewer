@@ -33,7 +33,7 @@ def query_daily_flow_percentiles(daily_table, percentile, cursor, site_name):
 
     return mean_day, percentile_day
 
-def calc_daily_peakyness(daily_table, hourly_table):
+def calc_daily_peakyness(daily_table, hourly_table, flow_variable : str = 'Flow_CityWater'):
 
     peak_volumes = []
     peak_hours = []
@@ -52,9 +52,9 @@ def calc_daily_peakyness(daily_table, hourly_table):
         for j in range(1,len(day)-1):
 
             # caluclate volumes for hours
-            hr0 = day['Flow_CityWater'][j-1] # volume at previous hour
-            hr1 = day['Flow_CityWater'][j] # volume at hour
-            hr2 = day['Flow_CityWater'][j+1] # volume at furture hour
+            hr0 = day[flow_variable][j-1] # volume at previous hour
+            hr1 = day[flow_variable][j] # volume at hour
+            hr2 = day[flow_variable][j+1] # volume at furture hour
             
             # potential new peak
             new = hr0 + hr1 + hr2
@@ -65,7 +65,7 @@ def calc_daily_peakyness(daily_table, hourly_table):
             
         peak_volumes.append(peak)
         peak_hours.append(hr)
-        peak_norm.append(peak / 24 /daily_table['Flow_CityWater'][i])    
+        peak_norm.append(peak / 24 /daily_table[flow_variable][i])    
 
     daily_table['peak_volumes'] = peak_volumes
     daily_table['peak_volumes'] = daily_table['peak_volumes']*60 # convert to gallons

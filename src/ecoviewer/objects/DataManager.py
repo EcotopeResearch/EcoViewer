@@ -2,6 +2,7 @@ import mysql.connector
 import pandas as pd
 import math
 
+#TODO write a function to determine if a timeframe is out of range and then default to default time
 class DataManager:
     """
     Attributes
@@ -48,12 +49,20 @@ class DataManager:
         self.day_table = self.site_df.loc[self.selected_table, 'daily_table']
         self.db_name = self.site_df.loc[self.selected_table, 'db_name']
         self.state_tracking = self.site_df.loc[self.selected_table, 'state_tracking']
+        self.load_shift_tracking = self.site_df.loc[self.selected_table, 'load_shift_tracking']
+        self.occupant_capacity = self.site_df.loc[self.selected_table, 'occupant_capacity']
 
         self.start_date = start_date
         self.end_date = end_date
         self.raw_df = None
+        self.daily_summary_df = None
+        self.hourly_summary_df = None
+        self.entire_daily_df = None
+        self.entire_hourly_df = None
         self.organized_mapping = None
         self.checkbox_selections = checkbox_selections
+
+        self.flow_variable = "Flow_CityWater"
 
     def value_in_checkbox_selection(self, value : str):
         return value in self.checkbox_selections
@@ -140,12 +149,12 @@ class DataManager:
 
         return site_df, graph_df, field_df
     
-    def _round_df_to_3_decimal(self, df : pd.DataFrame) -> pd.DataFrame:
+    def round_df_to_3_decimal(self, df : pd.DataFrame) -> pd.DataFrame:
         float_cols = df.select_dtypes(include=['float64'])
         df[float_cols.columns] = float_cols.round(3)
         return df
     
-    def get_df_from_query(self, query : str) -> pd.DataFrame:
+    def get_df_from_query(self, query : str, set_time_index : bool = True) -> pd.DataFrame:
         cnx = mysql.connector.connect(
             host=self.raw_data_creds['host'],
             user=self.raw_data_creds['user'],
@@ -153,7 +162,6 @@ class DataManager:
             database=self.db_name
         )
         cursor = cnx.cursor()
-
         cursor.execute(query)
         result = cursor.fetchall()
         column_names = [desc[0] for desc in cursor.description]
@@ -161,11 +169,108 @@ class DataManager:
         cursor.close()
         cnx.close()
         df = df.dropna(axis=1, how='all')
-        if not df.empty:
+        if set_time_index and not df.empty:
             df = df.set_index('time_pt')
             # round float columns to 3 decimal places
-            df = self._round_df_to_3_decimal(df)
+            df = self.round_df_to_3_decimal(df)
 
+        return df
+    
+    def get_fetch_from_query(self, query : str) -> pd.DataFrame:
+        cnx = mysql.connector.connect(
+            host=self.raw_data_creds['host'],
+            user=self.raw_data_creds['user'],
+            password=self.raw_data_creds['password'],
+            database=self.db_name
+        )
+        cursor = cnx.cursor()
+        cursor.execute(query)
+        result = cursor.fetchall()
+        cursor.close()
+        cnx.close()
+        return result
+    
+    def generate_daily_summary_query(self, default_days = 30):
+        summary_query = f"SELECT * FROM {self.day_table} "
+        if self.start_date != None and self.end_date != None:
+            summary_query += f"WHERE time_pt >= '{self.start_date}' AND time_pt <= '{self.end_date} 23:59:59' ORDER BY time_pt ASC"
+        else:
+            summary_query += f"ORDER BY time_pt DESC LIMIT {default_days}" #get last x days
+            summary_query = f"SELECT * FROM ({summary_query}) AS subquery ORDER BY subquery.time_pt ASC;"
+        return summary_query
+    
+    def get_daily_summary_data_df(self, summary_group : str = None, events_to_filter : list = []) -> pd.DataFrame:
+        if self.daily_summary_df is None:
+            # raw df has not already been generated
+            query = self.generate_daily_summary_query()
+            self.daily_summary_df = self.get_df_from_query(query)
+            # filter for only fields that are assigned to be in summary tables
+            filtered_field_df = self.field_df[self.field_df['site_name'] == self.selected_table]
+            filtered_df = filtered_field_df[filtered_field_df['summary_group'].notna()]
+            group_columns = [col for col in self.daily_summary_df.columns if col in filtered_df['field_name'].tolist()]
+            self.daily_summary_df = self.daily_summary_df[group_columns]
+
+            if self.selected_table == 'bayview':
+                # additional data prune for bayview
+                self.daily_summary_df = self._bayview_prune_additional_power(self.daily_summary_df)
+                self.daily_summary_df = self._bayview_power_processing(self.daily_summary_df)
+        if not summary_group is None:
+            # filter for particular summary group
+            filtered_group_df = self.field_df[self.field_df['site_name'] == self.selected_table]
+            filtered_group_df = self.field_df[self.field_df['summary_group']==summary_group]
+            group_columns = [col for col in self.daily_summary_df.columns if col in filtered_group_df['field_name'].tolist()]
+            return self.daily_summary_df[group_columns]
+        return self.apply_event_filters_to_df(self.daily_summary_df, events_to_filter)
+    
+    def generate_hourly_summary_query(self, numHours = 740):
+        if self.load_shift_tracking:
+            hourly_summary_query = f"SELECT {self.hour_table}.*, HOUR({self.hour_table}.time_pt) AS hr, {self.day_table}.load_shift_day FROM {self.hour_table} " +\
+                f"LEFT JOIN {self.day_table} ON {self.day_table}.time_pt = {self.hour_table}.time_pt "
+        else:
+            hourly_summary_query = f"SELECT {self.hour_table}.*, HOUR({self.hour_table}.time_pt) AS hr FROM {self.hour_table} "
+        if self.start_date != None and self.end_date != None:
+            hourly_summary_query += f"WHERE {self.hour_table}.time_pt >= '{self.start_date}' AND {self.hour_table}.time_pt <= '{self.end_date} 23:59:59' ORDER BY time_pt ASC"
+        else:
+            hourly_summary_query += f"ORDER BY {self.hour_table}.time_pt DESC LIMIT {numHours}" #get last 30 days plus some 740
+            hourly_summary_query = f"SELECT * FROM ({hourly_summary_query}) AS subquery ORDER BY subquery.time_pt ASC;"
+        return hourly_summary_query
+    
+    def get_hourly_summary_data_df(self, summary_group : str = None, events_to_filter : list = []) -> pd.DataFrame:
+
+        if self.hourly_summary_df is None:
+            if self.daily_summary_df is None:
+                self.get_daily_summary_data_df(summary_group)
+            # raw df has not already been generated
+            query = self.generate_hourly_summary_query()
+            self.hourly_summary_df = self.get_df_from_query(query)
+            # filter for indexes between daily summary df bounds
+            start_date = self.daily_summary_df.index.min()
+            end_date = self.daily_summary_df.index.max() + pd.DateOffset(days=1)
+            self.hourly_summary_df = self.hourly_summary_df[(self.hourly_summary_df.index >= start_date) & (self.hourly_summary_df.index <= end_date)]
+            # ffill loadshifting or designate as all normal
+            if 'load_shift_day' in self.hourly_summary_df.columns:
+                self.hourly_summary_df["load_shift_day"] = self.hourly_summary_df["load_shift_day"].fillna(method='ffill') #ffill loadshift day
+            else:
+                self.hourly_summary_df["load_shift_day"] = 'normal'
+
+            if self.selected_table == 'bayview':
+                # additional data prune for bayview
+                self.hourly_summary_df = self._bayview_prune_additional_power(self.hourly_summary_df)
+                self.hourly_summary_df = self._bayview_power_processing(self.hourly_summary_df)
+
+        return self.apply_event_filters_to_df(self.hourly_summary_df, events_to_filter)
+    
+    def _bayview_power_processing(self, df : pd.DataFrame) -> pd.DataFrame:
+        df['PowerIn_SwingTank'] = df['PowerIn_ERTank1'] + df['PowerIn_ERTank2'] + df['PowerIn_ERTank5'] + df['PowerIn_ERTank6']
+
+        # Drop the 'PowerIn_ER#' columns
+        df = df.drop(['PowerIn_ERTank1', 'PowerIn_ERTank2', 'PowerIn_ERTank5', 'PowerIn_ERTank6'], axis=1)
+        return df
+
+    def _bayview_prune_additional_power(self, df : pd.DataFrame) -> pd.DataFrame:
+        columns_to_keep = ['PowerIn_Swing', 'PowerIn_ERTank1', 'PowerIn_ERTank2', 'PowerIn_ERTank5', 'PowerIn_ERTank6', 'PowerIn_HPWH']
+        columns_to_drop = [col for col in df.columns if col.startswith("PowerIn_") and col not in columns_to_keep]
+        df = df.drop(columns=columns_to_drop)
         return df
     
     def get_raw_data_df(self, all_fields : bool = False, hourly_fields_only : bool = False) -> pd.DataFrame: 
@@ -184,7 +289,6 @@ class DataManager:
         elif self.organized_mapping is None:
             self.organized_mapping = self.get_organized_mapping(self.raw_df.columns, all_fields)
         return self.raw_df, self.organized_mapping
-
         
     def generate_raw_data_query(self):
         query = f"SELECT {self.min_table}.*, "
@@ -213,6 +317,39 @@ class DataManager:
             query = f"SELECT * FROM ({query}) AS subquery ORDER BY subquery.time_pt ASC;"
 
         return query
+    
+    def get_daily_data_df(self, events_to_filter : list = []) -> pd.DataFrame:
+        if self.entire_daily_df is None:
+            query = f"SELECT * FROM {self.day_table};"
+            self.entire_daily_df = self.get_df_from_query(query)
+
+        return self.apply_event_filters_to_df(self.entire_daily_df, events_to_filter)
+
+    def get_hourly_data_df(self, events_to_filter : list = []) -> pd.DataFrame:
+        if self.entire_hourly_df is None:
+            query = f"SELECT * FROM {self.hour_table};"
+            self.entire_hourly_df = self.get_df_from_query(query)
+
+        return self.apply_event_filters_to_df(self.entire_hourly_df, events_to_filter)
+    
+    def apply_event_filters_to_df(self, df : pd.DataFrame, events_to_filter : list):
+        if len(events_to_filter) > 0:
+            filtered_df = df.copy()
+            query = f"SELECT start_time_pt, end_time_pt FROM site_events WHERE site_name = '{self.selected_table}' AND event_type IN ("
+            query = f"{query}'{events_to_filter[0]}'"
+            for event_type in events_to_filter[1:]:
+                query = f"{query},'{event_type}'"
+            query = f"{query});"
+
+            time_ranges = self.get_fetch_from_query(query)
+            time_ranges = [(pd.to_datetime(start_time), pd.to_datetime(end_time)) for start_time, end_time in time_ranges]
+
+            # Remove points in the DataFrame whose indexes fall within the time ranges
+            for start_time, end_time in time_ranges:
+                filtered_df = filtered_df.loc[~((filtered_df.index >= start_time) & (filtered_df.index <= end_time))]
+            return filtered_df
+        return df.copy()
+    
     def get_organized_mapping(self, df_columns : list, all_fields : bool = False, hourly_fields_only : bool = False):
         """
         Parameters
