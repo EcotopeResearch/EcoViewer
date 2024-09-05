@@ -29,9 +29,13 @@ class HourlyShapesPlots(GraphObject):
                     df[column_name] = np.where(df[column_name] > field_dict["upper_bound"], np.nan, df[column_name])
 
     def create_graph(self, dm : DataManager):
-    # def create_hourly_shapes(df : pd.DataFrame, graph_df : pd.DataFrame, field_df : pd.DataFrame, selected_table : str, reset_to_default_date_msg : bool = False):
-        df, organized_mapping = dm.get_raw_data_df(all_fields=False, hourly_fields_only=True)
+        if not dm.is_within_raw_data_limit():
+            return dm.get_no_raw_retrieve_msg()
         graph_components = []
+        graph_components = dm.add_default_date_message(graph_components)
+        df, organized_mapping = dm.get_raw_data_df(all_fields=False, hourly_fields_only=True)
+        if df.empty:
+            raise Exception("No data available for parameters specified.")
         weekday_df = df[df['weekday'] == True]
         weekend_df = df[df['weekday'] == False]
         weekday_df = weekday_df.groupby('hr').mean(numeric_only = True)

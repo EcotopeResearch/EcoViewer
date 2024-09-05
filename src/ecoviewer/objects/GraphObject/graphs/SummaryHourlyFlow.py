@@ -66,21 +66,10 @@ class SummaryHourlyFlow(GraphObject):
     
     def extract_percentile_days(self, dm : DataManager, percentile):
 
-        # query = f"SELECT time_pt, Flow_CityWater FROM {daily_table}"
-        # cursor.execute(query)
-        # daily_df = cursor.fetchall()
-        # daily_df = pd.DataFrame(daily_df, columns = cursor.column_names)
-        # daily_df.set_index('time_pt', inplace = True)
-        daily_df = dm.get_daily_data_df()
-        daily_df = daily_df[[dm.flow_variable]]
-
-        # query = f"SELECT time_pt, Flow_CityWater FROM {hourly_table}"
-        # cursor.execute(query)
-        # hourly_df = cursor.fetchall()
-        # hourly_df = pd.DataFrame(hourly_df, columns = cursor.column_names)
-        # hourly_df.set_index('time_pt', inplace = True)
-        hourly_df = dm.get_hourly_data_df()
-        hourly_df = hourly_df[[dm.flow_variable]]
+        full_daily_df = dm.get_daily_data_df()
+        daily_df = full_daily_df[[dm.flow_variable]].copy()
+        full_hourly_df = dm.get_hourly_data_df()
+        hourly_df = full_hourly_df[[dm.flow_variable]].copy()
 
         daily_df['weekday'] = np.where(daily_df.index.weekday <= 4, 1, 0)
         hourly_df['weekday'] = np.where(hourly_df.index.weekday <= 4, 1, 0)

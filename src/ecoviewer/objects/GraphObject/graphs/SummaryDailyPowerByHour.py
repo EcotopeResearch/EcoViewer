@@ -1,9 +1,6 @@
 from ecoviewer.objects.GraphObject.GraphObject import GraphObject
 from ecoviewer.objects.DataManager import DataManager
-from plotly.subplots import make_subplots
-import pandas as pd
 import plotly.graph_objects as go
-import numpy as np
 from dash import dcc
 import plotly.express as px
 
@@ -13,10 +10,8 @@ class SummaryDailyPowerByHour(GraphObject):
         super().__init__(dm, title)
 
     def create_graph(self, dm : DataManager):
-        print("I did make it here")
         df = dm.get_daily_summary_data_df(self.summary_group)
         hourly_df = dm.get_hourly_summary_data_df(self.summary_group)
-        print("But did I make it here")
         powerin_columns = [col for col in df.columns if col.startswith('PowerIn_') and df[col].dtype == "float64"]
 
         nls_df = hourly_df[hourly_df['load_shift_day'] == 0]

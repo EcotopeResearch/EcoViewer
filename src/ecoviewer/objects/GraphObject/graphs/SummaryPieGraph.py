@@ -1,9 +1,5 @@
 from ecoviewer.objects.GraphObject.GraphObject import GraphObject
 from ecoviewer.objects.DataManager import DataManager
-from plotly.subplots import make_subplots
-import pandas as pd
-import plotly.graph_objects as go
-import numpy as np
 from dash import dcc
 import plotly.express as px
 

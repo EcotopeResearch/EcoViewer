@@ -1,8 +1,10 @@
 import mysql.connector
 import pandas as pd
 import math
+from dash import html
+from datetime import datetime, timedelta
+from ecoviewer.constants.constants import *
 
-#TODO write a function to determine if a timeframe is out of range and then default to default time
 class DataManager:
     """
     Attributes
@@ -36,6 +38,7 @@ class DataManager:
         self.raw_data_creds = raw_data_creds
         self.config_creds = config_creds
         self.last_called_mysql = None
+        self.user_email = user_email
         self._check_mysql_creds()
         self.site_df, self.graph_df, self.field_df = self.get_user_permissions_from_db(user_email, self.config_creds)
         self.selected_table = selected_table
@@ -44,6 +47,7 @@ class DataManager:
         elif self.selected_table is None:
             self.selected_table = self.site_df.index.tolist()[0]
 
+        self.checkbox_selections = checkbox_selections
         self.min_table = self.site_df.loc[self.selected_table, 'minute_table']
         self.hour_table = self.site_df.loc[self.selected_table, 'hour_table']
         self.day_table = self.site_df.loc[self.selected_table, 'daily_table']
@@ -60,9 +64,105 @@ class DataManager:
         self.entire_daily_df = None
         self.entire_hourly_df = None
         self.organized_mapping = None
-        self.checkbox_selections = checkbox_selections
+        self.annual_minute_df = None
 
         self.flow_variable = "Flow_CityWater"
+        self.oat_variable= "Temp_OAT"
+        self.sys_cop_variable = "COP_BoundaryMethod"
+        if not self.site_df.loc[self.selected_table, 'oat_variable_name'] is None:
+            self.oat_variable = self.site_df.loc[self.selected_table, 'oat_variable_name']
+        if not self.site_df.loc[self.selected_table, 'sys_cop_variable_name'] is None:
+            self.sys_cop_variable = self.site_df.loc[self.selected_table, 'sys_cop_variable_name']
+        self.display_reset_to_default_date_msg = None
+
+    def needs_reset_to_default_date_msg(self):
+        if self.display_reset_to_default_date_msg is None:
+            if self.start_date is None or self.end_date is None:
+                self.display_reset_to_default_date_msg = False
+            else:
+                query = f"SELECT time_pt FROM {self.min_table} WHERE {self.min_table}.time_pt >= '{self.start_date}' AND {self.min_table}.time_pt <= '{self.end_date} 23:59:59' LIMIT 1"
+                if len(self.get_fetch_from_query(query)) > 0:
+                    self.display_reset_to_default_date_msg = False
+                else:
+                    self.display_reset_to_default_date_msg = True
+                    self.start_date = None
+                    self.end_date = None
+        return self.display_reset_to_default_date_msg
+    
+    def create_date_note(self):
+        """
+        returns [date_note, first_date, last_date]
+        """
+        query = f"SELECT time_pt FROM {self.min_table} ORDER BY time_pt ASC LIMIT 1"
+        result = self.get_fetch_from_query(query)
+        if len(result) == 0 or len(result[0]) == 0:
+            return "If no date range is filled, The last three days of raw data and last 30 days of summary data will be returned."
+        first_date = result[0][0]
+
+        query = f"SELECT time_pt FROM {self.min_table} ORDER BY time_pt DESC LIMIT 1"
+        result = self.get_fetch_from_query(query)
+        last_date = result[0][0]
+
+        return [
+                f"Possible range for {self.site_df.loc[self.selected_table, 'pretty_name']}:",
+                html.Br(),
+                f"{first_date.strftime('%m/%d/%y')} - {last_date.strftime('%m/%d/%y')}",
+                html.Br(),
+                "If no date range is filled, The last three days of raw data and last 30 days of summary data will be returned."
+        ]
+    
+    def add_default_date_message(self, graph_components: list) -> list:
+        if self.needs_reset_to_default_date_msg():
+            graph_components.append(html.P(style={'color': 'red', 'textAlign': 'center'}, children=[
+                html.Br(),
+                "No data available for date range selected. Defaulting to most recent data."
+            ]))
+        return graph_components
+    
+    def filter_graph_and_field_df(self, checklist_values):
+        chosen_vals = self.parse_checklists_from_div(checklist_values)
+        filtered_columns = [item for item in df.columns if item in chosen_vals]
+        filtered_graph_list = [item for item in graph_df.index if item in chosen_vals]
+
+        # Filter the DataFrame to only those rows
+        self.graph_df = self.graph_df.loc[filtered_graph_list]
+        self.field_df = self.field_df[self.field_df['field_name'].isin(filtered_columns)]
+        self.organized_mapping = None
+
+    def get_selected_table(self):
+        return self.selected_table
+
+    def parse_checklists_from_div(self, div_children : list) -> list:
+        ret_list = []
+        for element in div_children:
+            if 'type' in element:
+                if element['type'] == 'Checklist':
+                    ret_list = ret_list + element['props']['value']
+                elif element['type'] == 'Div':
+                    ret_list = ret_list + self.parse_checklists_from_div(element['props']['children'])
+        return ret_list
+    
+    def is_within_raw_data_limit(self):
+        if not self.value_in_checkbox_selection('get_raw_data'):
+            return False
+        if self.start_date is None or self.end_date is None:
+            return True
+        date1 = datetime.strptime(self.start_date, '%Y-%m-%d')
+        date2 = datetime.strptime(self.end_date, '%Y-%m-%d')
+        difference = abs(date1 - date2)
+        return difference <= timedelta(days=max_raw_data_days)
+
+    def get_no_raw_retrieve_msg(self) -> html.P:
+        """
+        Returns
+        -------
+        no_raw_retrieval_msg: html.P
+            html component to communicate that time frame is too large to retrieve raw data
+        """
+        return html.P(style={'color': 'black', 'textAlign': 'center'}, children=[
+                html.Br(),
+                f"Time frame is too large to retrieve raw data. To view raw data, set time frame to {max_raw_data_days} days or less and ensure the 'Retrieve Raw Data' checkbox is selected."
+            ])
 
     def value_in_checkbox_selection(self, value : str):
         return value in self.checkbox_selections
@@ -149,6 +249,27 @@ class DataManager:
 
         return site_df, graph_df, field_df
     
+    def get_table_dropdown(self):
+        display_drop_down = []
+        for name in self.site_df.index.to_list():
+            display_drop_down.append({'label': self.site_df.loc[name, "pretty_name"], 'value' : name})
+        return display_drop_down
+    
+    def get_attribute_for_site(self, attribute : str):
+        if attribute in self.site_df.columns:
+            return self.site_df.loc[self.selected_table, attribute]
+        return None
+    
+    def graph_available(self, graph_type : str) -> bool:
+        if graph_type in self.site_df.columns:
+            return self.site_df.loc[self.selected_table, graph_type]
+        return False
+
+    def get_summary_groups(self):
+        filtered_df = self.field_df[self.field_df['site_name'] == self.selected_table]
+        filtered_df = filtered_df[filtered_df['summary_group'].notna()]
+        return filtered_df['summary_group'].unique()
+    
     def round_df_to_3_decimal(self, df : pd.DataFrame) -> pd.DataFrame:
         float_cols = df.select_dtypes(include=['float64'])
         df[float_cols.columns] = float_cols.round(3)
@@ -176,7 +297,7 @@ class DataManager:
 
         return df
     
-    def get_fetch_from_query(self, query : str) -> pd.DataFrame:
+    def get_fetch_from_query(self, query : str) -> list:
         cnx = mysql.connector.connect(
             host=self.raw_data_creds['host'],
             user=self.raw_data_creds['user'],
@@ -273,7 +394,7 @@ class DataManager:
         df = df.drop(columns=columns_to_drop)
         return df
     
-    def get_raw_data_df(self, all_fields : bool = False, hourly_fields_only : bool = False) -> pd.DataFrame: 
+    def get_raw_data_df(self, all_fields : bool = False, hourly_fields_only : bool = False): 
         if self.raw_df is None:
             # raw df has not already been generated
             query = self.generate_raw_data_query()
@@ -322,8 +443,8 @@ class DataManager:
         if self.entire_daily_df is None:
             query = f"SELECT * FROM {self.day_table};"
             self.entire_daily_df = self.get_df_from_query(query)
-
         return self.apply_event_filters_to_df(self.entire_daily_df, events_to_filter)
+
 
     def get_hourly_data_df(self, events_to_filter : list = []) -> pd.DataFrame:
         if self.entire_hourly_df is None:
@@ -332,7 +453,24 @@ class DataManager:
 
         return self.apply_event_filters_to_df(self.entire_hourly_df, events_to_filter)
     
+    def get_annual_minute_df(self, events_to_filter : list = []):
+        if self.annual_minute_df is None:
+            query = f"SELECT * FROM {self.min_table} ORDER BY time_pt DESC LIMIT 525600;" # 525600 minutes... How do you measure, measure a year?
+            self.annual_minute_df = self.get_df_from_query(query)
+            self.sera_last_day = self.annual_minute_df.index.max()
+            self.sera_first_day = self.sera_last_day - pd.DateOffset(years=1) + pd.DateOffset(days=1)
+            self.annual_minute_df = self.annual_minute_df.loc[(self.annual_minute_df.index >= self.sera_first_day) & (self.annual_minute_df.index <= self.sera_last_day)]
+            self.annual_minute_df['month'] = self.annual_minute_df.index.month
+            self.annual_minute_df = self.annual_minute_df.resample('T').asfreq()
+            self.annual_minute_df = self.annual_minute_df.bfill()
+        # check that df contains a year of data
+        # first_day_boundary = last_day - pd.DateOffset(years=1) + pd.DateOffset(days=14)
+        # if first_day_boundary < self.annual_minute_df.index.min():
+        #     raise Exception("Not enough data. A years worth of data is required to produce this graph.")
+        return self.apply_event_filters_to_df(self.annual_minute_df, events_to_filter), self.sera_first_day.strftime('%m/%d/%Y'), self.sera_last_day.strftime('%m/%d/%Y')
+    
     def apply_event_filters_to_df(self, df : pd.DataFrame, events_to_filter : list):
+        # TODO this could be optimized with a hash map of already searched filters
         if len(events_to_filter) > 0:
             filtered_df = df.copy()
             query = f"SELECT start_time_pt, end_time_pt FROM site_events WHERE site_name = '{self.selected_table}' AND event_type IN ("
@@ -348,7 +486,7 @@ class DataManager:
             for start_time, end_time in time_ranges:
                 filtered_df = filtered_df.loc[~((filtered_df.index >= start_time) & (filtered_df.index <= end_time))]
             return filtered_df
-        return df.copy()
+        return df
     
     def get_organized_mapping(self, df_columns : list, all_fields : bool = False, hourly_fields_only : bool = False):
         """

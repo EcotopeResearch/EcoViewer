@@ -4,8 +4,9 @@ import plotly.graph_objects as go
 from dash import dcc, html, Dash, dash_table
 from ecoviewer.config import get_organized_mapping
 from ecoviewer.constants.constants import *
+from ecoviewer.objects.DataManager import DataManager
 
-def create_meta_data_table(site_df : pd.DataFrame, selected_table : str, app : Dash, anonymize_data : bool = True) -> html.Div:
+def create_meta_data_table(dm : DataManager, app : Dash, anonymize_data : bool = True) -> html.Div:
     """
     Parameters
     ----------
@@ -23,8 +24,8 @@ def create_meta_data_table(site_df : pd.DataFrame, selected_table : str, app : D
     meta_data_table: html.Div
         html div that contains a two column table to describe the site's meta data
     """
-    wh_unit_name = site_df.loc[selected_table, 'wh_unit_name']
-    wh_manufacturer = site_df.loc[selected_table, 'wh_manufacturer']
+    wh_unit_name = dm.get_attribute_for_site('wh_unit_name')
+    wh_manufacturer = dm.get_attribute_for_site('wh_manufacturer')
     primary_model = None
     if not wh_manufacturer is None and not wh_unit_name is None:
         primary_model = f"{wh_manufacturer} {wh_unit_name}"
@@ -32,31 +33,31 @@ def create_meta_data_table(site_df : pd.DataFrame, selected_table : str, app : D
          primary_model = f"{wh_manufacturer}"
     elif not wh_unit_name is None:
          primary_model = f"{wh_unit_name}"
-    swing_tank_volume = site_df.loc[selected_table, 'swing_tank_volume']
-    zip_code = site_df.loc[selected_table, 'zip_code']
-    swing_t_elem = site_df.loc[selected_table, 'swing_element_kw']
-    primary_volume = site_df.loc[selected_table, 'tank_size_gallons']
-    installation_year = site_df.loc[selected_table, 'unit_installation_year']
-    notes = site_df.loc[selected_table, 'notes']
-    occupant_capacity = site_df.loc[selected_table, 'occupant_capacity']
+    swing_tank_volume = dm.get_attribute_for_site('swing_tank_volume')
+    zip_code = dm.get_attribute_for_site('zip_code')
+    swing_t_elem = dm.get_attribute_for_site('swing_element_kw')
+    primary_volume = dm.get_attribute_for_site('tank_size_gallons')
+    installation_year = dm.get_attribute_for_site('unit_installation_year')
+    notes = dm.get_attribute_for_site('notes')
+    occupant_capacity = dm.get_attribute_for_site('occupant_capacity')
     building_specs = "Unknown"
-    if site_df.loc[selected_table, 'building_specs'] is not None:
-        building_specs = site_df.loc[selected_table, 'building_specs']
-    elif site_df.loc[selected_table, 'building_type'] is not None:
-        building_specs = site_df.loc[selected_table, 'building_type']
+    if dm.get_attribute_for_site('building_specs') is not None:
+        building_specs = dm.get_attribute_for_site('building_specs')
+    elif dm.get_attribute_for_site('building_type') is not None:
+        building_specs = dm.get_attribute_for_site('building_type')
 
     mapping = {
-        "Address" : site_df.loc[selected_table, 'address'] if site_df.loc[selected_table, 'address'] is not None else "Unknown", 
+        "Address" : dm.get_attribute_for_site('address') if dm.get_attribute_for_site('address') is not None else "Unknown", 
         "Zip Code" : zip_code if not (zip_code is None or pd.isna(zip_code)) else "Unknown",
         "Building Specifications/Type" : building_specs,
         "Number of Occupants" : f"{round(occupant_capacity)} Occupants" if not (occupant_capacity is None or pd.isna(occupant_capacity)) else None,
         "Primary System Model" : primary_model, 
-        "Primary HPWHs" : site_df.loc[selected_table, 'number_heat_pumps'], 
+        "Primary HPWHs" : dm.get_attribute_for_site('number_heat_pumps'), 
         "Primary Tank Volume" : f"{primary_volume} Gallons" if not (primary_volume is None or pd.isna(primary_volume)) else None, 
         "Swing Tank Element" : f"{swing_t_elem} kW" if not (swing_t_elem is None or pd.isna(swing_t_elem)) else None, 
         "Temperature Maintenance Storage Volume" : f"{swing_tank_volume} Gallons" if not (swing_tank_volume is None or pd.isna(swing_tank_volume)) else None,
         "Installation Year" : installation_year if not (installation_year is None or pd.isna(installation_year)) else None,
-        "Operation Hours" : site_df.loc[selected_table, 'operation_hours'] if site_df.loc[selected_table, 'operation_hours'] is not None else None,
+        "Operation Hours" : dm.get_attribute_for_site('operation_hours') if dm.get_attribute_for_site('operation_hours') is not None else None,
         "Schematic Drawing": f"![]({app.get_asset_url('schematic-swingtank.jpg')})" if not (swing_tank_volume is None or pd.isna(swing_tank_volume)) else None,
         "Notes" : notes if not (notes is None or pd.isna(notes)) else None,
     }
@@ -142,9 +143,9 @@ def create_data_dictionary(organized_mapping):
             ))
     return returnStr
 
-def create_data_dictionary_checklist(graph_df : pd.DataFrame, field_df : pd.DataFrame, selected_table : str):
+def create_data_dictionary_checklist(dm : DataManager):
+    organized_mapping = dm.get_organized_mapping([],True)
     
-    organized_mapping = get_organized_mapping([], graph_df, field_df, selected_table, True)
     returnDiv = []
     
     for key, value in organized_mapping.items():

@@ -28,9 +28,14 @@ class RawDataSubPlots(GraphObject):
                     df[column_name] = np.where(df[column_name] > field_dict["upper_bound"], np.nan, df[column_name])
 
     def create_graph(self, dm : DataManager):
-        df, organized_mapping = dm.get_raw_data_df(all_fields=False)
-        self.clean_df(df, organized_mapping)
+        if not dm.is_within_raw_data_limit():
+            return dm.get_no_raw_retrieve_msg()
         graph_components = []
+        graph_components = dm.add_default_date_message(graph_components)
+        df, organized_mapping = dm.get_raw_data_df(all_fields=False)
+        if df.empty:
+            raise Exception("No data available for parameters specified.")
+        self.clean_df(df, organized_mapping)
         # Load the JSON data from the file
         subplot_titles = []
         for key, value in organized_mapping.items():
