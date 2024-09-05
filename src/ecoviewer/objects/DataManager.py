@@ -121,8 +121,8 @@ class DataManager:
     
     def filter_graph_and_field_df(self, checklist_values):
         chosen_vals = self.parse_checklists_from_div(checklist_values)
-        filtered_columns = [item for item in df.columns if item in chosen_vals]
-        filtered_graph_list = [item for item in graph_df.index if item in chosen_vals]
+        filtered_columns = [item for item in self.field_df['field_name'].tolist() if item in chosen_vals]
+        filtered_graph_list = [item for item in self.graph_df.index if item in chosen_vals]
 
         # Filter the DataFrame to only those rows
         self.graph_df = self.graph_df.loc[filtered_graph_list]
@@ -283,6 +283,7 @@ class DataManager:
             database=self.db_name
         )
         cursor = cnx.cursor()
+        # self.data_
         cursor.execute(query)
         result = cursor.fetchall()
         column_names = [desc[0] for desc in cursor.description]
@@ -326,15 +327,16 @@ class DataManager:
             query = self.generate_daily_summary_query()
             self.daily_summary_df = self.get_df_from_query(query)
             # filter for only fields that are assigned to be in summary tables
+            if self.selected_table == 'bayview':
+                # additional data prune for bayview
+                self.daily_summary_df = self._bayview_prune_additional_power(self.daily_summary_df)
+                self.daily_summary_df = self._bayview_power_processing(self.daily_summary_df)
+
             filtered_field_df = self.field_df[self.field_df['site_name'] == self.selected_table]
             filtered_df = filtered_field_df[filtered_field_df['summary_group'].notna()]
             group_columns = [col for col in self.daily_summary_df.columns if col in filtered_df['field_name'].tolist()]
             self.daily_summary_df = self.daily_summary_df[group_columns]
 
-            if self.selected_table == 'bayview':
-                # additional data prune for bayview
-                self.daily_summary_df = self._bayview_prune_additional_power(self.daily_summary_df)
-                self.daily_summary_df = self._bayview_power_processing(self.daily_summary_df)
         if not summary_group is None:
             # filter for particular summary group
             filtered_group_df = self.field_df[self.field_df['site_name'] == self.selected_table]
@@ -357,7 +359,6 @@ class DataManager:
         return hourly_summary_query
     
     def get_hourly_summary_data_df(self, summary_group : str = None, events_to_filter : list = []) -> pd.DataFrame:
-
         if self.hourly_summary_df is None:
             if self.daily_summary_df is None:
                 self.get_daily_summary_data_df(summary_group)
@@ -446,9 +447,9 @@ class DataManager:
         return self.apply_event_filters_to_df(self.entire_daily_df, events_to_filter)
 
 
-    def get_hourly_data_df(self, events_to_filter : list = []) -> pd.DataFrame:
+    def get_hourly_flow_data_df(self, events_to_filter : list = []) -> pd.DataFrame:
         if self.entire_hourly_df is None:
-            query = f"SELECT * FROM {self.hour_table};"
+            query = f"SELECT time_pt, {self.flow_variable} FROM {self.hour_table};"
             self.entire_hourly_df = self.get_df_from_query(query)
 
         return self.apply_event_filters_to_df(self.entire_hourly_df, events_to_filter)

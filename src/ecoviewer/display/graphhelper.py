@@ -168,5 +168,4 @@ def query_annual_data(table, cursor):
     first_day = last_day - pd.DateOffset(years=1) + pd.DateOffset(days=1)
     
     annual_df = annual_df.loc[(annual_df.index >= first_day) & (annual_df.index <= last_day)]
-    print(annual_df)
     return annual_df, first_day.strftime('%m/%d/%Y'), last_day.strftime('%m/%d/%Y')

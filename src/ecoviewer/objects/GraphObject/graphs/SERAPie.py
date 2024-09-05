@@ -11,8 +11,8 @@ class SERAPie(GraphObject):
     def create_graph(self, dm : DataManager):
         df, start_date, end_date = dm.get_annual_minute_df()
     
-        df = df.resample('T').asfreq()
-        df = df.bfill()
+        # df = df.resample('T').asfreq()
+        # df = df.bfill()
         
         power_data = df[['PowerIn_Lighting', 'PowerIn_PlugsMisc', 'PowerIn_Ventilation', 'PowerIn_HeatingCooling', 'PowerIn_DHW']].sum() / 60 * 3.41 / 39010
 

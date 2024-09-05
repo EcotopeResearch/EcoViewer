@@ -68,7 +68,7 @@ class SummaryHourlyFlow(GraphObject):
 
         full_daily_df = dm.get_daily_data_df()
         daily_df = full_daily_df[[dm.flow_variable]].copy()
-        full_hourly_df = dm.get_hourly_data_df()
+        full_hourly_df = dm.get_hourly_flow_data_df()
         hourly_df = full_hourly_df[[dm.flow_variable]].copy()
 
         daily_df['weekday'] = np.where(daily_df.index.weekday <= 4, 1, 0)

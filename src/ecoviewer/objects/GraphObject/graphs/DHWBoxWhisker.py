@@ -9,7 +9,7 @@ class DHWBoxWhisker(GraphObject):
         super().__init__(dm, title)
 
     def create_graph(self, dm : DataManager):
-        hourly_df = dm.get_hourly_data_df()
+        hourly_df = dm.get_hourly_flow_data_df()
         hourly_df['hour'] = hourly_df.index.hour
         hourly_df['Flow_CityWater_PerTenant'] = hourly_df[dm.flow_variable] * 60 / dm.occupant_capacity
 

@@ -44,7 +44,6 @@ class SummaryBarGraph(GraphObject):
         powerin_columns = [col for col in og_df.columns if col.startswith('PowerIn_') and 'PowerIn_Total' not in col and og_df[col].dtype == "float64"]
         cop_columns = [col for col in og_df.columns if 'COP' in col]
         df = og_df[powerin_columns+cop_columns].copy()
-
         # compress to weeks if more than 3 weeks selected
         compress_to_weeks = False
         formatting_time_delta = min(4, math.floor(24/(len(cop_columns) +1))) # TODO error if there are more than 23 cop columns
@@ -87,8 +86,6 @@ class SummaryBarGraph(GraphObject):
         energy_dataframe[powerin_columns] = energy_dataframe[powerin_columns].apply(lambda x: x * 24)
 
         # TODO error for no power columns
-
-
         # Create a stacked bar graph using Plotly Express
         stacked_fig = px.bar(energy_dataframe, x=energy_dataframe.index, y=powerin_columns, title='<b>Energy and COP',
                     labels={'index': 'Data Point'}, height=400)
