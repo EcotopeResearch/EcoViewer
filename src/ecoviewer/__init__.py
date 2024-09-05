@@ -1,3 +1,4 @@
 from . import config
 from . import display
-__all__ = ['config', 'display']
+from . import objects
+__all__ = ['config', 'display', 'objects']
