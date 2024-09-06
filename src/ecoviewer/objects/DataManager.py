@@ -69,10 +69,19 @@ class DataManager:
         self.flow_variable = "Flow_CityWater"
         self.oat_variable= "Temp_OAT"
         self.sys_cop_variable = "COP_BoundaryMethod"
+        self.sys_cop_variable_2 = None
+        self.sys_cop_variable_3 = None
+        self.sys_cop_variable_4 = None
         if not self.site_df.loc[self.selected_table, 'oat_variable_name'] is None:
             self.oat_variable = self.site_df.loc[self.selected_table, 'oat_variable_name']
         if not self.site_df.loc[self.selected_table, 'sys_cop_variable_name'] is None:
             self.sys_cop_variable = self.site_df.loc[self.selected_table, 'sys_cop_variable_name']
+        if not self.site_df.loc[self.selected_table, 'sys_cop_variable_name_2'] is None:
+            self.sys_cop_variable_2 = self.site_df.loc[self.selected_table, 'sys_cop_variable_name_2']
+        if not self.site_df.loc[self.selected_table, 'sys_cop_variable_name_3'] is None:
+            self.sys_cop_variable_3 = self.site_df.loc[self.selected_table, 'sys_cop_variable_name_3']
+        if not self.site_df.loc[self.selected_table, 'sys_cop_variable_name_4'] is None:
+            self.sys_cop_variable_4 = self.site_df.loc[self.selected_table, 'sys_cop_variable_name_4']
         self.display_reset_to_default_date_msg = None
 
     def needs_reset_to_default_date_msg(self):
