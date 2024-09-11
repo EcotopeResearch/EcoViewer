@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 class SERAMonthly(GraphObject):
     def __init__(self, dm : DataManager, title : str = "Monthly Energy Consumption", summary_group : str = None):
         self.summary_group = summary_group
+        self.graph_type = "summary_SERA_monthly"
         super().__init__(dm, title)
 
     def create_graph(self, dm : DataManager):

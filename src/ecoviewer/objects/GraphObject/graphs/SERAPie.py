@@ -6,6 +6,7 @@ import plotly.express as px
 class SERAPie(GraphObject):
     def __init__(self, dm : DataManager, title : str = "Annual EUI", summary_group : str = None):
         self.summary_group = summary_group
+        self.graph_type = "summary_SERA_pie"
         super().__init__(dm, title)
 
     def create_graph(self, dm : DataManager):
