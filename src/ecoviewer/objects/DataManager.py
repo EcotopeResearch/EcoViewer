@@ -156,6 +156,8 @@ class DataManager:
             return False
         if self.start_date is None or self.end_date is None:
             return True
+        if self.user_email.split('@')[-1] == "ecotope.com": # ecotopers have no data limit
+            return True
         date1 = datetime.strptime(self.start_date, '%Y-%m-%d')
         date2 = datetime.strptime(self.end_date, '%Y-%m-%d')
         difference = abs(date1 - date2)
