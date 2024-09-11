@@ -8,11 +8,11 @@ from dash import dcc
 
 class RawDataSubPlots(GraphObject):
     def __init__(self, dm : DataManager, title : str = "Raw Data Plots"):
-        super().__init__(dm, title)
         self.state_colors = {
             "loadUp" : "green",
             "shed" : "blue"
         }
+        super().__init__(dm, title)
 
     def clean_df(self, df : pd.DataFrame, organized_mapping):
         for key, value in organized_mapping.items():
