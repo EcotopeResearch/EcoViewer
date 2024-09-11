@@ -172,7 +172,7 @@ class DataManager:
         """
         return html.P(style={'color': 'black', 'textAlign': 'center'}, children=[
                 html.Br(),
-                f"Time frame is too large to retrieve raw data. To view raw data, set time frame to {max_raw_data_days} days or less and ensure the 'Retrieve Raw Data' checkbox is selected."
+                f"{self.user_email.split('@')[-1]} Time frame is too large to retrieve raw data. To view raw data, set time frame to {max_raw_data_days} days or less and ensure the 'Retrieve Raw Data' checkbox is selected."
             ])
 
     def value_in_checkbox_selection(self, value : str):

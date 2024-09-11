@@ -436,14 +436,6 @@ def get_df_from_query(query : str, cursor) -> pd.DataFrame:
     df = round_df_to_3_decimal(df)
     return df
 
-def is_within_raw_data_limit(date_str1 : str, date_str2 : str):
-    if date_str1 is None or date_str2 is None:
-        return True
-    date1 = datetime.strptime(date_str1, '%Y-%m-%d')
-    date2 = datetime.strptime(date_str2, '%Y-%m-%d')
-    difference = abs(date1 - date2)
-    return difference <= timedelta(days=max_raw_data_days)
-
 def round_df_to_3_decimal(df : pd.DataFrame) -> pd.DataFrame:
     float_cols = df.select_dtypes(include=['float64'])
     df[float_cols.columns] = float_cols.round(3)
