@@ -33,8 +33,14 @@ class DataManager:
         String representation for the start date of the timeframe
     end_date : str
         String representation for the start date of the timeframe
+    checkbox_selections : list
+        List of selected checkbox values from user request
+    pkl_folder_path : str
+        full path to directory conaining saved .pkl files for graph objects that use them
     """
-    def __init__(self, raw_data_creds : dict, config_creds : dict, user_email : str, selected_table : str = None, start_date : str = None, end_date : str = None, checkbox_selections : list = []):
+    def __init__(self, raw_data_creds : dict, config_creds : dict, user_email : str, selected_table : str = None, start_date : str = None, end_date : str = None, checkbox_selections : list = [],
+                 pkl_folder_path : str = None):
+        self.pkl_folder_path = pkl_folder_path
         self.raw_data_creds = raw_data_creds
         self.config_creds = config_creds
         self.last_called_mysql = None

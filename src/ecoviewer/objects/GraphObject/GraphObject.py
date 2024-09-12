@@ -12,17 +12,20 @@ import os
 
 
 class GraphObject:
-    def __init__(self, dm : DataManager, title : str = "Graph", pkl_folder_path : str = 'pkls'):
+    def __init__(self, dm : DataManager, title : str = "Graph"):
         self.title = title
         self.pkl_file_name = self.create_pkl_file_name(dm)
         # load pickle if it exists
-        if not self.pkl_file_name is None and self.check_if_file_exists(pkl_folder_path):
-            self._load_graph_from_pkl(pkl_folder_path)
+        if not self.pkl_file_name is None and self.check_if_file_exists(dm.pkl_folder_path):
+            try:
+                self._load_graph_from_pkl(dm.pkl_folder_path)
+            except Exception as e:
+                self.graph = self.get_error_msg(f"Could not load saved graph {self.title}: {str(e)}")
         else:
             try:
                 self.graph = self.create_graph(dm)
             except Exception as e:
-                self.graph = self.get_error_msg(e)
+                self.graph = self.get_error_msg(f"Could not generate {self.title}: {str(e)}")
 
     def create_graph(self, dm : DataManager):
         # TODO add reset to default date message
@@ -31,12 +34,12 @@ class GraphObject:
     def get_graph(self):
         return self.graph
     
-    def get_error_msg(self, e : Exception):
+    def get_error_msg(self, error_str : str):
         return html.P(
             style={'color': 'red', 'textAlign': 'center'}, 
             children=[
                 html.Br(),
-                f"Could not generate {self.title}: {str(e)}"
+                error_str
             ]
         )
     
@@ -48,7 +51,7 @@ class GraphObject:
     def check_if_file_exists(self, folder_path : str, file_name : str = None):
         if not file_name is None:
             self.pkl_file_name = file_name
-        if self.pkl_file_name is None:
+        if self.pkl_file_name is None or folder_path is None:
             return False
         file_path = os.path.join(folder_path, f"{self.pkl_file_name}.pkl")
         return os.path.isfile(file_path)
