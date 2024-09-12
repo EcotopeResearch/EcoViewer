@@ -21,6 +21,7 @@ from ecoviewer.objects.GraphObject.graphs.SERAPie import SERAPie
 from ecoviewer.objects.GraphObject.graphs.SERAMonthly import SERAMonthly
 from ecoviewer.objects.GraphObject.graphs.RawDataSubPlots import RawDataSubPlots
 from ecoviewer.objects.GraphObject.graphs.HourlyShapesPlots import HourlyShapesPlots
+from ecoviewer.objects.GraphObject.graphs.PickleGraph import PickleGraph
 
 
 state_colors = {
@@ -55,7 +56,7 @@ def clean_df(df : pd.DataFrame, organized_mapping):
             if 'upper_bound' in field_dict:
                 df[column_name] = np.where(df[column_name] > field_dict["upper_bound"], np.nan, df[column_name])
 
-def create_graph(dm : DataManager, graph_type : str, unique_group : str = None, cop_value : str = None):
+def create_graph(dm : DataManager, graph_type : str, unique_group : str = None, cop_value : str = None, pkl_filename : str = None):
     # start_time = time.time()
     return_value = "Graph type not recognized"
     if graph_type == 'raw_data':
@@ -118,6 +119,10 @@ def create_graph(dm : DataManager, graph_type : str, unique_group : str = None, 
     elif graph_type == 'summary_SERA_monthly':
         summary_SERA_monthly = SERAMonthly(dm, summary_group=unique_group)
         return_value = summary_SERA_monthly.get_graph()
+    # Pre-saved graph
+    elif graph_type == 'pkl_graph':
+        pkl_graph = PickleGraph(dm, pkl_file_name=pkl_filename)
+        return_value = pkl_graph.get_graph()
     # end_time = time.time()
     # elapsed_time = end_time - start_time
     # print(f"graphing {graph_type} took {elapsed_time:.4f} seconds to run.")
@@ -146,6 +151,10 @@ def create_summary_graphs(dm : DataManager):
                         graph_components.append(create_graph(dm, graph_type, unique_group, cop_value=dm.sys_cop_variable_3))
                     if not dm.sys_cop_variable_4 is None:
                         graph_components.append(create_graph(dm, graph_type, unique_group, cop_value=dm.sys_cop_variable_4))
+    for custom_graph in ["custom_pkl_graph_1","custom_pkl_graph_2"]:
+        graph_file_name = dm.get_attribute_for_site(custom_graph)
+        if not graph_file_name is None and not pd.isna(graph_file_name):
+            graph_components.append(create_graph(dm, 'pkl_graph', pkl_filename=graph_file_name))
     return graph_components
     
 
