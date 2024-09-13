@@ -12,6 +12,8 @@ class COPTimeseries(GraphObject):
     def create_graph(self, dm : DataManager):
         df_daily = dm.get_daily_data_df()
         if not 'Temp_OutdoorAir' in df_daily.columns:
+            if not dm.oat_variable in df_daily.columns:
+                raise Exception('No outdoor air temperature data available.')
             df_daily['Temp_OutdoorAir'] = df_daily[dm.oat_variable]
         if not 'SystemCOP' in df_daily.columns:
             df_daily['SystemCOP'] = df_daily[dm.sys_cop_variable]

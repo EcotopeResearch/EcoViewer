@@ -5,3 +5,5 @@ mysql-connector-python==8.0.32
 numpy
 statsmodels
 configparser
+pytest
+pytest-mock
