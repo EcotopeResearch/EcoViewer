@@ -2,7 +2,7 @@ pandas==1.5.3
 plotly
 dash
 mysql-connector-python==8.0.32
-numpy
+numpy==1.26.4
 statsmodels
 configparser
 pytest
