@@ -56,7 +56,7 @@ def clean_df(df : pd.DataFrame, organized_mapping):
             if 'upper_bound' in field_dict:
                 df[column_name] = np.where(df[column_name] > field_dict["upper_bound"], np.nan, df[column_name])
 
-def create_graph(dm : DataManager, graph_type : str, unique_group : str = None, cop_value : str = None, pkl_filename : str = None):
+def create_graph(dm : DataManager, graph_type : str, unique_group : str = None, cop_value : str = None, power_value : str = None, pkl_filename : str = None):
     # start_time = time.time()
     return_value = "Graph type not recognized"
     if graph_type == 'raw_data':
@@ -93,7 +93,7 @@ def create_graph(dm : DataManager, graph_type : str, unique_group : str = None, 
         return_value = summary_hourly_flow.get_graph()
     # COP Regression
     elif graph_type == 'summary_cop_regression':
-        summary_cop_regression = COPRegression(dm, summary_group=unique_group, cop_column=cop_value)
+        summary_cop_regression = COPRegression(dm, summary_group=unique_group, cop_column=cop_value, power_col=power_value)
         return_value = summary_cop_regression.get_graph()
     # COP Timeseries
     elif graph_type == 'summary_cop_timeseries':
@@ -143,14 +143,14 @@ def create_summary_graphs(dm : DataManager):
             graph_components.append(html.H2(unique_group))
         for graph_type in graph_types:
             if dm.graph_available(graph_type):
-                graph_components.append(create_graph(dm, graph_type, unique_group))
+                graph_components.append(create_graph(dm, graph_type, unique_group, power_value=dm.sys_power_variable))
                 if graph_type == 'summary_cop_regression':
                     if not dm.sys_cop_variable_2 is None:
-                        graph_components.append(create_graph(dm, graph_type, unique_group, cop_value=dm.sys_cop_variable_2))
+                        graph_components.append(create_graph(dm, graph_type, unique_group, cop_value=dm.sys_cop_variable_2, power_value=dm.sys_power_variable_2))
                     if not dm.sys_cop_variable_3 is None:
-                        graph_components.append(create_graph(dm, graph_type, unique_group, cop_value=dm.sys_cop_variable_3))
+                        graph_components.append(create_graph(dm, graph_type, unique_group, cop_value=dm.sys_cop_variable_3, power_value=dm.sys_power_variable_3))
                     if not dm.sys_cop_variable_4 is None:
-                        graph_components.append(create_graph(dm, graph_type, unique_group, cop_value=dm.sys_cop_variable_4))
+                        graph_components.append(create_graph(dm, graph_type, unique_group, cop_value=dm.sys_cop_variable_4, power_value=dm.sys_power_variable_4))
     for custom_graph in ["custom_pkl_graph_1","custom_pkl_graph_2"]:
         graph_file_name = dm.get_attribute_for_site(custom_graph)
         if not graph_file_name is None and not pd.isna(graph_file_name):

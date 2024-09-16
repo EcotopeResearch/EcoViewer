@@ -78,6 +78,10 @@ class DataManager:
         self.sys_cop_variable_2 = None
         self.sys_cop_variable_3 = None
         self.sys_cop_variable_4 = None
+        self.sys_power_variable = None
+        self.sys_power_variable_2 = None
+        self.sys_power_variable_3 = None
+        self.sys_power_variable_4 = None
         if not self.site_df.loc[self.selected_table, 'oat_variable_name'] is None:
             self.oat_variable = self.site_df.loc[self.selected_table, 'oat_variable_name']
         if not self.site_df.loc[self.selected_table, 'sys_cop_variable_name'] is None:
@@ -88,6 +92,14 @@ class DataManager:
             self.sys_cop_variable_3 = self.site_df.loc[self.selected_table, 'sys_cop_variable_name_3']
         if not self.site_df.loc[self.selected_table, 'sys_cop_variable_name_4'] is None:
             self.sys_cop_variable_4 = self.site_df.loc[self.selected_table, 'sys_cop_variable_name_4']
+        if not self.site_df.loc[self.selected_table, 'sys_power_variable'] is None:
+            self.sys_power_variable = self.site_df.loc[self.selected_table, 'sys_power_variable']
+        if not self.site_df.loc[self.selected_table, 'sys_power_variable_2'] is None:
+            self.sys_power_variable_2 = self.site_df.loc[self.selected_table, 'sys_power_variable_2']
+        if not self.site_df.loc[self.selected_table, 'sys_power_variable_3'] is None:
+            self.sys_power_variable_3 = self.site_df.loc[self.selected_table, 'sys_power_variable_3']
+        if not self.site_df.loc[self.selected_table, 'sys_power_variable_4'] is None:
+            self.sys_power_variable_4 = self.site_df.loc[self.selected_table, 'sys_power_variable_4']
         self.display_reset_to_default_date_msg = None
 
     def needs_reset_to_default_date_msg(self):
