@@ -4,6 +4,7 @@ import math
 from dash import html
 from datetime import datetime, timedelta
 from ecoviewer.constants.constants import *
+from plotly.colors import DEFAULT_PLOTLY_COLORS
 
 class DataManager:
     """
@@ -518,6 +519,22 @@ class DataManager:
             return filtered_df
         return df
     
+    def get_color_list(self, df_columns: list, i : int = 0) -> list:
+        color_list = []
+        filtered_field_df = self.field_df[self.field_df['site_name'] == self.selected_table]
+        # for i in range(len(df_columns)):
+        #     df_column = df_columns[i]
+        for df_column in df_columns:
+            color = None
+            if filtered_field_df[filtered_field_df['field_name'] == df_column].shape[0] == 1:
+                color = filtered_field_df.loc[filtered_field_df['field_name'] == df_column, 'color'].values[0]
+            if color is None:
+                color = DEFAULT_PLOTLY_COLORS[i % len(DEFAULT_PLOTLY_COLORS)]
+                i = i+1
+            color_list.append(color)
+        return color_list
+
+    
     def get_organized_mapping(self, df_columns : list, all_fields : bool = False, hourly_fields_only : bool = False):
         """
         Parameters
@@ -558,6 +575,7 @@ class DataManager:
                     column_details["readable_name"] = field_row['pretty_name']
                     column_details["column_name"] = field_name
                     column_details["description"] = field_row["description"]
+                    column_details['color'] = field_row["color"]
                     # if not math.isnan(field_row["lower_bound"]):
                     if field_row["lower_bound"] is not None and not math.isnan(field_row["lower_bound"]):
                         column_details["lower_bound"] = field_row["lower_bound"]

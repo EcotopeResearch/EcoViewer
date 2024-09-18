@@ -12,8 +12,10 @@ class SummaryPieGraph(GraphObject):
         df = dm.get_daily_summary_data_df(self.summary_group)
         powerin_columns = [col for col in df.columns if col.startswith('PowerIn_') and 'PowerIn_Total' not in col and df[col].dtype == "float64"]
         sums = df[powerin_columns].sum()
-        colors = px.colors.qualitative.Antique
-        pie_fig = px.pie(names=sums.index, values=sums.values, title='<b>Distribution of Energy'#,
-                        #  color_discrete_sequence=[colors[i] for i in range(len(powerin_columns))]
+        # sums = sums.sort_values(ascending=False)
+        power_colors = dm.get_color_list(sums.index.tolist())
+        pie_fig = px.pie(names=sums.index.tolist(), values=sums.values, title='<b>Distribution of Energy',
+                         color_discrete_sequence=power_colors,
+                         category_orders={'names': sums.index.tolist()}
                         )
         return dcc.Graph(figure=pie_fig)

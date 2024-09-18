@@ -78,6 +78,7 @@ class RawDataSubPlots(GraphObject):
                         name=name, 
                         yaxis=y_axis, 
                         mode='lines',
+                        line=dict(color=field_dict["color"]),
                         hovertemplate="<br>".join([
                             f"{name}",
                             "time_pt=%{x}",
@@ -101,6 +102,7 @@ class RawDataSubPlots(GraphObject):
                         name=name, 
                         yaxis=y_axis, 
                         mode='lines',
+                        line=dict(color=field_dict["color"]),
                         hovertemplate="<br>".join([
                             f"{name}",
                             "time_pt=%{x}",

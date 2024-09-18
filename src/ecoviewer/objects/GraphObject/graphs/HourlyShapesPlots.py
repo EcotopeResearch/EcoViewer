@@ -78,24 +78,29 @@ class HourlyShapesPlots(GraphObject):
                 name = field_dict["readable_name"]
                 column_name = field_dict["column_name"]
                 if column_name in weekday_df.columns:
+                    #line color
+                    line_color = field_dict["color"]
+                    if line_color is None:
+                        line_color = colors[color_num]
+                        color_num += 1
+                        color_num = color_num % len(colors)
+
                     weekday_trace = go.Scatter(x=weekday_df.index, y=weekday_df[column_name], name=name, legendgroup=name, yaxis=y_axis, mode='lines',
                                                 hovertemplate="<br>".join([
                                                     f"{name}",
                                                     "hour=%{x}",
                                                     "value=%{y}",
                                                 ]), 
-                                                line=dict(color = colors[color_num]))
+                                                line=dict(color = line_color))
                     weekend_trace = go.Scatter(x=weekend_df.index, y=weekend_df[column_name], name=name, legendgroup=name, yaxis=y_axis, mode='lines', 
                                                 hovertemplate="<br>".join([
                                                     f"{name}",
                                                     "hour=%{x}",
                                                     "value=%{y}",
                                                 ]), 
-                                                showlegend=False, line=dict(color = colors[color_num]))
+                                                showlegend=False, line=dict(color = line_color))
                     fig.add_trace(weekday_trace, row=row, col = 1, secondary_y=secondary_y)
                     fig.add_trace(weekend_trace, row=row+1, col = 1, secondary_y=secondary_y)
-                    color_num += 1
-                    color_num = color_num % len(colors)
 
             y_axis = 'y2'
             secondary_y = True
@@ -103,24 +108,28 @@ class HourlyShapesPlots(GraphObject):
                 name = field_dict["readable_name"]
                 column_name = field_dict["column_name"]
                 if column_name in weekday_df.columns:
+                    #line color
+                    line_color = field_dict["color"]
+                    if line_color is None:
+                        line_color = colors[color_num]
+                        color_num += 1
+                        color_num = color_num % len(colors)
                     weekday_trace = go.Scatter(x=weekday_df.index, y=weekday_df[column_name], name=name, legendgroup=name, yaxis=y_axis, mode='lines',
                                                 hovertemplate="<br>".join([
                                                     f"{name}",
                                                     "hour=%{x}",
                                                     "value=%{y}",
                                                 ]),
-                                                line=dict(color = colors[color_num]))
+                                                line=dict(color = line_color))
                     weekend_trace = go.Scatter(x=weekend_df.index, y=weekend_df[column_name], name=name, legendgroup=name, yaxis=y_axis, mode='lines',
                                                 hovertemplate="<br>".join([
                                                     f"{name}",
                                                     "hour=%{x}",
                                                     "value=%{y}",
                                                 ]), 
-                                                showlegend=False, line=dict(color = colors[color_num]))
+                                                showlegend=False, line=dict(color = line_color))
                     fig.add_trace(weekday_trace, row=row, col = 1, secondary_y=secondary_y)
                     fig.add_trace(weekend_trace, row=row+1, col = 1, secondary_y=secondary_y)
-                    color_num += 1
-                    color_num = color_num % len(colors)
 
             fig.update_yaxes(title_text="<b>"+y1_units+"</b>", row=row, col = 1, secondary_y = False)
             fig.update_yaxes(title_text="<b>"+y2_units+"</b>", row=row, col = 1, secondary_y = True)

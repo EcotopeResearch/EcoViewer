@@ -57,6 +57,28 @@ def clean_df(df : pd.DataFrame, organized_mapping):
                 df[column_name] = np.where(df[column_name] > field_dict["upper_bound"], np.nan, df[column_name])
 
 def create_graph(dm : DataManager, graph_type : str, unique_group : str = None, cop_value : str = None, power_value : str = None, pkl_filename : str = None):
+    """
+    creates a GraphObject based on parameters and returns the dcc.Graph value made by GraphObject.get_graph()
+    
+    Parameters
+    ----------  
+    dm : DataManager
+        DataManager Object that contains information and database connection needed for request
+    graph_type : str
+        string value to inform function of which type of graph to create
+    unique_group : str
+        the summary group of the graph if applicable 
+    cop_value : str
+        the COP variable name to base the graph on if applicable 
+    power_value : str
+        the Power variable name to base the graph on if applicable 
+    pkl_filename : str
+        the filename for the .pkl file containing a pre-saved graph if applicable
+    
+    Returns
+    ------- 
+    an object that can be returned to a dash application display. Typically a dcc.Graph object
+    """
     # start_time = time.time()
     return_value = "Graph type not recognized"
     if graph_type == 'raw_data':

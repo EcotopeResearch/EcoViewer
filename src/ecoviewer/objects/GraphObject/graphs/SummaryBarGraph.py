@@ -90,7 +90,9 @@ class SummaryBarGraph(GraphObject):
 
         # TODO error for no power columns
         # Create a stacked bar graph using Plotly Express
-        stacked_fig = px.bar(energy_dataframe, x=energy_dataframe.index, y=powerin_columns, title='<b>Energy and COP',
+        power_colors = dm.get_color_list(powerin_columns)
+        cop_colors = dm.get_color_list(cop_columns, i=len(powerin_columns)) # start color index after power columns to avoid color conflict
+        stacked_fig = px.bar(energy_dataframe, x=energy_dataframe.index, y=powerin_columns, color_discrete_sequence=power_colors, title='<b>Energy and COP',
                     labels={'index': 'Data Point'}, height=400)
         
         num_data_points = len(df)
@@ -115,12 +117,15 @@ class SummaryBarGraph(GraphObject):
 
         # Add the additional columns as separate bars next to the stacks
         if len(cop_columns) > 0:
-            for col in cop_columns:
+            for i in range(len(cop_columns)):
+            # for col in cop_columns:
+                col = cop_columns[i]
                 x_positions_shifted = [x + x_shift for x in df.index]
                 stacked_fig.add_trace(go.Bar(
                     x=x_positions_shifted, 
                     y=df[col], 
                     name=col, 
+                    marker=dict(color=cop_colors[i]),
                     yaxis = 'y2',
                     customdata=np.transpose([x_axis_tick_text, [col]*len(x_axis_tick_text)]),
                     hovertemplate="<br>".join([

@@ -13,6 +13,7 @@ class SummaryDailyPowerByHour(GraphObject):
         df = dm.get_daily_summary_data_df(self.summary_group)
         hourly_df = dm.get_hourly_summary_data_df(self.summary_group)
         powerin_columns = [col for col in df.columns if col.startswith('PowerIn_') and df[col].dtype == "float64"]
+        power_colors = dm.get_color_list(powerin_columns)
 
         nls_df = hourly_df[hourly_df['load_shift_day'] == 0]
         ls_df = hourly_df[hourly_df['load_shift_day'] == 1]
@@ -28,10 +29,13 @@ class SummaryDailyPowerByHour(GraphObject):
 
         power_fig = px.line(title = "<b>Average Daily Power")
         
-        for column_name in powerin_columns:
+        for i in range(len(powerin_columns)):
+            column_name = powerin_columns[i]
             if column_name in power_df.columns:
-                trace = go.Scatter(x=power_df.index, y=power_df[column_name], name=f"{column_name}", mode='lines')
+                trace = go.Scatter(x=power_df.index, y=power_df[column_name], name=f"{column_name}", mode='lines',
+                                   line=dict(color=power_colors[i]),)
                 power_fig.add_trace(trace)
+                # TODO figure out colors for LS and NLS lines
                 trace = go.Scatter(x=ls_df.index, y=ls_df[column_name], name=f"Load Shift Day {column_name}", mode='lines')
                 power_fig.add_trace(trace)
                 trace = go.Scatter(x=nls_df.index, y=nls_df[column_name], name=f"Normal Day {column_name}", mode='lines')
