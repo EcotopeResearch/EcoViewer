@@ -173,7 +173,7 @@ def create_summary_graphs(dm : DataManager):
                         graph_components.append(create_graph(dm, graph_type, unique_group, cop_value=dm.sys_cop_variable_3, power_value=dm.sys_power_variable_3))
                     if not dm.sys_cop_variable_4 is None:
                         graph_components.append(create_graph(dm, graph_type, unique_group, cop_value=dm.sys_cop_variable_4, power_value=dm.sys_power_variable_4))
-    for custom_graph in ["custom_pkl_graph_1","custom_pkl_graph_2"]:
+    for custom_graph in ["custom_pkl_graph_1","custom_pkl_graph_2","custom_pkl_graph_3","custom_pkl_graph_4","custom_pkl_graph_5"]:
         graph_file_name = dm.get_attribute_for_site(custom_graph)
         if not graph_file_name is None and not pd.isna(graph_file_name):
             graph_components.append(create_graph(dm, 'pkl_graph', pkl_filename=graph_file_name))
