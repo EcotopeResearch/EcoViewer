@@ -19,13 +19,13 @@ class SummaryDailyPowerByHour(GraphObject):
         ls_df = hourly_df[hourly_df['load_shift_day'] == 1]
 
         ls_df = ls_df.groupby('hr').mean(numeric_only = True)
-        ls_df = dm.round_df_to_3_decimal(ls_df)
+        ls_df = dm.round_df_to_x_decimal(ls_df, 3)
 
         nls_df = nls_df.groupby('hr').mean(numeric_only = True)
-        nls_df = dm.round_df_to_3_decimal(nls_df)
+        nls_df = dm.round_df_to_x_decimal(nls_df, 3)
 
         power_df = hourly_df.groupby('hr').mean(numeric_only = True)
-        power_df = dm.round_df_to_3_decimal(power_df)
+        power_df = dm.round_df_to_x_decimal(power_df, 3)
 
         power_fig = px.line(title = "<b>Average Daily Power")
         power_pretty_names, power_pretty_names_dict = dm.get_pretty_names(powerin_columns)

@@ -300,9 +300,9 @@ class DataManager:
         filtered_df = filtered_df[filtered_df['summary_group'].notna()]
         return filtered_df['summary_group'].unique()
     
-    def round_df_to_3_decimal(self, df : pd.DataFrame) -> pd.DataFrame:
+    def round_df_to_x_decimal(self, df : pd.DataFrame, x : int) -> pd.DataFrame:
         float_cols = df.select_dtypes(include=['float64'])
-        df[float_cols.columns] = float_cols.round(3)
+        df[float_cols.columns] = float_cols.round(x)
         return df
     
     def get_df_from_query(self, query : str, set_time_index : bool = True) -> pd.DataFrame:
@@ -324,7 +324,7 @@ class DataManager:
         if set_time_index and not df.empty:
             df = df.set_index('time_pt')
             # round float columns to 3 decimal places
-            df = self.round_df_to_3_decimal(df)
+            df = self.round_df_to_x_decimal(df, 3)
 
         return df
     

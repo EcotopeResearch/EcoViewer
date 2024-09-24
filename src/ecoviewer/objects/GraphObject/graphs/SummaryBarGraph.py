@@ -61,7 +61,7 @@ class SummaryBarGraph(GraphObject):
             df = df.resample('W').mean()
             for cop_column in cop_columns:
                 df[cop_column] = sum_df[f'heat_out_{cop_column}'] / sum_df['power_sum']
-            df = dm.round_df_to_3_decimal(df)
+            df = dm.round_df_to_x_decimal(df, 3)
 
             formatting_time_delta = formatting_time_delta * 7
 
@@ -121,8 +121,9 @@ class SummaryBarGraph(GraphObject):
         )
 
         # Add the additional columns as separate bars next to the stacks
-        cop_pretty_names, cop_pretty_name_dict = dm.get_pretty_names(cop_columns)
         if len(cop_columns) > 0:
+            cop_pretty_names, cop_pretty_name_dict = dm.get_pretty_names(cop_columns)
+            df = dm.round_df_to_x_decimal(df, 2)
             for i in range(len(cop_columns)):
             # for col in cop_columns:
                 col = cop_columns[i]
@@ -147,7 +148,7 @@ class SummaryBarGraph(GraphObject):
             # Create a secondary y-axis
             stacked_fig.update_layout(
                 yaxis2=dict(
-                    title='COP',
+                    title='<b>COP',
                     overlaying='y',
                     side='right'
                 ),
