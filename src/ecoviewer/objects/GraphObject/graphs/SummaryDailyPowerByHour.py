@@ -28,17 +28,18 @@ class SummaryDailyPowerByHour(GraphObject):
         power_df = dm.round_df_to_3_decimal(power_df)
 
         power_fig = px.line(title = "<b>Average Daily Power")
-        
+        power_pretty_names, power_pretty_names_dict = dm.get_pretty_names(powerin_columns)
         for i in range(len(powerin_columns)):
             column_name = powerin_columns[i]
             if column_name in power_df.columns:
-                trace = go.Scatter(x=power_df.index, y=power_df[column_name], name=f"{column_name}", mode='lines',
+                pretty_name = power_pretty_names_dict[column_name]
+                trace = go.Scatter(x=power_df.index, y=power_df[column_name], name=f"{pretty_name}", mode='lines',
                                    line=dict(color=power_colors[i]),)
                 power_fig.add_trace(trace)
                 # TODO figure out colors for LS and NLS lines
-                trace = go.Scatter(x=ls_df.index, y=ls_df[column_name], name=f"Load Shift Day {column_name}", mode='lines')
+                trace = go.Scatter(x=ls_df.index, y=ls_df[column_name], name=f"Load Shift Day {pretty_name}", mode='lines')
                 power_fig.add_trace(trace)
-                trace = go.Scatter(x=nls_df.index, y=nls_df[column_name], name=f"Normal Day {column_name}", mode='lines')
+                trace = go.Scatter(x=nls_df.index, y=nls_df[column_name], name=f"Normal Day {pretty_name}", mode='lines')
                 power_fig.add_trace(trace)
 
         power_fig.update_layout(

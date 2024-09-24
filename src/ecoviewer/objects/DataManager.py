@@ -375,6 +375,21 @@ class DataManager:
             return self.daily_summary_df[group_columns]
         return self.apply_event_filters_to_df(self.daily_summary_df, events_to_filter)
     
+    def get_pretty_names(self, column_names : list, replace_power_for_energy = False):
+        pretty_names = []
+        pretty_names_dict = {}
+        filtered_field_df = self.field_df[self.field_df['site_name'] == self.selected_table]
+        for column_name in column_names:
+            pretty_name = filtered_field_df.loc[filtered_field_df['field_name'] == column_name, 'pretty_name'].values[0]
+            if pretty_name is None:
+                pretty_name = column_name
+            if replace_power_for_energy:
+                pretty_name = pretty_name.replace("power", "Energy")
+                pretty_name = pretty_name.replace("Power", "Energy")
+            pretty_names.append(pretty_name)
+            pretty_names_dict[column_name] = pretty_name
+        return pretty_names, pretty_names_dict
+    
     def generate_hourly_summary_query(self, numHours = 740):
         if self.load_shift_tracking:
             hourly_summary_query = f"SELECT {self.hour_table}.*, HOUR({self.hour_table}.time_pt) AS hr, {self.day_table}.load_shift_day FROM {self.hour_table} " +\

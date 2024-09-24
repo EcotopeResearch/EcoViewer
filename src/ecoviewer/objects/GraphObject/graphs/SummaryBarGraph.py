@@ -91,9 +91,14 @@ class SummaryBarGraph(GraphObject):
         # TODO error for no power columns
         # Create a stacked bar graph using Plotly Express
         power_colors = dm.get_color_list(powerin_columns)
+        power_pretty_names, power_pretty_names_dict = dm.get_pretty_names(powerin_columns, True)
+        for power_column in powerin_columns:
+            energy_dataframe[power_pretty_names_dict[power_column]] = energy_dataframe[power_column]
+
         cop_colors = dm.get_color_list(cop_columns, i=len(powerin_columns)) # start color index after power columns to avoid color conflict
-        stacked_fig = px.bar(energy_dataframe, x=energy_dataframe.index, y=powerin_columns, color_discrete_sequence=power_colors, title='<b>Energy and COP',
-                    labels={'index': 'Data Point'}, height=400)
+        stacked_fig = px.bar(energy_dataframe, x=energy_dataframe.index, y=power_pretty_names, color_discrete_sequence=power_colors, title='<b>Energy and COP',
+                    labels={'index': 'Data Point'}, 
+                    height=400)
         
         num_data_points = len(df)
         x_shift = pd.Timedelta(hours=formatting_time_delta)  # Adjust this value to control the horizontal spacing between the bars
@@ -116,18 +121,20 @@ class SummaryBarGraph(GraphObject):
         )
 
         # Add the additional columns as separate bars next to the stacks
+        cop_pretty_names, cop_pretty_name_dict = dm.get_pretty_names(cop_columns)
         if len(cop_columns) > 0:
             for i in range(len(cop_columns)):
             # for col in cop_columns:
                 col = cop_columns[i]
+                cop_pretty_name = cop_pretty_name_dict[col]
                 x_positions_shifted = [x + x_shift for x in df.index]
                 stacked_fig.add_trace(go.Bar(
                     x=x_positions_shifted, 
                     y=df[col], 
-                    name=col, 
+                    name=cop_pretty_name, 
                     marker=dict(color=cop_colors[i]),
                     yaxis = 'y2',
-                    customdata=np.transpose([x_axis_tick_text, [col]*len(x_axis_tick_text)]),
+                    customdata=np.transpose([x_axis_tick_text, [cop_pretty_name]*len(x_axis_tick_text)]),
                     hovertemplate="<br>".join([
                         "variable=%{customdata[1]}",
                         "time_pt=%{customdata[0]}",
