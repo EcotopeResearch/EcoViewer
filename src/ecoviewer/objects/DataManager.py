@@ -578,6 +578,7 @@ class DataManager:
         if hourly_fields_only:
             site_fields = site_fields[site_fields['hourly_shapes_display'] == True]
         site_fields = site_fields.set_index('field_name')
+        site_fields = site_fields.sort_values(by='pretty_name', ascending=True)
         for index, row in self.graph_df.iterrows():
             # Extract the y-axis units
             y1_units = row["y_1_title"] if row["y_1_title"] != None else ""
