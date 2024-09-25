@@ -155,24 +155,27 @@ def create_summary_graphs(dm : DataManager):
     graph_components = []
     graph_components = dm.add_default_date_message(graph_components)
     unique_groups = dm.get_summary_groups()
-    graph_types = ["summary_bar_graph", "summary_hour_graph", "summary_pie_chart", "summary_gpdpp_histogram",
-                    'summary_gpdpp_timeseries', 'summary_peaknorm', 'summary_hourly_flow', 'summary_cop_regression',
-                    'summary_cop_timeseries', 'summary_flow_boxwhisker', 'summary_erv_performance', 'summary_ohp_performance',
-                    'summary_SERA_pie', 'summary_SERA_monthly']
+    summary_group_graph_types = ["summary_bar_graph", "summary_hour_graph", "summary_pie_chart"]
+    graph_types = ["summary_gpdpp_histogram", 'summary_gpdpp_timeseries', 'summary_peaknorm', 'summary_hourly_flow', 
+                   'summary_cop_regression', 'summary_cop_timeseries', 'summary_flow_boxwhisker', 'summary_erv_performance', 
+                   'summary_ohp_performance', 'summary_SERA_pie', 'summary_SERA_monthly']
     for unique_group in unique_groups:
         # Title if multiple groups:
         if len(unique_groups) > 1:
             graph_components.append(html.H2(unique_group))
-        for graph_type in graph_types:
+        for graph_type in summary_group_graph_types:
             if dm.graph_available(graph_type):
                 graph_components.append(create_graph(dm, graph_type, unique_group, power_value=dm.sys_power_variable))
-                if graph_type == 'summary_cop_regression':
-                    if not dm.sys_cop_variable_2 is None:
-                        graph_components.append(create_graph(dm, graph_type, unique_group, cop_value=dm.sys_cop_variable_2, power_value=dm.sys_power_variable_2))
-                    if not dm.sys_cop_variable_3 is None:
-                        graph_components.append(create_graph(dm, graph_type, unique_group, cop_value=dm.sys_cop_variable_3, power_value=dm.sys_power_variable_3))
-                    if not dm.sys_cop_variable_4 is None:
-                        graph_components.append(create_graph(dm, graph_type, unique_group, cop_value=dm.sys_cop_variable_4, power_value=dm.sys_power_variable_4))
+    for graph_type in graph_types:
+        if dm.graph_available(graph_type):
+            graph_components.append(create_graph(dm, graph_type, None, power_value=dm.sys_power_variable))
+            if graph_type == 'summary_cop_regression':
+                if not dm.sys_cop_variable_2 is None:
+                    graph_components.append(create_graph(dm, graph_type, None, cop_value=dm.sys_cop_variable_2, power_value=dm.sys_power_variable_2))
+                if not dm.sys_cop_variable_3 is None:
+                    graph_components.append(create_graph(dm, graph_type, None, cop_value=dm.sys_cop_variable_3, power_value=dm.sys_power_variable_3))
+                if not dm.sys_cop_variable_4 is None:
+                    graph_components.append(create_graph(dm, graph_type, None, cop_value=dm.sys_cop_variable_4, power_value=dm.sys_power_variable_4))
     for custom_graph in ["custom_pkl_graph_1","custom_pkl_graph_2","custom_pkl_graph_3","custom_pkl_graph_4","custom_pkl_graph_5"]:
         graph_file_name = dm.get_attribute_for_site(custom_graph)
         if not graph_file_name is None and not pd.isna(graph_file_name):
