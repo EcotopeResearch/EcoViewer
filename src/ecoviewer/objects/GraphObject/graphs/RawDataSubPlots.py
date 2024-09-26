@@ -123,8 +123,6 @@ class RawDataSubPlots(GraphObject):
 
         # shading for system_state
         if dm.value_in_checkbox_selection('state_shading') and "system_state" in df.columns:
-            y1_height = df[cop_columns].max().max() + 0.25
-            y1_base = df[cop_columns].min().min() - 0.25
             # Create a boolean mask to identify the start of a new block
             df['system_state'].fillna('normal', inplace=True)
             state_change = df['system_state'] != df['system_state'].shift(1)
@@ -135,32 +133,26 @@ class RawDataSubPlots(GraphObject):
                 change_time = state_change_indices[i]
                 system_state = df.at[change_time, 'system_state']
                 if system_state != 'normal':
-                    fig.add_shape(
-                        type="rect",
-                        yref="y4",
-                        x0=change_time,
-                        y0=y1_base,
+                    fig.add_vrect(
+                        x0=change_time, 
                         x1=state_change_indices[i+1],
-                        y1=y1_height,
-                        fillcolor=self.state_colors[system_state],
+                        fillcolor=self.state_colors[system_state], 
                         opacity=0.2,
-                        line=dict(width=0)
+                        layer="below", 
+                        line_width=0,
                     )
 
             # Add the final vrect if needed
             if len(state_change_indices) > 0 and df.at[state_change_indices[-1], 'system_state'] != 'normal':
                 system_state = df.at[state_change_indices[-1], 'system_state']
-                fig.add_shape(
-                            type="rect",
-                            yref="y2",
-                            x0=state_change_indices[-1],
-                            y0=0,
-                            x1=df.index[-1], # large value to represent end of graph
-                            y1=100,
-                            fillcolor=self.state_colors[system_state],
-                            opacity=0.2,
-                            line=dict(width=0)
-                        )
+                fig.add_vrect(
+                        x0=state_change_indices[-1],
+                        x1=df.index[-1],
+                        fillcolor=self.state_colors[system_state], 
+                        opacity=0.2,
+                        layer="below", 
+                        line_width=0,
+                    )
 
         figure = go.Figure(fig)
 
