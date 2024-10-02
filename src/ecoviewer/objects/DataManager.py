@@ -83,6 +83,8 @@ class DataManager:
         self.sys_power_variable_2 = None
         self.sys_power_variable_3 = None
         self.sys_power_variable_4 = None
+        if not self.site_df.loc[self.selected_table, 'flow_variable_name'] is None:
+            self.flow_variable = self.site_df.loc[self.selected_table, 'flow_variable_name']
         if not self.site_df.loc[self.selected_table, 'oat_variable_name'] is None:
             self.oat_variable = self.site_df.loc[self.selected_table, 'oat_variable_name']
         if not self.site_df.loc[self.selected_table, 'sys_cop_variable_name'] is None:

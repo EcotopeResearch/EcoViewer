@@ -18,8 +18,8 @@ class GPDPPTimeseries(GraphObject):
         df_daily['Flow_CityWater_Total'] = df_daily[dm.flow_variable] * (60 * 24) #average GPM * 60min/hr * 24hr/day
         df_daily['Flow_CityWater_PP'] = round(df_daily['Flow_CityWater_Total'] / dm.occupant_capacity, 2)
         percentile = 0.95
-        mean_day = df_daily['Flow_CityWater'].mean() * 24 * 60
-        percentile_day = df_daily['Flow_CityWater'].quantile(percentile) * 24 * 60
+        mean_day = df_daily[dm.flow_variable].mean() * 24 * 60
+        percentile_day = df_daily[dm.flow_variable].quantile(percentile) * 24 * 60
         mean_daily_usage = mean_day / dm.occupant_capacity
         high_daily_usage = percentile_day / dm.occupant_capacity 
 
