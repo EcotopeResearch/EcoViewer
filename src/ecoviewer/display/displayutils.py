@@ -50,6 +50,8 @@ def create_meta_data_table(dm : DataManager, app : Dash, anonymize_data : bool =
     if schematic_img is None and not (swing_tank_volume is None or pd.isna(swing_tank_volume)):
         schematic_img = 'schematic-swingtank.jpg'
 
+    additional_img = dm.get_attribute_for_site('custom_dict_display_2')
+
     mapping = {
         "Address" : dm.get_attribute_for_site('address') if dm.get_attribute_for_site('address') is not None else "Unknown", 
         "Zip Code" : zip_code if not (zip_code is None or pd.isna(zip_code)) else "Unknown",
@@ -63,6 +65,7 @@ def create_meta_data_table(dm : DataManager, app : Dash, anonymize_data : bool =
         "Installation Year" : installation_year if not (installation_year is None or pd.isna(installation_year)) else None,
         "Operation Hours" : dm.get_attribute_for_site('operation_hours') if dm.get_attribute_for_site('operation_hours') is not None else None,
         "Schematic Drawing": f"![]({app.get_asset_url(schematic_img)})" if not schematic_img is None else None,
+        "Additional Resource": f"![]({app.get_asset_url(additional_img)})" if not additional_img is None else None,
         "Notes" : notes if not (notes is None or pd.isna(notes)) else None,
     }
 
