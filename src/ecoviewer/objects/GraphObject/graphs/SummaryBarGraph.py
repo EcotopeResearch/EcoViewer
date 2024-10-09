@@ -40,11 +40,13 @@ class SummaryBarGraph(GraphObject):
 
     def create_graph(self, dm : DataManager):
         # Filter columns with the prefix "PowerIn_" and exclude "PowerIn_Total"
-        og_df = dm.get_daily_summary_data_df(self.summary_group)
+        og_df = dm.get_daily_summary_data_df(self.summary_group,['PIPELINE_ERR'])
+        if og_df.shape[0] <= 0:
+            raise Exception("No power or COP data to display for time period.")
         powerin_columns = [col for col in og_df.columns if col.startswith('PowerIn_') and 'PowerIn_Total' not in col and og_df[col].dtype == "float64"]
         cop_columns = [col for col in og_df.columns if 'COP' in col]
         if len(powerin_columns) == 0 and len(cop_columns) == 0:
-            raise Exception("no power or COP data to display.")
+            raise Exception("No power or COP data to display for time period.")
 
         df = og_df[powerin_columns+cop_columns].copy()
         # compress to weeks if more than 3 weeks selected

@@ -374,7 +374,7 @@ class DataManager:
             filtered_group_df = self.field_df[self.field_df['site_name'] == self.selected_table]
             filtered_group_df = self.field_df[self.field_df['summary_group']==summary_group]
             group_columns = [col for col in self.daily_summary_df.columns if col in filtered_group_df['field_name'].tolist()]
-            return self.daily_summary_df[group_columns]
+            return self.apply_event_filters_to_df(self.daily_summary_df[group_columns], events_to_filter)
         return self.apply_event_filters_to_df(self.daily_summary_df, events_to_filter)
     
     def get_pretty_names(self, column_names : list, replace_power_for_energy = False):

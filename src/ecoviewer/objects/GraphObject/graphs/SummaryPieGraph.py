@@ -9,7 +9,9 @@ class SummaryPieGraph(GraphObject):
         super().__init__(dm, title)
 
     def create_graph(self, dm : DataManager):
-        df = dm.get_daily_summary_data_df(self.summary_group)
+        df = dm.get_daily_summary_data_df(self.summary_group,['PIPELINE_ERR'])
+        if df.shape[0] <= 0:
+            raise Exception("No data availabe for time period.")
         powerin_columns = [col for col in df.columns if col.startswith('PowerIn_') and 'PowerIn_Total' not in col and df[col].dtype == "float64"]
         sums = df[powerin_columns].sum()
         power_pretty_names, power_pretty_names_dict = dm.get_pretty_names(sums.index.tolist(), True)

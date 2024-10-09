@@ -85,7 +85,7 @@ def test_raw_data_graph(mock_data_manager):
     ('hourly_shapes','Hourly Shapes Plots','No data available for parameters specified.'),
     ('summary_cop_regression','COP Regression','No outdoor air temperature data available.'),
     ('summary_cop_timeseries','COP Timeseries','No outdoor air temperature data available.'),
-    ('summary_bar_graph','Energy and COP Bar Graph','no power or COP data to display.')
+    ('summary_bar_graph','Energy and COP Bar Graph','No power or COP data to display for time period.')
 ])
 def test_graph_no_data(graph_type, pretty_name, err_msg):
     with patch('ecoviewer.objects.DataManager') as mock_data_manager:
