@@ -100,6 +100,47 @@ def create_meta_data_table(dm : DataManager, app : Dash, anonymize_data : bool =
         ),
     ])
 
+def get_display_schematic(dm : DataManager, app : Dash) -> html.Div:
+    """
+    Parameters
+    ----------
+    site_df: pd.Dataframe
+        Pandas dataframe representing containing all meta data for each data site the user has access to.
+    selected_table : str
+        Name of the site that the meta data table is being created for. This string should corespond to an index in site_df
+    app: Dash
+        The dash application that this table is being created for. This parameter must be passed to access it's assets for schematic images
+    anonymize_data : bool
+        set to True to remove sensitive identifying data (e.g. the building's address) from the data table. False to leave it in. Defaults to True 
+
+    Returns
+    -------
+    meta_data_table: html.Div
+        html div that contains a two column table to describe the site's meta data
+    """
+
+    schematic_img = dm.get_attribute_for_site('custom_dict_display_1')
+    additional_img = dm.get_attribute_for_site('custom_dict_display_2')
+
+    if schematic_img is None and additional_img is None:
+        return html.Div()
+    
+    images = [
+        html.H2("Building Shematics"),
+    ]
+    if not schematic_img is None:
+        images.append(html.Img(
+                style={'width':'100%'},
+                src=app.get_asset_url(schematic_img)
+            ))
+    if not additional_img is None:
+        images.append(html.Img(
+                style={'width':'100%'},
+                src=app.get_asset_url(additional_img)
+            ))
+
+    return html.Div(images)
+
 def get_no_raw_retrieve_msg() -> html.P:
     """
     Returns
