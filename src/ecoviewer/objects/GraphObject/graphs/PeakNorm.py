@@ -23,14 +23,14 @@ class PeakNorm(GraphObject):
         if df_daily_with_peak.empty:
             # no data to display
             return None
-        
+        units = 'Gallons/Person/Day' if dm.occupant_capacity > 1 else 'Gallons/Day'
         df_daily_with_peak['Flow_CityWater_PP'] = df_daily_with_peak[dm.flow_variable]  * 60 * 24 / dm.occupant_capacity
 
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=df_daily_with_peak['Flow_CityWater_PP'], y=df_daily_with_peak['peak_norm'], mode='markers', marker=dict(color='darkblue')))
         fig.update_layout(title = '<b>Daily Peak Norm')
         fig.update_yaxes(title = '<b>Daily Max Fraction of DHW Consumed in 3-Hour Period')
-        fig.update_xaxes(title = '<b>Gallons/Person/Day')
+        fig.update_xaxes(title = f'<b>{units}')
 
         return dcc.Graph(figure=fig)
     

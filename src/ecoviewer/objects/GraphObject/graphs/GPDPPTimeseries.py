@@ -21,7 +21,9 @@ class GPDPPTimeseries(GraphObject):
         mean_day = df_daily[dm.flow_variable].mean() * 24 * 60
         percentile_day = df_daily[dm.flow_variable].quantile(percentile) * 24 * 60
         mean_daily_usage = mean_day / dm.occupant_capacity
-        high_daily_usage = percentile_day / dm.occupant_capacity 
+        high_daily_usage = percentile_day / dm.occupant_capacity
+
+        units = 'Gallons/Person/Day' if dm.occupant_capacity > 1 else 'Gallons/Day'
 
         fig = go.Figure()
         fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily.Flow_CityWater_PP, mode = 'markers',
@@ -34,7 +36,7 @@ class GPDPPTimeseries(GraphObject):
         line=dict(color="darkred", dash="dash"),
         name="Mean Daily Usage",
         hoverinfo="text",
-        hovertext=f"Mean Daily Usage: {mean_daily_usage:.2f} Gallons/Person/Day"))
+        hovertext=f"Mean Daily Usage: {mean_daily_usage:.2f} {units}"))
         
         fig.add_trace(go.Scatter(
         x=[df_daily.index.min() - pd.Timedelta(hours = 23), df_daily.index.max() + pd.Timedelta(hours = 23)],
@@ -43,10 +45,10 @@ class GPDPPTimeseries(GraphObject):
         line=dict(color="darkgreen", dash="dash"),
         name="95th Percentile Usage",
         hoverinfo="text",
-        hovertext=f"95th Percentile Usage: {high_daily_usage:.2f} Gallons/Person/Day"))
+        hovertext=f"95th Percentile Usage: {high_daily_usage:.2f} {units}"))
 
         fig.update_layout(title = '<b>Daily Hot Water Usage')
-        fig.update_yaxes(title = '<b>Gallons/Person/Day')
+        fig.update_yaxes(title = f'<b>{units}')
         fig.update_xaxes(title = '<b>Time')
 
         return dcc.Graph(figure=fig)

@@ -13,10 +13,11 @@ class GPDPPHistogram(GraphObject):
     def create_graph(self, dm : DataManager):
         df_daily = dm.get_daily_summary_data_df(self.summary_group)
         if pd.notna(dm.occupant_capacity) and self._is_numeric(dm.occupant_capacity) and dm.flow_variable in df_daily.columns:
-            nTenants = dm.occupant_capacity # TODO get this from central site csv
+            units = 'Gallons/Person/Day' if dm.occupant_capacity > 1 else 'Gallons/Day'
+            nTenants = dm.occupant_capacity
             df_daily['DHWDemand'] = df_daily[dm.flow_variable]*60*24/nTenants
             fig = px.histogram(df_daily, x='DHWDemand', title='Domestic Hot Water Demand (' + str(int(nTenants)) + ' Tenants)',
-                            labels={'DHWDemand': 'Gallons/Person/Day'})
+                            labels={'DHWDemand': units})
             return dcc.Graph(figure=fig)
         else:
             if not (pd.notna(dm.occupant_capacity) and self._is_numeric(dm.occupant_capacity)):
