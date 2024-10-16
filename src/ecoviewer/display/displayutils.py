@@ -10,10 +10,8 @@ def create_meta_data_table(dm : DataManager, app : Dash, anonymize_data : bool =
     """
     Parameters
     ----------
-    site_df: pd.Dataframe
-        Pandas dataframe representing containing all meta data for each data site the user has access to.
-    selected_table : str
-        Name of the site that the meta data table is being created for. This string should corespond to an index in site_df
+    dm : DataManager
+        The DataManager object for the current data pull
     app: Dash
         The dash application that this table is being created for. This parameter must be passed to access it's assets for schematic images
     anonymize_data : bool
@@ -99,6 +97,60 @@ def create_meta_data_table(dm : DataManager, app : Dash, anonymize_data : bool =
             },
         ),
     ])
+
+def create_event_log_table(dm : DataManager) -> html.Div:
+    """
+    Parameters
+    ----------
+    dm : DataManager
+        The DataManager object for the current data pull
+
+    Returns
+    -------
+    event_log_table: html.Div
+        html div that contains a table tof events from the queried site for the current date range
+    """
+    try:
+        event_df = dm.get_site_events()
+        if event_df.shape[0] == 0:
+            # return error on empty event_df
+            return html.Div([
+                html.P(
+                    style={'color': 'black', 'textAlign': 'center'}, 
+                    children=[ html.Br(),"No event data available."]
+                )
+            ])        
+        event_df['start_time_pt'] = pd.to_datetime(event_df['start_time_pt']).dt.date
+        event_df['end_time_pt'] = pd.to_datetime(event_df['end_time_pt']).dt.date
+        event_df = event_df.rename(columns={
+            'start_time_pt':'Start Date', 
+            'end_time_pt' : 'End Date', 
+            'event_type' : 'Event Type', 
+            'event_detail' : 'Details'
+        })
+
+        return html.Div([
+            html.H2("Event Log"),
+            dash_table.DataTable(
+                data=event_df.to_dict('records'),
+                columns=[{"name": i, "id": i, "presentation": "markdown"} for i in event_df.columns],
+                style_cell={'textAlign': 'left'},
+                style_as_list_view=True,
+                style_header={
+                    'backgroundColor': 'rgb(230, 230, 230)',
+                    'fontWeight': 'bold'
+                },
+                sort_action='native'
+            ),
+        ])
+
+    except Exception as e:
+        return html.Div([
+                html.P(
+                    style={'color': 'red', 'textAlign': 'center'}, 
+                    children=[html.Br(),f"Could not load event log: {str(e)}"]
+                )
+            ])
 
 def get_display_schematic(dm : DataManager, app : Dash) -> html.Div:
     """

@@ -536,6 +536,16 @@ class DataManager:
             return filtered_df
         return df
     
+    def get_site_events(self) -> pd.DataFrame:
+        query = f"SELECT start_time_pt, end_time_pt, event_type, event_detail FROM site_events WHERE site_name = '{self.selected_table}'"
+        if self.start_date != None and self.end_date != None:
+            query += f" AND (start_time_pt <= '{self.start_date}' OR start_time_pt < '{self.end_date}')"
+            query += f" AND (end_time_pt > '{self.start_date}' OR end_time_pt >= '{self.end_date}')"
+        query += " ORDER BY start_time_pt DESC"
+
+        events = self.get_df_from_query(query,False)
+        return events
+    
     def get_color_list(self, df_columns: list, i : int = 0) -> list:
         color_list = []
         filtered_field_df = self.field_df[self.field_df['site_name'] == self.selected_table]
