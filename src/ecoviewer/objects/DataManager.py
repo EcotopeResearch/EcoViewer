@@ -162,6 +162,28 @@ class DataManager:
     def get_selected_table(self):
         return self.selected_table
 
+    def add_event_to_site_events(self, start_date, end_date, event_type, event_detail):
+        """
+        Parameters
+        ----------
+        start_date : str
+            start date for event in the form 'yyy-mm-dd'
+        end_date : str
+            end date for event in the form 'yyy-mm-dd'
+        event_type : str
+            event type for the event.
+        event_detail : str
+            100-character maximum string to upload to database as event detail/description. Quotes will be removed from this string.
+        """
+        if self.user_is_ecotope():
+            event_detail.replace('"','')
+            event_detail.replace("'",'')
+            insert_query = "INSERT INTO site_events (start_time_pt, end_time_pt, site_name, event_type, event_detail)" 
+            insert_query += f" VALUES ('{start_date} 00:00:00', '{end_date} 00:00:00' , '{self.selected_table}', '{event_type}', '{event_detail}')"
+            self.run_insert_query(insert_query)
+            return
+        raise Exception("User does not have permission to add event.")
+
     def parse_checklists_from_div(self, div_children : list) -> list:
         ret_list = []
         for element in div_children:
@@ -177,12 +199,21 @@ class DataManager:
             return False
         if self.start_date is None or self.end_date is None:
             return True
-        if self.user_email.split('@')[-1] == "ecotope.com": # ecotopers have no data limit
+        if self.user_is_ecotope(): # ecotopers have no data limit
             return True
         date1 = datetime.strptime(self.start_date, '%Y-%m-%d')
         date2 = datetime.strptime(self.end_date, '%Y-%m-%d')
         difference = abs(date1 - date2)
         return difference <= timedelta(days=max_raw_data_days)
+    
+    def user_is_ecotope(self) -> bool:
+        """
+        Returns
+        -------
+        user_is_ecotope: bool
+            returns True if user is from Ecotope. False otherwise.
+        """
+        return self.user_email.split('@')[-1] == "ecotope.com"
 
     def get_no_raw_retrieve_msg(self) -> html.P:
         """
@@ -343,6 +374,19 @@ class DataManager:
         cursor.close()
         cnx.close()
         return result
+    
+    def run_insert_query(self, query : str) -> list:
+        cnx = mysql.connector.connect(
+            host=self.raw_data_creds['host'],
+            user=self.raw_data_creds['user'],
+            password=self.raw_data_creds['password'],
+            database=self.db_name
+        )
+        cursor = cnx.cursor()
+        cursor.execute(query)
+        cnx.commit()
+        cursor.close()
+        cnx.close()
     
     def generate_daily_summary_query(self, default_days = 30):
         summary_query = f"SELECT * FROM {self.day_table} "

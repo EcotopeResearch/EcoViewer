@@ -98,12 +98,14 @@ def create_meta_data_table(dm : DataManager, app : Dash, anonymize_data : bool =
         ),
     ])
 
-def create_event_log_table(dm : DataManager) -> html.Div:
+def create_event_log_table(dm : DataManager, msg_p : html.P = None) -> html.Div:
     """
     Parameters
     ----------
     dm : DataManager
         The DataManager object for the current data pull
+    msg_p : html.P
+        html paragraph that carries an additional message to be attached to the end of the event log
 
     Returns
     -------
@@ -117,7 +119,7 @@ def create_event_log_table(dm : DataManager) -> html.Div:
             return html.Div([
                 html.P(
                     style={'color': 'black', 'textAlign': 'center'}, 
-                    children=[ html.Br(),"No event data available."]
+                    children=[ html.Br(),"No event data available.", msg_p]
                 )
             ])        
         event_df['start_time_pt'] = pd.to_datetime(event_df['start_time_pt']).dt.date
@@ -142,6 +144,7 @@ def create_event_log_table(dm : DataManager) -> html.Div:
                 },
                 sort_action='native'
             ),
+            msg_p
         ])
 
     except Exception as e:
