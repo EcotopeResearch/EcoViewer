@@ -124,13 +124,15 @@ def create_event_log_table(dm : DataManager, msg_p : html.P = None) -> html.Div:
             ])        
         event_df['start_time_pt'] = pd.to_datetime(event_df['start_time_pt']).dt.date
         event_df['end_time_pt'] = pd.to_datetime(event_df['end_time_pt']).dt.date
+        if not dm.user_is_ecotope():
+            event_df = event_df.drop(columns=['id'])
         event_df = event_df.rename(columns={
             'start_time_pt':'Start Date', 
             'end_time_pt' : 'End Date', 
             'event_type' : 'Event Type', 
             'event_detail' : 'Details'
         })
-
+        
         return html.Div([
             html.H2("Event Log"),
             dash_table.DataTable(
@@ -139,9 +141,20 @@ def create_event_log_table(dm : DataManager, msg_p : html.P = None) -> html.Div:
                 style_cell={'textAlign': 'left'},
                 style_as_list_view=True,
                 style_header={
+                    'padding': '10px',
                     'backgroundColor': 'rgb(230, 230, 230)',
                     'fontWeight': 'bold'
                 },
+                style_data_conditional=[
+                    {
+                        'if': {'column_id': 'Start Date'},
+                        'backgroundColor': 'rgb(240, 240, 240)'
+                    },
+                    {
+                        'if': {'column_id': 'Event Type'},
+                        'backgroundColor': 'rgb(240, 240, 240)' 
+                    },
+                ],
                 sort_action='native'
             ),
             msg_p

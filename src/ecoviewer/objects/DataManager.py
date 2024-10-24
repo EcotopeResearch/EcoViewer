@@ -178,9 +178,9 @@ class DataManager:
         if self.user_is_ecotope():
             event_detail.replace('"','')
             event_detail.replace("'",'')
-            insert_query = "INSERT INTO site_events (start_time_pt, end_time_pt, site_name, event_type, event_detail)" 
-            insert_query += f" VALUES ('{start_date} 00:00:00', '{end_date} 00:00:00' , '{self.selected_table}', '{event_type}', '{event_detail}')"
-            self.run_insert_query(insert_query)
+            insert_query = "INSERT INTO site_events (start_time_pt, end_time_pt, site_name, event_type, event_detail, last_modified_date, last_modified_by)" 
+            insert_query += f" VALUES ('{start_date} 00:00:00', '{end_date} 23:59:00' , '{self.selected_table}', '{event_type}', '{event_detail}', '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}','{self.user_email}')"
+            self.run_query(insert_query)
             return
         raise Exception("User does not have permission to add event.")
 
@@ -375,7 +375,7 @@ class DataManager:
         cnx.close()
         return result
     
-    def run_insert_query(self, query : str) -> list:
+    def run_query(self, query : str) -> list:
         cnx = mysql.connector.connect(
             host=self.raw_data_creds['host'],
             user=self.raw_data_creds['user'],
@@ -581,7 +581,7 @@ class DataManager:
         return df
     
     def get_site_events(self) -> pd.DataFrame:
-        query = f"SELECT start_time_pt, end_time_pt, event_type, event_detail FROM site_events WHERE site_name = '{self.selected_table}'"
+        query = f"SELECT id, start_time_pt, end_time_pt, event_type, event_detail FROM site_events WHERE site_name = '{self.selected_table}'"
         if self.start_date != None and self.end_date != None:
             query += f" AND (start_time_pt <= '{self.start_date}' OR start_time_pt < '{self.end_date}')"
             query += f" AND (end_time_pt > '{self.start_date}' OR end_time_pt >= '{self.end_date}')"
@@ -589,6 +589,16 @@ class DataManager:
 
         events = self.get_df_from_query(query,False)
         return events
+    
+    def delete_event(self, event_id : int):
+        events = self.get_site_events()
+        if not event_id in events['id'].values:
+            raise Exception("Event id not found in site events.")
+        elif self.user_is_ecotope():
+            delete_query = f"DELETE FROM site_events WHERE id = {event_id}" 
+            self.run_query(delete_query)
+        else:
+           raise Exception("User does not have permision to delete event.") 
     
     def get_color_list(self, df_columns: list, i : int = 0) -> list:
         color_list = []
