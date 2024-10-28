@@ -176,13 +176,61 @@ class DataManager:
             100-character maximum string to upload to database as event detail/description. Quotes will be removed from this string.
         """
         if self.user_is_ecotope():
+            if start_date is None:
+                raise Exception("Cannot add event. Must include start date.")
+            if end_date is None:
+                end_date = start_date
+            if event_type is None:
+                raise Exception("Cannot add event. Must include event type.")
             event_detail.replace('"','')
             event_detail.replace("'",'')
             insert_query = "INSERT INTO site_events (start_time_pt, end_time_pt, site_name, event_type, event_detail, last_modified_date, last_modified_by)" 
-            insert_query += f" VALUES ('{start_date} 00:00:00', '{end_date} 23:59:00' , '{self.selected_table}', '{event_type}', '{event_detail}', '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}','{self.user_email}')"
+            insert_query += f" VALUES ('{start_date} 00:00:00', '{end_date} 23:59:00', '{self.selected_table}', '{event_type}', '{event_detail}', '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}','{self.user_email}')"
             self.run_query(insert_query)
             return
         raise Exception("User does not have permission to add event.")
+    
+    def update_site_event(self, id, start_date, end_date, event_type, event_detail):
+        """
+        Parameters
+        ----------
+        id : int
+            the event id
+        start_date : str
+            start date for event in the form 'yyy-mm-dd'
+        end_date : str
+            end date for event in the form 'yyy-mm-dd'
+        event_type : str
+            event type for the event.
+        event_detail : str
+            100-character maximum string to upload to database as event detail/description. Quotes will be removed from this string.
+        """
+        if self.user_is_ecotope():
+            if start_date is None:
+                raise Exception("Cannot add event. Must include start date.")
+            if end_date is None:
+                end_date = start_date
+            if event_type is None:
+                raise Exception("Cannot add event. Must include event type.")
+            event_detail.replace('"','')
+            event_detail.replace("'",'')
+            update_query = f"UPDATE site_events SET start_time_pt = '{start_date} 00:00:00', end_time_pt = '{end_date} 23:59:00', event_type = '{event_type}', event_detail =  '{event_detail}'," 
+            update_query += f" last_modified_date = '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}', last_modified_by = '{self.user_email}' WHERE site_name = '{self.selected_table}' AND id = {id};"
+            print(update_query)
+            self.run_query(update_query)
+            return
+        raise Exception("User does not have permission to add event.")
+    
+    def retrieve_event(self, event_id : int):
+        query = f"SELECT start_time_pt, end_time_pt, event_type, event_detail FROM site_events WHERE id = '{event_id}' AND site_name = '{self.selected_table}'"
+        result = self.get_fetch_from_query(query)
+        result_list = [(pd.to_datetime(start_time_pt), pd.to_datetime(end_time_pt), event_type, event_detail) 
+                       for start_time_pt, end_time_pt, event_type, event_detail in result]
+        if len(result_list) < 1:
+            raise Exception(f"No event for site found with id {event_id}")
+        if len(result) > 1:
+            raise Exception(f"Multiple events exist with id {event_id}")
+        return result
 
     def parse_checklists_from_div(self, div_children : list) -> list:
         ret_list = []
@@ -383,10 +431,15 @@ class DataManager:
             database=self.db_name
         )
         cursor = cnx.cursor()
-        cursor.execute(query)
-        cnx.commit()
-        cursor.close()
-        cnx.close()
+        try:
+            cursor.execute(query)
+            cnx.commit()
+            cursor.close()
+            cnx.close()
+        except Exception as e:
+            cursor.close()
+            cnx.close()
+            raise e
     
     def generate_daily_summary_query(self, default_days = 30):
         summary_query = f"SELECT * FROM {self.day_table} "

@@ -141,7 +141,6 @@ def create_event_log_table(dm : DataManager, msg_p : html.P = None) -> html.Div:
                 style_cell={'textAlign': 'left'},
                 style_as_list_view=True,
                 style_header={
-                    'padding': '10px',
                     'backgroundColor': 'rgb(230, 230, 230)',
                     'fontWeight': 'bold'
                 },
@@ -155,7 +154,10 @@ def create_event_log_table(dm : DataManager, msg_p : html.P = None) -> html.Div:
                         'backgroundColor': 'rgb(240, 240, 240)' 
                     },
                 ],
-                sort_action='native'
+                sort_action='native',
+                page_action='native',   # Enable pagination
+                page_current=0,         # Start on the first page
+                page_size=20           # Display 20 rows per page
             ),
             msg_p
         ])
