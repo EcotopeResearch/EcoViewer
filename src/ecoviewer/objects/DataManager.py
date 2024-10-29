@@ -485,6 +485,8 @@ class DataManager:
             if replace_power_for_energy:
                 pretty_name = pretty_name.replace("power", "Energy")
                 pretty_name = pretty_name.replace("Power", "Energy")
+                if "(kW)" in pretty_name:
+                    pretty_name = pretty_name.replace("(kW)", "(kWh)")
             pretty_names.append(pretty_name)
             pretty_names_dict[column_name] = pretty_name
         return pretty_names, pretty_names_dict
