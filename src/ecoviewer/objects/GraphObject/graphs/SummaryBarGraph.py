@@ -40,7 +40,7 @@ class SummaryBarGraph(GraphObject):
 
     def create_graph(self, dm : DataManager):
         # Filter columns with the prefix "PowerIn_" and exclude "PowerIn_Total"
-        og_df = dm.get_daily_summary_data_df(self.summary_group,['PIPELINE_ERR'])
+        og_df = dm.get_daily_summary_data_df(self.summary_group,['DATA_LOSS_COP'])
         if og_df.shape[0] <= 0:
             raise Exception("No power or COP data to display for time period.")
         powerin_columns = [col for col in og_df.columns if col.startswith('PowerIn_') and 'PowerIn_Total' not in col and og_df[col].dtype == "float64"]

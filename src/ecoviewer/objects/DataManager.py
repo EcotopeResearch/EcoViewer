@@ -178,14 +178,16 @@ class DataManager:
         if self.user_is_ecotope():
             if start_date is None:
                 raise Exception("Cannot add event. Must include start date.")
-            if end_date is None:
-                end_date = start_date
             if event_type is None:
                 raise Exception("Cannot add event. Must include event type.")
             event_detail.replace('"','')
             event_detail.replace("'",'')
-            insert_query = "INSERT INTO site_events (start_time_pt, end_time_pt, site_name, event_type, event_detail, last_modified_date, last_modified_by)" 
-            insert_query += f" VALUES ('{start_date} 00:00:00', '{end_date} 23:59:00', '{self.selected_table}', '{event_type}', '{event_detail}', '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}','{self.user_email}')"
+            if end_date is None:
+                insert_query = "INSERT INTO site_events (start_time_pt, site_name, event_type, event_detail, last_modified_date, last_modified_by)" 
+                insert_query += f" VALUES ('{start_date} 00:00:00', '{self.selected_table}', '{event_type}', '{event_detail}', '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}','{self.user_email}')"
+            else:
+                insert_query = "INSERT INTO site_events (start_time_pt, end_time_pt, site_name, event_type, event_detail, last_modified_date, last_modified_by)" 
+                insert_query += f" VALUES ('{start_date} 00:00:00', '{end_date} 23:59:00', '{self.selected_table}', '{event_type}', '{event_detail}', '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}','{self.user_email}')"
             self.run_query(insert_query)
             return
         raise Exception("User does not have permission to add event.")
@@ -208,15 +210,14 @@ class DataManager:
         if self.user_is_ecotope():
             if start_date is None:
                 raise Exception("Cannot add event. Must include start date.")
-            if end_date is None:
-                end_date = start_date
             if event_type is None:
                 raise Exception("Cannot add event. Must include event type.")
             event_detail.replace('"','')
             event_detail.replace("'",'')
-            update_query = f"UPDATE site_events SET start_time_pt = '{start_date} 00:00:00', end_time_pt = '{end_date} 23:59:00', event_type = '{event_type}', event_detail =  '{event_detail}'," 
+            update_query = f"UPDATE site_events SET start_time_pt = '{start_date} 00:00:00', event_type = '{event_type}', event_detail =  '{event_detail}',"
+            if not end_date is None:
+                update_query += f" end_time_pt = '{end_date} 23:59:00'," 
             update_query += f" last_modified_date = '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}', last_modified_by = '{self.user_email}' WHERE site_name = '{self.selected_table}' AND id = {id};"
-            print(update_query)
             self.run_query(update_query)
             return
         raise Exception("User does not have permission to add event.")
@@ -627,11 +628,15 @@ class DataManager:
             query = f"{query});"
 
             time_ranges = self.get_fetch_from_query(query)
-            time_ranges = [(pd.to_datetime(start_time), pd.to_datetime(end_time)) for start_time, end_time in time_ranges]
+            time_ranges = [(pd.to_datetime(start_time), pd.to_datetime(end_time) if not end_time is None else None) 
+                           for start_time, end_time in time_ranges]
 
             # Remove points in the DataFrame whose indexes fall within the time ranges
             for start_time, end_time in time_ranges:
-                filtered_df = filtered_df.loc[~((filtered_df.index >= start_time) & (filtered_df.index <= end_time))]
+                if end_time is None:
+                    filtered_df = filtered_df.loc[~(filtered_df.index >= start_time)]
+                else:
+                    filtered_df = filtered_df.loc[~((filtered_df.index >= start_time) & (filtered_df.index <= end_time))]
             return filtered_df
         return df
     
