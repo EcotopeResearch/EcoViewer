@@ -76,6 +76,7 @@ class DataManager:
         self.flow_variable = "Flow_CityWater"
         self.oat_variable= "Temp_OAT"
         self.sys_cop_variable = "COP_BoundaryMethod"
+        self.city_water_temp = "Temp_CityWater"
         self.sys_cop_variable_2 = None
         self.sys_cop_variable_3 = None
         self.sys_cop_variable_4 = None
@@ -85,6 +86,8 @@ class DataManager:
         self.sys_power_variable_4 = None
         if not self.site_df.loc[self.selected_table, 'flow_variable_name'] is None:
             self.flow_variable = self.site_df.loc[self.selected_table, 'flow_variable_name']
+        if not self.site_df.loc[self.selected_table, 'city_water_temp_variable_name'] is None:
+            self.city_water_temp = self.site_df.loc[self.selected_table, 'city_water_temp_variable_name']
         if not self.site_df.loc[self.selected_table, 'oat_variable_name'] is None:
             self.oat_variable = self.site_df.loc[self.selected_table, 'oat_variable_name']
         if not self.site_df.loc[self.selected_table, 'sys_cop_variable_name'] is None:
@@ -471,6 +474,7 @@ class DataManager:
             # filter for particular summary group
             filtered_group_df = self.field_df[self.field_df['site_name'] == self.selected_table]
             filtered_group_df = self.field_df[self.field_df['summary_group']==summary_group]
+            # print(f"filtered_group_df['field_name'].tolist() for '{summary_group}",filtered_group_df['field_name'].tolist())
             group_columns = [col for col in self.daily_summary_df.columns if col in filtered_group_df['field_name'].tolist()]
             return self.apply_event_filters_to_df(self.daily_summary_df[group_columns], events_to_filter)
         return self.apply_event_filters_to_df(self.daily_summary_df, events_to_filter)
@@ -537,7 +541,7 @@ class DataManager:
         return df
 
     def _bayview_prune_additional_power(self, df : pd.DataFrame) -> pd.DataFrame:
-        columns_to_keep = ['PowerIn_Swing', 'PowerIn_ERTank1', 'PowerIn_ERTank2', 'PowerIn_ERTank5', 'PowerIn_ERTank6', 'PowerIn_HPWH']
+        columns_to_keep = ['PowerIn_Swing', 'PowerIn_ERTank1', 'PowerIn_ERTank2', 'PowerIn_ERTank5', 'PowerIn_ERTank6', 'PowerIn_HPWH','PowerIn_Total']
         columns_to_drop = [col for col in df.columns if col.startswith("PowerIn_") and col not in columns_to_keep]
         df = df.drop(columns=columns_to_drop)
         return df

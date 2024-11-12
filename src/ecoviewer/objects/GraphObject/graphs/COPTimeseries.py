@@ -10,7 +10,7 @@ class COPTimeseries(GraphObject):
         super().__init__(dm, title)
 
     def create_graph(self, dm : DataManager):
-        df_daily = dm.get_daily_data_df()
+        df_daily = dm.get_daily_data_df(events_to_filter=['EQUIPMENT_MALFUNCTION','DATA_LOSS_COP'])
         if not 'Temp_OutdoorAir' in df_daily.columns:
             if not dm.oat_variable in df_daily.columns:
                 raise Exception('No outdoor air temperature data available.')
@@ -19,15 +19,15 @@ class COPTimeseries(GraphObject):
             df_daily['SystemCOP'] = df_daily[dm.sys_cop_variable]
 
         fig = make_subplots(specs = [[{'secondary_y':True}]])
-        fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily.SystemCOP,
+        fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily[dm.sys_cop_variable],
                                 mode = 'markers', name = 'System COP',
                                 marker=dict(color='darkred')), secondary_y = True)
         
-        fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily.Temp_OutdoorAir,
+        fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily[dm.oat_variable],
                                 mode = 'markers', name = 'Outdoor Air Temerature',
                                 marker=dict(color='darkgreen')), secondary_y = False)
         
-        fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily.Temp_CityWater,
+        fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily[dm.city_water_temp],
                                 mode = 'markers', name = 'City Water Temperature',
                                 marker=dict(color='darkblue')), secondary_y = False)
 
