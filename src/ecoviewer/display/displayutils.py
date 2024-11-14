@@ -62,8 +62,8 @@ def create_meta_data_table(dm : DataManager, app : Dash, anonymize_data : bool =
         "Temperature Maintenance Storage Volume" : f"{swing_tank_volume} Gallons" if not (swing_tank_volume is None or pd.isna(swing_tank_volume)) else None,
         "Installation Year" : installation_year if not (installation_year is None or pd.isna(installation_year)) else None,
         "Operation Hours" : dm.get_attribute_for_site('operation_hours') if dm.get_attribute_for_site('operation_hours') is not None else None,
-        "Schematic Drawing": f"![]({app.get_asset_url(schematic_img)})" if not schematic_img is None else None,
-        "Additional Resource": f"![]({app.get_asset_url(additional_img)})" if not additional_img is None else None,
+        "AWHS Climate" : dm.get_attribute_for_site('climate'),
+        "Expected COP" : dm.get_attribute_for_site('expected_COP'),
         "Notes" : notes if not (notes is None or pd.isna(notes)) else None,
     }
 
@@ -91,11 +91,18 @@ def create_meta_data_table(dm : DataManager, app : Dash, anonymize_data : bool =
             columns=[{"name": i, "id": i, "presentation": "markdown"} for i in df.columns],
             style_cell={'textAlign': 'left'},
             style_as_list_view=True,
+            style_data_conditional=[
+                    {
+                        'if': {'column_id': 'Detail'},
+                        'backgroundColor': 'rgb(240, 240, 240)'
+                    },
+                ],
             style_header={
                 'backgroundColor': 'rgb(230, 230, 230)',
                 'fontWeight': 'bold'
             },
         ),
+        get_display_schematic(dm,app)
     ])
 
 def create_event_log_table(dm : DataManager, msg_p : html.P = None) -> html.Div:
