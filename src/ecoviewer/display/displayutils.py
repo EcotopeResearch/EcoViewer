@@ -230,6 +230,80 @@ def get_no_raw_retrieve_msg() -> html.P:
             f"Time frame is too large to retrieve raw data. To view raw data, set time frame to {max_raw_data_days} days or less and ensure the 'Retrieve Raw Data' checkbox is selected."
         ])
 
+def create_summary_table(dm : DataManager) -> html.Div:
+    """
+    Parameters
+    ----------
+    dm : DataManager
+        The DataManager object for the current data pull
+    """
+    try:
+        site_names = []
+        equipment_type = []
+        expected_cop = []
+        actual_cop = []
+        ongoing_events = []
+        all_sites = dm.site_df.index.tolist()
+        for site in all_sites:
+            exp_cop = dm.get_attribute_for_site("expected_COP", site_name=site)
+            if not exp_cop is None and not pd.isna(exp_cop):
+                site_dm = DataManager(dm.raw_data_creds,dm.config_creds,dm.user_email,site)
+                site_names.append(site_dm.get_attribute_for_site("pretty_name"))
+                wh_unit_name = site_dm.get_attribute_for_site('wh_unit_name')
+                wh_manufacturer = site_dm.get_attribute_for_site('wh_manufacturer')
+                primary_model = None
+                if not wh_manufacturer is None and not wh_unit_name is None:
+                    primary_model = f"{wh_manufacturer} {wh_unit_name}"
+                elif not wh_manufacturer is None:
+                    primary_model = f"{wh_manufacturer}"
+                elif not wh_unit_name is None:
+                    primary_model = f"{wh_unit_name}"
+                equipment_type.append(primary_model)
+                expected_cop.append(exp_cop)
+                actual_cop.append(round(site_dm.get_average_cop(),2))
+                site_ongoing_events = site_dm.get_ongoing_events()
+                ongoing_events.append(", ".join(site_ongoing_events) if len(site_ongoing_events) > 0 else "No ongoing events.")
+
+        df = pd.DataFrame({
+            "Site": site_names,
+            "Equipment": equipment_type,
+            "Expected COP": expected_cop,
+            "Actual Average COP":actual_cop,
+            "Ongoing Events": ongoing_events
+        })
+
+        return html.Div([
+            html.H2("Summary"),
+            dash_table.DataTable(
+                data=df.to_dict('records'),
+                columns=[{"name": i, "id": i, "presentation": "markdown"} for i in df.columns],
+                style_cell={'textAlign': 'left'},
+                style_as_list_view=True,
+                style_data_conditional=[
+                        {
+                            'if': {'column_id': 'Equipment'},
+                            'backgroundColor': 'rgb(240, 240, 240)'
+                        },
+                        {
+                            'if': {'column_id': 'Actual Average COP'},
+                            'backgroundColor': 'rgb(240, 240, 240)'
+                        },
+                    ],
+                style_header={
+                    'backgroundColor': 'rgb(230, 230, 230)',
+                    'fontWeight': 'bold'
+                },
+            )
+        ])
+
+    except Exception as e:
+        return html.Div([
+                html.P(
+                    style={'color': 'red', 'textAlign': 'center'}, 
+                    children=[html.Br(),f"Could not load summary table: {str(e)}"]
+                )
+            ])
+
 def create_data_dictionary(organized_mapping):
     """
     Parameters
