@@ -9,7 +9,7 @@ class SummaryPieGraph(GraphObject):
         super().__init__(dm, title)
 
     def create_graph(self, dm : DataManager):
-        df = dm.get_daily_summary_data_df(self.summary_group,['PIPELINE_ERR'])
+        df = dm.get_daily_summary_data_df(self.summary_group,['DATA_LOSS_COP'])
         if df.shape[0] <= 0:
             raise Exception("No data availabe for time period.")
         powerin_columns = [col for col in df.columns if col.startswith('PowerIn_') and 'PowerIn_Total' not in col and df[col].dtype == "float64"]

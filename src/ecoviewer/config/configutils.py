@@ -389,7 +389,7 @@ def generate_raw_data_query(min_table, hour_table, day_table, field_df, selected
 
     return query
 
-def log_event(user_email, selected_table, start_date, end_date, sql_dash_config):
+def log_event(user_email, selected_table, start_date, end_date, sql_dash_config, details : str = None):
     cnx = mysql.connector.connect(**sql_dash_config)
     cursor = cnx.cursor() 
 
@@ -406,6 +406,9 @@ def log_event(user_email, selected_table, start_date, end_date, sql_dash_config)
     if not end_date is None:
         fields.append('end_date')
         values.append(f'"{end_date}"')
+    if not details is None:
+        fields.append('details')
+        values.append(f'"{details}"')
 
     insert_query = f"INSERT INTO dash_activity_log ({', '.join(fields)}) VALUES ({', '.join(values)});"
 

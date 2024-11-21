@@ -52,16 +52,12 @@ class DataManager:
         if self.site_df.empty:
             raise Exception("User does not have permission to access data.")
         elif self.selected_table is None:
-            self.selected_table = self.site_df.index.tolist()[0]
+            if self.user_is_ecotope():
+                self.selected_table = 'summary_table'
+            else:
+                self.selected_table = self.site_df.index.tolist()[0]
 
         self.checkbox_selections = checkbox_selections
-        self.min_table = self.site_df.loc[self.selected_table, 'minute_table']
-        self.hour_table = self.site_df.loc[self.selected_table, 'hour_table']
-        self.day_table = self.site_df.loc[self.selected_table, 'daily_table']
-        self.db_name = self.site_df.loc[self.selected_table, 'db_name']
-        self.state_tracking = self.site_df.loc[self.selected_table, 'state_tracking']
-        self.load_shift_tracking = self.site_df.loc[self.selected_table, 'load_shift_tracking']
-        self.occupant_capacity = self.site_df.loc[self.selected_table, 'occupant_capacity']
 
         self.start_date = start_date
         self.end_date = end_date
@@ -76,6 +72,7 @@ class DataManager:
         self.flow_variable = "Flow_CityWater"
         self.oat_variable= "Temp_OAT"
         self.sys_cop_variable = "COP_BoundaryMethod"
+        self.city_water_temp = "Temp_CityWater"
         self.sys_cop_variable_2 = None
         self.sys_cop_variable_3 = None
         self.sys_cop_variable_4 = None
@@ -83,26 +80,37 @@ class DataManager:
         self.sys_power_variable_2 = None
         self.sys_power_variable_3 = None
         self.sys_power_variable_4 = None
-        if not self.site_df.loc[self.selected_table, 'flow_variable_name'] is None:
-            self.flow_variable = self.site_df.loc[self.selected_table, 'flow_variable_name']
-        if not self.site_df.loc[self.selected_table, 'oat_variable_name'] is None:
-            self.oat_variable = self.site_df.loc[self.selected_table, 'oat_variable_name']
-        if not self.site_df.loc[self.selected_table, 'sys_cop_variable_name'] is None:
-            self.sys_cop_variable = self.site_df.loc[self.selected_table, 'sys_cop_variable_name']
-        if not self.site_df.loc[self.selected_table, 'sys_cop_variable_name_2'] is None:
-            self.sys_cop_variable_2 = self.site_df.loc[self.selected_table, 'sys_cop_variable_name_2']
-        if not self.site_df.loc[self.selected_table, 'sys_cop_variable_name_3'] is None:
-            self.sys_cop_variable_3 = self.site_df.loc[self.selected_table, 'sys_cop_variable_name_3']
-        if not self.site_df.loc[self.selected_table, 'sys_cop_variable_name_4'] is None:
-            self.sys_cop_variable_4 = self.site_df.loc[self.selected_table, 'sys_cop_variable_name_4']
-        if not self.site_df.loc[self.selected_table, 'sys_power_variable'] is None:
-            self.sys_power_variable = self.site_df.loc[self.selected_table, 'sys_power_variable']
-        if not self.site_df.loc[self.selected_table, 'sys_power_variable_2'] is None:
-            self.sys_power_variable_2 = self.site_df.loc[self.selected_table, 'sys_power_variable_2']
-        if not self.site_df.loc[self.selected_table, 'sys_power_variable_3'] is None:
-            self.sys_power_variable_3 = self.site_df.loc[self.selected_table, 'sys_power_variable_3']
-        if not self.site_df.loc[self.selected_table, 'sys_power_variable_4'] is None:
-            self.sys_power_variable_4 = self.site_df.loc[self.selected_table, 'sys_power_variable_4']
+        if self.selected_table != 'summary_table':
+            self.min_table = self.site_df.loc[self.selected_table, 'minute_table']
+            self.hour_table = self.site_df.loc[self.selected_table, 'hour_table']
+            self.day_table = self.site_df.loc[self.selected_table, 'daily_table']
+            self.db_name = self.site_df.loc[self.selected_table, 'db_name']
+            self.state_tracking = self.site_df.loc[self.selected_table, 'state_tracking']
+            self.load_shift_tracking = self.site_df.loc[self.selected_table, 'load_shift_tracking']
+            self.occupant_capacity = self.site_df.loc[self.selected_table, 'occupant_capacity']
+            if not self.site_df.loc[self.selected_table, 'flow_variable_name'] is None:
+                self.flow_variable = self.site_df.loc[self.selected_table, 'flow_variable_name']
+            if not self.site_df.loc[self.selected_table, 'city_water_temp_variable_name'] is None:
+                self.city_water_temp = self.site_df.loc[self.selected_table, 'city_water_temp_variable_name']
+            if not self.site_df.loc[self.selected_table, 'oat_variable_name'] is None:
+                self.oat_variable = self.site_df.loc[self.selected_table, 'oat_variable_name']
+            if not self.site_df.loc[self.selected_table, 'sys_cop_variable_name'] is None:
+                self.sys_cop_variable = self.site_df.loc[self.selected_table, 'sys_cop_variable_name']
+            if not self.site_df.loc[self.selected_table, 'sys_cop_variable_name_2'] is None:
+                self.sys_cop_variable_2 = self.site_df.loc[self.selected_table, 'sys_cop_variable_name_2']
+            if not self.site_df.loc[self.selected_table, 'sys_cop_variable_name_3'] is None:
+                self.sys_cop_variable_3 = self.site_df.loc[self.selected_table, 'sys_cop_variable_name_3']
+            if not self.site_df.loc[self.selected_table, 'sys_cop_variable_name_4'] is None:
+                self.sys_cop_variable_4 = self.site_df.loc[self.selected_table, 'sys_cop_variable_name_4']
+            if not self.site_df.loc[self.selected_table, 'sys_power_variable'] is None:
+                self.sys_power_variable = self.site_df.loc[self.selected_table, 'sys_power_variable']
+            if not self.site_df.loc[self.selected_table, 'sys_power_variable_2'] is None:
+                self.sys_power_variable_2 = self.site_df.loc[self.selected_table, 'sys_power_variable_2']
+            if not self.site_df.loc[self.selected_table, 'sys_power_variable_3'] is None:
+                self.sys_power_variable_3 = self.site_df.loc[self.selected_table, 'sys_power_variable_3']
+            if not self.site_df.loc[self.selected_table, 'sys_power_variable_4'] is None:
+                self.sys_power_variable_4 = self.site_df.loc[self.selected_table, 'sys_power_variable_4']
+        
         self.display_reset_to_default_date_msg = None
 
     def needs_reset_to_default_date_msg(self):
@@ -123,6 +131,8 @@ class DataManager:
         """
         returns [date_note, first_date, last_date]
         """
+        if self.selected_table == 'summary_table':
+            return "If no date range is filled, The last three days of raw data and last 30 days of summary data will be returned."
         query = f"SELECT time_pt FROM {self.min_table} ORDER BY time_pt ASC LIMIT 1"
         result = self.get_fetch_from_query(query)
         if len(result) == 0 or len(result[0]) == 0:
@@ -161,6 +171,21 @@ class DataManager:
 
     def get_selected_table(self):
         return self.selected_table
+    
+    def get_average_cop(self):
+        query = f"SELECT time_pt, {self.sys_cop_variable} FROM {self.day_table}"
+        cop_df = self.get_df_from_query(query)
+        cop_df = self.apply_event_filters_to_df(cop_df, ['DATA_LOSS_COP']) # TODO add commissioning
+        return cop_df[self.sys_cop_variable].mean()
+    
+    def get_ongoing_events(self) -> list:
+        query = f"SELECT event_type FROM site_events WHERE site_name = '{self.selected_table}' AND end_time_pt IS NULL AND NOT event_type IS NULL"
+
+        site_events = self.get_fetch_from_query(query)
+        if len(site_events) <= 0:
+            return []
+        return [event_type[0] for event_type in site_events]
+
 
     def add_event_to_site_events(self, start_date, end_date, event_type, event_detail):
         """
@@ -178,14 +203,16 @@ class DataManager:
         if self.user_is_ecotope():
             if start_date is None:
                 raise Exception("Cannot add event. Must include start date.")
-            if end_date is None:
-                end_date = start_date
             if event_type is None:
                 raise Exception("Cannot add event. Must include event type.")
             event_detail.replace('"','')
             event_detail.replace("'",'')
-            insert_query = "INSERT INTO site_events (start_time_pt, end_time_pt, site_name, event_type, event_detail, last_modified_date, last_modified_by)" 
-            insert_query += f" VALUES ('{start_date} 00:00:00', '{end_date} 23:59:00', '{self.selected_table}', '{event_type}', '{event_detail}', '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}','{self.user_email}')"
+            if end_date is None:
+                insert_query = "INSERT INTO site_events (start_time_pt, site_name, event_type, event_detail, last_modified_date, last_modified_by)" 
+                insert_query += f" VALUES ('{start_date} 00:00:00', '{self.selected_table}', '{event_type}', '{event_detail}', '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}','{self.user_email}')"
+            else:
+                insert_query = "INSERT INTO site_events (start_time_pt, end_time_pt, site_name, event_type, event_detail, last_modified_date, last_modified_by)" 
+                insert_query += f" VALUES ('{start_date} 00:00:00', '{end_date} 23:59:00', '{self.selected_table}', '{event_type}', '{event_detail}', '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}','{self.user_email}')"
             self.run_query(insert_query)
             return
         raise Exception("User does not have permission to add event.")
@@ -208,15 +235,14 @@ class DataManager:
         if self.user_is_ecotope():
             if start_date is None:
                 raise Exception("Cannot add event. Must include start date.")
-            if end_date is None:
-                end_date = start_date
             if event_type is None:
                 raise Exception("Cannot add event. Must include event type.")
             event_detail.replace('"','')
             event_detail.replace("'",'')
-            update_query = f"UPDATE site_events SET start_time_pt = '{start_date} 00:00:00', end_time_pt = '{end_date} 23:59:00', event_type = '{event_type}', event_detail =  '{event_detail}'," 
+            update_query = f"UPDATE site_events SET start_time_pt = '{start_date} 00:00:00', event_type = '{event_type}', event_detail =  '{event_detail}',"
+            if not end_date is None:
+                update_query += f" end_time_pt = '{end_date} 23:59:00'," 
             update_query += f" last_modified_date = '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}', last_modified_by = '{self.user_email}' WHERE site_name = '{self.selected_table}' AND id = {id};"
-            print(update_query)
             self.run_query(update_query)
             return
         raise Exception("User does not have permission to add event.")
@@ -362,13 +388,18 @@ class DataManager:
     
     def get_table_dropdown(self):
         display_drop_down = []
+        if self.user_is_ecotope():
+            display_drop_down.append({'label': 'SUMMARY TABLE', 'value' : 'summary_table'})
         for name in self.site_df.index.to_list():
             display_drop_down.append({'label': self.site_df.loc[name, "pretty_name"], 'value' : name})
         return display_drop_down
     
-    def get_attribute_for_site(self, attribute : str):
+    def get_attribute_for_site(self, attribute : str, site_name : str = None):
         if attribute in self.site_df.columns:
-            return self.site_df.loc[self.selected_table, attribute]
+            if site_name is None:
+                return self.site_df.loc[self.selected_table, attribute]
+            else:
+                return self.site_df.loc[site_name, attribute]
         return None
     
     def graph_available(self, graph_type : str) -> bool:
@@ -470,6 +501,7 @@ class DataManager:
             # filter for particular summary group
             filtered_group_df = self.field_df[self.field_df['site_name'] == self.selected_table]
             filtered_group_df = self.field_df[self.field_df['summary_group']==summary_group]
+            # print(f"filtered_group_df['field_name'].tolist() for '{summary_group}",filtered_group_df['field_name'].tolist())
             group_columns = [col for col in self.daily_summary_df.columns if col in filtered_group_df['field_name'].tolist()]
             return self.apply_event_filters_to_df(self.daily_summary_df[group_columns], events_to_filter)
         return self.apply_event_filters_to_df(self.daily_summary_df, events_to_filter)
@@ -536,7 +568,7 @@ class DataManager:
         return df
 
     def _bayview_prune_additional_power(self, df : pd.DataFrame) -> pd.DataFrame:
-        columns_to_keep = ['PowerIn_Swing', 'PowerIn_ERTank1', 'PowerIn_ERTank2', 'PowerIn_ERTank5', 'PowerIn_ERTank6', 'PowerIn_HPWH']
+        columns_to_keep = ['PowerIn_Swing', 'PowerIn_ERTank1', 'PowerIn_ERTank2', 'PowerIn_ERTank5', 'PowerIn_ERTank6', 'PowerIn_HPWH','PowerIn_Total']
         columns_to_drop = [col for col in df.columns if col.startswith("PowerIn_") and col not in columns_to_keep]
         df = df.drop(columns=columns_to_drop)
         return df
@@ -627,11 +659,15 @@ class DataManager:
             query = f"{query});"
 
             time_ranges = self.get_fetch_from_query(query)
-            time_ranges = [(pd.to_datetime(start_time), pd.to_datetime(end_time)) for start_time, end_time in time_ranges]
+            time_ranges = [(pd.to_datetime(start_time), pd.to_datetime(end_time) if not end_time is None else None) 
+                           for start_time, end_time in time_ranges]
 
             # Remove points in the DataFrame whose indexes fall within the time ranges
             for start_time, end_time in time_ranges:
-                filtered_df = filtered_df.loc[~((filtered_df.index >= start_time) & (filtered_df.index <= end_time))]
+                if end_time is None:
+                    filtered_df = filtered_df.loc[~(filtered_df.index >= start_time)]
+                else:
+                    filtered_df = filtered_df.loc[~((filtered_df.index >= start_time) & (filtered_df.index <= end_time))]
             return filtered_df
         return df
     
