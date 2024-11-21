@@ -51,10 +51,10 @@ def get_site_df_from_ini(config_file_path : str):
         else:
             data[var_name] = [None]
 
-    for var_name in ["summary_bar_graph","summary_hour_graph","summary_pie_chart",
+    for var_name in ["summary_bar_graph", "summary_bar_graph_load_ratio", "summary_hour_graph","summary_pie_chart",
                           "summary_gpdpp_histogram",'summary_gpdpp_timeseries', 'summary_peaknorm', 'summary_hourly_flow',
-                          'summary_cop_regression', 'summary_cop_timeseries','summary_flow_boxwhisker', "state_tracking",
-                            "load_shift_tracking"]:
+                          'summary_cop_regression', 'summary_cop_timeseries','summary_flow_boxwhisker', "summary_DHW_temps"
+                          "state_tracking", "load_shift_tracking"]:
         if configure.has_section('summary_options') and configure.has_option('summary_options', var_name) and configure.get('summary_options', var_name).lower() == 'true':
             data[var_name] = [True]
         else:

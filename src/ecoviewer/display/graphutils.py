@@ -7,6 +7,7 @@ import time
 from ecoviewer.objects.DataManager import DataManager
 from ecoviewer.objects.GraphObject.graphs.SummaryPieGraph import SummaryPieGraph
 from ecoviewer.objects.GraphObject.graphs.SummaryBarGraph import SummaryBarGraph
+from ecoviewer.objects.GraphObject.graphs.SummaryBarGraphLoadRatios import SummaryBarGraphLoadRatios
 from ecoviewer.objects.GraphObject.graphs.SummaryDailyPowerByHour import SummaryDailyPowerByHour
 from ecoviewer.objects.GraphObject.graphs.GPDPPTimeseries import GPDPPTimeseries
 from ecoviewer.objects.GraphObject.graphs.GPDPPHistogram import GPDPPHistogram
@@ -22,7 +23,7 @@ from ecoviewer.objects.GraphObject.graphs.SERAMonthly import SERAMonthly
 from ecoviewer.objects.GraphObject.graphs.RawDataSubPlots import RawDataSubPlots
 from ecoviewer.objects.GraphObject.graphs.HourlyShapesPlots import HourlyShapesPlots
 from ecoviewer.objects.GraphObject.graphs.PickleGraph import PickleGraph
-
+from ecoviewer.objects.GraphObject.graphs.SummaryDHWTemps import SummaryDHWTemps
 
 state_colors = {
     "loadUp" : "green",
@@ -90,6 +91,10 @@ def create_graph(dm : DataManager, graph_type : str, unique_group : str = None, 
     elif graph_type == "summary_bar_graph":
         summary_bar_graph = SummaryBarGraph(dm, summary_group=unique_group)
         return_value = summary_bar_graph.get_graph()
+    elif graph_type == "summary_bar_graph_load_ratio":
+        print('graph type achieved')
+        summary_bar_graph_load_ratio = SummaryBarGraphLoadRatios(dm, summary_group=unique_group)
+        return_value = summary_bar_graph_load_ratio.get_graph()
     # Hourly Power Graph
     elif graph_type == "summary_hour_graph":
         summary_hour_graph = SummaryDailyPowerByHour(dm, summary_group=unique_group)
@@ -101,6 +106,10 @@ def create_graph(dm : DataManager, graph_type : str, unique_group : str = None, 
     elif graph_type == "summary_gpdpp_histogram":
         summary_gpdpp_histogram = GPDPPHistogram(dm, summary_group=unique_group)
         return_value = summary_gpdpp_histogram.get_graph()
+    # DHW Temps
+    elif graph_type == 'summary_DHW_temps':
+        summary_DHW_temps = SummaryDHWTemps(dm)
+        return_value = summary_DHW_temps.get_graph()
     # GPDPP Timeseries
     elif graph_type == 'summary_gpdpp_timeseries':
         summary_gpdpp_timeseries = GPDPPTimeseries(dm, summary_group=unique_group)
@@ -145,6 +154,8 @@ def create_graph(dm : DataManager, graph_type : str, unique_group : str = None, 
     elif graph_type == 'pkl_graph':
         pkl_graph = PickleGraph(dm, pkl_file_name=pkl_filename)
         return_value = pkl_graph.get_graph()
+    
+    
     # end_time = time.time()
     # elapsed_time = end_time - start_time
     # print(f"graphing {graph_type} took {elapsed_time:.4f} seconds to run.")
@@ -155,10 +166,10 @@ def create_summary_graphs(dm : DataManager):
     graph_components = []
     graph_components = dm.add_default_date_message(graph_components)
     unique_groups = dm.get_summary_groups()
-    summary_group_graph_types = ["summary_bar_graph", "summary_hour_graph", "summary_pie_chart"]
+    summary_group_graph_types = ["summary_bar_graph", "summary_bar_graph_load_ratio", "summary_hour_graph", "summary_pie_chart"]
     graph_types = ["summary_gpdpp_histogram", 'summary_gpdpp_timeseries', 'summary_peaknorm', 'summary_hourly_flow', 
                    'summary_cop_regression', 'summary_cop_timeseries', 'summary_flow_boxwhisker', 'summary_erv_performance', 
-                   'summary_ohp_performance', 'summary_SERA_pie', 'summary_SERA_monthly']
+                   'summary_ohp_performance', 'summary_SERA_pie', 'summary_SERA_monthly', 'summary_DHW_temps']
     # summary group graphs
     for unique_group in unique_groups:
         # Title if multiple groups:
