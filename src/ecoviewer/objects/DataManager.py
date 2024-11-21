@@ -179,7 +179,7 @@ class DataManager:
         return cop_df[self.sys_cop_variable].mean()
     
     def get_ongoing_events(self) -> list:
-        query = f"SELECT event_type FROM site_events WHERE site_name = '{self.selected_table}' AND end_time_pt IS NULL"
+        query = f"SELECT event_type FROM site_events WHERE site_name = '{self.selected_table}' AND end_time_pt IS NULL AND NOT event_type IS NULL"
 
         site_events = self.get_fetch_from_query(query)
         if len(site_events) <= 0:
