@@ -160,6 +160,12 @@ def create_event_log_table(dm : DataManager, msg_p : html.P = None) -> html.Div:
                         'if': {'column_id': 'Event Type'},
                         'backgroundColor': 'rgb(240, 240, 240)' 
                     },
+                    {
+                        'if': {'column_id': 'Details'}, 
+                        'width': '70%',
+                        'whiteSpace': 'normal',
+                        'height': 'auto'
+                    }
                 ],
                 sort_action='native',
                 page_action='native',   # Enable pagination
