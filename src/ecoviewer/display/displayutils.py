@@ -209,7 +209,7 @@ def get_display_schematic(dm : DataManager, app : Dash) -> html.Div:
         return html.Div()
     
     images = [
-        html.H2("Building Shematics"),
+        html.H2("System Schematic"),
     ]
     if not schematic_img is None:
         images.append(html.Img(
