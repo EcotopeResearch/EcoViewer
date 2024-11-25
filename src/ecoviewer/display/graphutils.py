@@ -92,7 +92,6 @@ def create_graph(dm : DataManager, graph_type : str, unique_group : str = None, 
         summary_bar_graph = SummaryBarGraph(dm, summary_group=unique_group)
         return_value = summary_bar_graph.get_graph()
     elif graph_type == "summary_bar_graph_load_ratio":
-        print('graph type achieved')
         summary_bar_graph_load_ratio = SummaryBarGraphLoadRatios(dm, summary_group=unique_group)
         return_value = summary_bar_graph_load_ratio.get_graph()
     # Hourly Power Graph

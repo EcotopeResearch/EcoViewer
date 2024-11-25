@@ -39,22 +39,24 @@ class SummaryBarGraphLoadRatios(GraphObject):
             return f"{month_1} {day_1}, {year_1} - {month_2} {day_2}, {year_2}"
 
     def create_graph(self, dm : DataManager):
-        # Filter columns with the prefix "PowerIn_" and exclude "PowerIn_Total"
+        
         og_df = dm.get_daily_summary_data_df(self.summary_group,['PIPELINE_ERR'])
-        print(og_df.columns, "og_df")
+        
         if og_df.shape[0] <= 0:
             raise Exception("No power or COP data to display for time period.")
-        #powerin_columns = [col for col in og_df.columns if col.startswith('PowerIn_') and 'PowerIn_Total' not in col and og_df[col].dtype == "float64"]
-        #cop_columns = [col for col in og_df.columns if 'COP' in col]
-        load_columns = ['HeatOut_TM', 'HeatOut_Primary']
+
+        load_columns = ['HeatOut_TM', 'HeatOut_Primary', 'test']
         output_columns = ['HeatOut_HPWH1', 'HeatOut_HPWH2', 'PowerIn_SwingTank']
-        if len(load_columns) == 0:
-            raise Exception("No power or COP data to display for time period.")
+
+        load_columns = [col for col in load_columns if col in og_df.columns]
+        output_columns = [col for col in output_columns if col in og_df.columns]
+
+        if len(load_columns) == 0 and len(output_columns) == 0:
+            raise Exception("No load data to display for time period.")
 
         df = og_df[load_columns].copy()
         df2 = og_df[output_columns].copy()
-        print(df.head(), "1")
-        print(df2.head(), "2")
+
         # compress to weeks if more than 3 weeks selected
         compress_to_weeks = False
         formatting_time_delta = min(4, math.floor(24/(len(load_columns) +1))) # TODO error if there are more than 23 cop columns
@@ -68,7 +70,7 @@ class SummaryBarGraphLoadRatios(GraphObject):
             sum_df2['output_sum'] = sum_df2[output_columns].sum(axis=1)
   
             sum_df = sum_df.resample('W').sum()
-            sum2_df = sum_df2.resample('W').sum()
+            sum_df2 = sum_df2.resample('W').sum()
 
             df = df.resample('W').mean()
             df2 = df2.resample('W').mean()
@@ -78,7 +80,6 @@ class SummaryBarGraphLoadRatios(GraphObject):
             formatting_time_delta = formatting_time_delta * 7
             
         
-        # x_axis_ticktext = []
         x_axis_tick_val = []
         x_axis_tick_text = []
         x_val = df.index[0]
@@ -98,28 +99,29 @@ class SummaryBarGraphLoadRatios(GraphObject):
                 x_val += pd.Timedelta(days=1)
 
         energy_dataframe = df[load_columns].copy()
-        energy_dataframe2 = df2[output_columns].copy()
-        # Multiply all values in the specified columns by 24
+        output_dataframe = df2[output_columns].copy()
+
+        # Multiply all values in the specified columns by 24 to get daily kWh
         energy_dataframe[load_columns] = energy_dataframe[load_columns].apply(lambda x: x * 24)
-        energy_dataframe2[output_columns] = energy_dataframe2[output_columns].apply(lambda x: x * 24)
-        # TODO error for no power columns
+        output_dataframe[output_columns] = output_dataframe[output_columns].apply(lambda x: x * 24)
+        
         # Create a stacked bar graph using Plotly Express
         power_colors = dm.get_color_list(load_columns)
         output_colors = dm.get_color_list(output_columns)
         power_pretty_names, power_pretty_names_dict = dm.get_pretty_names(load_columns, True)
-        output_prety_names, output_pretty_names_dict = dm.get_pretty_names(output_columns, False)
-        #CHECK THIS
+        output_pretty_names, output_pretty_names_dict = dm.get_pretty_names(output_columns, True)
+        
         for power_column in load_columns:
             energy_dataframe[power_pretty_names_dict[power_column]] = energy_dataframe[power_column]
         for output_column in output_columns:
-            energy_dataframe2[output_pretty_names_dict[output_column]] = energy_dataframe2[output_column]
+            output_dataframe[output_pretty_names_dict[output_column]] = output_dataframe[output_column]
 
-        stacked_fig = px.bar(energy_dataframe, x=energy_dataframe.index, y=power_pretty_names, color_discrete_sequence=power_colors, title='<b>Energy and COP',
+        stacked_fig = px.bar(energy_dataframe, x=energy_dataframe.index, y=power_pretty_names, color_discrete_sequence=power_colors, title='<b>DHW Usage and TM Load Ratios',
                     labels={'index': 'Data Point'}, 
                     height=400)
         
         num_data_points = len(df)
-        x_shift = pd.Timedelta(hours=formatting_time_delta)  # Adjust this value to control the horizontal spacing between the bars
+        x_shift = pd.Timedelta(hours=formatting_time_delta)  
         x_positions_shifted = [x + x_shift for x in df.index]
         # create fake bar for spacing
         stacked_fig.add_trace(go.Bar(x=x_positions_shifted, y=[0]*num_data_points, showlegend=False))
@@ -139,63 +141,15 @@ class SummaryBarGraphLoadRatios(GraphObject):
         )
 
         #ADD HPWH/SWING TANK OUTPUTS
-        colors = ['red', 'blue', 'green']
-        print(energy_dataframe2, 'TEST!')
-        print(energy_dataframe2['HeatOut_HPWH2'])
-        for col, color in zip(output_columns, colors):  # Iterate to match color sequence
+        for col, color, name in zip(output_columns, output_colors, output_pretty_names):  
             stacked_fig.add_trace(
                 go.Bar(
-                x=x_positions_shifted,  # Use shifted x position
-                y=energy_dataframe2[col],                # Match y values with column names
-                name=col,                                # Name each stack for legend
-                marker_color=color                       # Keep color consistent
+                x=x_positions_shifted,  
+                y=output_dataframe[col],                
+                name=name,                           
+                marker_color=color                       
                 )
                 )
-        output_columns = []
-        if len(output_columns) > 0:
-            print(energy_dataframe2.head())
-            for i in range(len(output_columns)):
-                col = output_columns[i]
-                output_pretty_name = output_pretty_names_dict[col]
-                stacked_fig.add_trace(go.Bar(
-                x=x_positions_shifted, 
-                y=energy_dataframe2[col], 
-                name=output_pretty_name, 
-                marker=dict(color=output_colors[i]),
-                customdata=np.transpose([x_axis_tick_text, [output_pretty_name]*len(x_axis_tick_text)]),
-                hovertemplate="<br>".join([
-                "variable=%{customdata[1]}",
-                "time_pt=%{customdata[0]}",
-                "value=%{y}",
-                ])
-                ))
-
-            # Update layout to group bars side by side
-            stacked_fig.update_layout(
-            barmode='group',
-            yaxis1=dict(
-            title='<b>Avg. Daily kWh' if compress_to_weeks else '<b>kWh',
-            ),
-            xaxis=dict(
-            title='<b>Week' if compress_to_weeks else '<b>Day',
-            tickmode='array',
-            tickvals=x_axis_tick_val,
-            ticktext=x_axis_tick_text  
-            ),
-            margin=dict(l=10, r=10),
-            legend=dict(x=1.1)
-            )
-
-
-            # create fake bar for spacing
-            stacked_fig.add_trace(go.Bar(x=df.index, y=[0]*num_data_points, showlegend=False, yaxis = 'y2'))
-            # Create a secondary y-axis
-            stacked_fig.update_layout(
-                yaxis2=dict(
-                    title='<b>COP',
-                    overlaying='y',
-                    side='right'
-                ),
-            )
+        
 
         return dcc.Graph(figure=stacked_fig)
