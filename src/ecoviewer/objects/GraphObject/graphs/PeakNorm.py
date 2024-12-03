@@ -15,6 +15,8 @@ class PeakNorm(GraphObject):
 
     def create_graph(self, dm : DataManager):
         events_to_filter=['HW_LOSS']
+        if not 'PARTIAL_OCCUPANCY' in dm.get_ongoing_events():
+            events_to_filter.append('PARTIAL_OCCUPANCY')
         df_daily_filtered = dm.get_daily_summary_data_df(self.summary_group, events_to_filter)
         df_hourly_filtered = dm.get_hourly_summary_data_df(self.summary_group, events_to_filter)
         

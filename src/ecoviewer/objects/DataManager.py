@@ -68,6 +68,7 @@ class DataManager:
         self.entire_hourly_df = None
         self.organized_mapping = None
         self.annual_minute_df = None
+        self.ongoing_events = None
 
         self.flow_variable = "Flow_CityWater"
         self.oat_variable= "Temp_OAT"
@@ -173,18 +174,27 @@ class DataManager:
         return self.selected_table
     
     def get_average_cop(self):
+        filters_for_cop = ['DATA_LOSS_COP']
+        if self.system_is_swing_tank() and not 'PARTIAL_OCCUPANCY' in self.get_ongoing_events():
+            filters_for_cop.append('PARTIAL_OCCUPANCY')
+        if not 'INSTALLATION_ERROR' in self.get_ongoing_events():
+            filters_for_cop.append('INSTALLATION_ERROR')
         query = f"SELECT time_pt, {self.sys_cop_variable} FROM {self.day_table}"
         cop_df = self.get_df_from_query(query)
-        cop_df = self.apply_event_filters_to_df(cop_df, ['DATA_LOSS_COP']) # TODO add commissioning
+        cop_df = self.apply_event_filters_to_df(cop_df, filters_for_cop) # TODO add commissioning
         return cop_df[self.sys_cop_variable].mean()
     
     def get_ongoing_events(self) -> list:
-        query = f"SELECT event_type FROM site_events WHERE site_name = '{self.selected_table}' AND end_time_pt IS NULL AND NOT event_type IS NULL"
+        if self.ongoing_events is None:
+            query = f"SELECT event_type FROM site_events WHERE site_name = '{self.selected_table}' AND end_time_pt IS NULL AND NOT event_type IS NULL"
 
-        site_events = self.get_fetch_from_query(query)
-        if len(site_events) <= 0:
-            return []
-        return [event_type[0] for event_type in site_events]
+            site_events = self.get_fetch_from_query(query)
+            if len(site_events) <= 0:
+                self.ongoing_events = []
+            else:
+                self.ongoing_events = [event_type[0] for event_type in site_events]
+
+        return self.ongoing_events
 
 
     def add_event_to_site_events(self, start_date, end_date, event_type, event_detail):
@@ -288,6 +298,18 @@ class DataManager:
             returns True if user is from Ecotope. False otherwise.
         """
         return self.user_email.split('@')[-1] == "ecotope.com"
+    
+    def system_is_swing_tank(self) -> bool:
+        """
+        Returns
+        -------
+        system_is_swing_tank: bool
+            returns True if the selected system is a swing tank system (based on if it has a swing_element_kw attribute). False otherwise.
+        """
+        swing_t_elem = self.get_attribute_for_site('swing_element_kw')
+        if not (swing_t_elem is None or pd.isna(swing_t_elem)):
+            return True
+        return False
 
     def get_no_raw_retrieve_msg(self) -> html.P:
         """

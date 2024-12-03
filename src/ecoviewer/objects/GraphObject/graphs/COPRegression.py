@@ -17,7 +17,12 @@ class COPRegression(GraphObject):
         super().__init__(dm, title)
 
     def create_graph(self, dm : DataManager):
-        df_daily = dm.get_daily_data_df(events_to_filter=['EQUIPMENT_MALFUNCTION','DATA_LOSS_COP'])
+        events_to_filter=['EQUIPMENT_MALFUNCTION','DATA_LOSS_COP']
+        if dm.system_is_swing_tank() and not 'PARTIAL_OCCUPANCY' in dm.get_ongoing_events():
+            events_to_filter.append('PARTIAL_OCCUPANCY')
+        if not 'INSTALLATION_ERROR' in dm.get_ongoing_events():
+            events_to_filter.append('INSTALLATION_ERROR')
+        df_daily = dm.get_daily_data_df(events_to_filter=events_to_filter)
         if not 'Temp_OutdoorAir' in df_daily.columns:
             if not dm.oat_variable in df_daily.columns:
                 raise Exception('No outdoor air temperature data available.')
