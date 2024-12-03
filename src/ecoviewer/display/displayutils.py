@@ -254,7 +254,7 @@ def create_summary_table(dm : DataManager) -> html.Div:
         for site in all_sites:
             exp_cop = dm.get_attribute_for_site("expected_COP", site_name=site)
             if not exp_cop is None and not pd.isna(exp_cop):
-                zip_code = dm.get_attribute_for_site('zip_code')
+                zip_code = dm.get_attribute_for_site('zip_code', site_name=site)
                 zip_codes.append(zip_code if not (zip_code is None or pd.isna(zip_code)) else "Unknown")
                 site_dm = DataManager(dm.raw_data_creds,dm.config_creds,dm.user_email,site)
                 site_names.append(site_dm.get_attribute_for_site("pretty_name"))
