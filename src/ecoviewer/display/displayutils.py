@@ -130,7 +130,10 @@ def create_event_log_table(dm : DataManager, msg_p : html.P = None) -> html.Div:
                 )
             ])        
         event_df['start_time_pt'] = pd.to_datetime(event_df['start_time_pt']).dt.date
-        event_df['end_time_pt'] = pd.to_datetime(event_df['end_time_pt']).dt.date
+        if not 'end_time_pt' in event_df.columns:
+            event_df.insert(2, 'end_time_pt', None)
+        if event_df['end_time_pt'].notnull().any():
+            event_df['end_time_pt'] = pd.to_datetime(event_df['end_time_pt']).dt.date
         if not dm.user_is_ecotope():
             event_df = event_df.drop(columns=['id'])
         event_df = event_df.rename(columns={
