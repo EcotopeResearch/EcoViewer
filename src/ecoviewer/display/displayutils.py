@@ -253,6 +253,7 @@ def create_summary_table(dm : DataManager) -> html.Div:
         expected_cop = []
         actual_cop = []
         ongoing_events = []
+        event_descriptions = []
         all_sites = dm.site_df.index.tolist()
         for site in all_sites:
             exp_cop = dm.get_attribute_for_site("expected_COP", site_name=site)
@@ -274,7 +275,9 @@ def create_summary_table(dm : DataManager) -> html.Div:
                 expected_cop.append(exp_cop)
                 actual_cop.append(round(site_dm.get_average_cop(),2))
                 site_ongoing_events = site_dm.get_ongoing_events()
+                site_ongoing_event_descriptions = site_dm.get_ongoing_event_descriptions()
                 ongoing_events.append(", ".join(site_ongoing_events) if len(site_ongoing_events) > 0 else "No ongoing events.")
+                event_descriptions.append(" ".join(site_ongoing_event_descriptions) if len(site_ongoing_event_descriptions) > 0 else "N/A")
 
         df = pd.DataFrame({
             "Site": site_names,
@@ -282,7 +285,8 @@ def create_summary_table(dm : DataManager) -> html.Div:
             "Equipment": equipment_type,
             "Expected COP": expected_cop,
             "Actual Average COP":actual_cop,
-            "Ongoing Events": ongoing_events
+            "Ongoing Events": ongoing_events,
+            "Details" : event_descriptions
         })
 
         return html.Div([
@@ -305,6 +309,12 @@ def create_summary_table(dm : DataManager) -> html.Div:
                             'if': {'column_id': 'Ongoing Events'},
                             'backgroundColor': 'rgb(240, 240, 240)'
                         },
+                        {
+                            'if': {'column_id': 'Details'}, 
+                            'width': '50%',
+                            'whiteSpace': 'normal',
+                            'height': 'auto'
+                        }
                     ],
                 style_header={
                     'backgroundColor': 'rgb(230, 230, 230)',

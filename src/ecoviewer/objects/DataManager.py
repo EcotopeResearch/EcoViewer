@@ -197,6 +197,15 @@ class DataManager:
                 self.ongoing_events = [event_type[0] for event_type in site_events]
 
         return self.ongoing_events
+    
+    def get_ongoing_event_descriptions(self) -> list:
+        query = f"SELECT event_detail FROM site_events WHERE site_name = '{self.selected_table}' AND end_time_pt IS NULL AND NOT event_type IS NULL"
+
+        site_events = self.get_fetch_from_query(query)
+        if len(site_events) <= 0:
+            return []
+        else:
+            return [event_detail[0] for event_detail in site_events]
 
 
     def add_event_to_site_events(self, start_date, end_date, event_type, event_detail):
