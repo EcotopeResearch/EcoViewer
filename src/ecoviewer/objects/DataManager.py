@@ -38,16 +38,18 @@ class DataManager:
         List of selected checkbox values from user request
     pkl_folder_path : str
         full path to directory conaining saved .pkl files for graph objects that use them
+    exclude_csv_only_fields : bool
+            boolean to indicate whether to exclude fields from field_df that should only be present when users download raw data csvs
     """
     def __init__(self, raw_data_creds : dict, config_creds : dict, user_email : str, selected_table : str = None, start_date : str = None, end_date : str = None, checkbox_selections : list = [],
-                 pkl_folder_path : str = None):
+                 pkl_folder_path : str = None, exclude_csv_only_fields : bool = True):
         self.pkl_folder_path = pkl_folder_path
         self.raw_data_creds = raw_data_creds
         self.config_creds = config_creds
         self.last_called_mysql = None
         self.user_email = user_email
         self._check_mysql_creds()
-        self.site_df, self.graph_df, self.field_df = self.get_user_permissions_from_db(user_email, self.config_creds)
+        self.site_df, self.graph_df, self.field_df = self.get_user_permissions_from_db(user_email, self.config_creds, exclude_csv_only_fields)
         self.selected_table = selected_table
         if self.site_df.empty:
             raise Exception("User does not have permission to access data.")
@@ -349,7 +351,7 @@ class DataManager:
                 'database':"Site_Config_database_name"
             }
         exclude_csv_only_fields : bool
-            boolean to indicate whether to exclude fields  from field_df that should only be present when users download raw data csvs
+            boolean to indicate whether to exclude fields from field_df that should only be present when users download raw data csvs
 
         Returns
         -------
@@ -503,7 +505,7 @@ class DataManager:
             summary_query = f"SELECT * FROM ({summary_query}) AS subquery ORDER BY subquery.time_pt ASC;"
         return summary_query
     
-    def get_daily_summary_data_df(self, summary_group : str = None, events_to_filter : list = []) -> pd.DataFrame:
+    def get_daily_summary_data_df(self, summary_group : str = None, events_to_filter : list = [], summary_filtered : bool = True) -> pd.DataFrame:
         if self.daily_summary_df is None:
             # raw df has not already been generated
             query = self.generate_daily_summary_query()
@@ -515,7 +517,11 @@ class DataManager:
                 self.daily_summary_df = self._bayview_power_processing(self.daily_summary_df)
 
             filtered_field_df = self.field_df[self.field_df['site_name'] == self.selected_table]
-            filtered_df = filtered_field_df[filtered_field_df['summary_group'].notna()]
+            # TODO This is for gatekeeping power values and COP values.
+            if summary_filtered:
+                filtered_df = filtered_field_df[filtered_field_df['summary_group'].notna()]
+            else:
+                filtered_df = filtered_field_df
             group_columns = [col for col in self.daily_summary_df.columns if col in filtered_df['field_name'].tolist()]
             self.daily_summary_df = self.daily_summary_df[group_columns]
 
@@ -620,13 +626,16 @@ class DataManager:
         # conditionals because some sites don't have these
         if self.field_df[(self.field_df['field_name'] == 'OAT_NOAA') & (self.field_df['site_name'] == self.selected_table)].shape[0] > 0:
             query += f"{self.hour_table}.OAT_NOAA, "
+        # TODO figure out better way to do COP
         if self.field_df[(self.field_df['field_name'] == 'COP_Equipment') & (self.field_df['site_name'] == self.selected_table)].shape[0] > 0:
             query += f"{self.day_table}.COP_Equipment, "
         if self.field_df[(self.field_df['field_name'] == 'COP_DHWSys_2') & (self.field_df['site_name'] == self.selected_table)].shape[0] > 0:
             query += f"{self.day_table}.COP_DHWSys_2, "
+        if not self.sys_cop_variable in ['COP_Equipment', 'COP_DHWSys_2'] and self.field_df[(self.field_df['field_name'] == self.sys_cop_variable) & (self.field_df['site_name'] == self.selected_table)].shape[0] > 0:
+            query += f"{self.day_table}.{self.sys_cop_variable}, "
         query += f"IF(DAYOFWEEK({self.min_table}.time_pt) IN (1, 7), FALSE, TRUE) AS weekday, " +\
             f"HOUR({self.min_table}.time_pt) AS hr FROM {self.min_table} "
-        #TODO these two if statements are a work around for LBNLC. MAybe figure out better solution
+        #TODO these two if statements are a work around for LBL. MAybe figure out better solution
         if self.min_table != self.hour_table:
             query += f"LEFT JOIN {self.hour_table} ON {self.min_table}.time_pt = {self.hour_table}.time_pt "
         if self.min_table != self.day_table:
