@@ -716,7 +716,7 @@ class DataManager:
         if self.start_date != None and self.end_date != None:
             query += f" AND (start_time_pt <= '{self.start_date}' OR start_time_pt < '{self.end_date}')"
             query += f" AND (end_time_pt > '{self.start_date}' OR end_time_pt >= '{self.end_date}')"
-        query += " ORDER BY start_time_pt DESC"
+        query += " ORDER BY end_time_pt IS NULL DESC, end_time_pt DESC"
 
         events = self.get_df_from_query(query,False)
         return events
