@@ -13,7 +13,7 @@ class SummaryBarGraph(GraphObject):
         self.summary_group = summary_group
         super().__init__(dm, title)
 
-    def _format_x_axis_date_str(self, dt_1 : datetime, dt_2 : datetime = None) -> str:
+    def _format_x_axis_date_str(self, dt_1 : datetime, dt_2 : datetime = None, month_only : bool = False) -> str:
         months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
         
         # Extract date components
@@ -21,6 +21,8 @@ class SummaryBarGraph(GraphObject):
         month_1 = months[dt_1.month - 1]
         year_1 = dt_1.year
 
+        if month_only:
+            return f"{month_1}, {year_1}"
         if dt_2 is None:
             return f"{month_1} {day_1}, {year_1}"
         
@@ -50,10 +52,27 @@ class SummaryBarGraph(GraphObject):
 
         df = og_df[powerin_columns+cop_columns].copy()
         # compress to weeks if more than 3 weeks selected
-        compress_to_weeks = False
+        compress_data = 0 # 0 = days, 1 = weeks, 2 = months
         formatting_time_delta = min(4, math.floor(24/(len(cop_columns) +1))) # TODO error if there are more than 23 cop columns
-        if df.index[-1] - df.index[0] >= pd.Timedelta(weeks=3):
-            compress_to_weeks = True
+        xaxis_title='<b>Day'
+        if df.index[-1] - df.index[0] >= pd.Timedelta(weeks=14):
+            compress_data = 2
+            xaxis_title='<b>Month'
+            # calculate monthly COPs
+            sum_df = df.copy()
+            sum_df['power_sum'] = sum_df[powerin_columns].sum(axis=1)
+            for cop_column in cop_columns:
+                sum_df[f'heat_out_{cop_column}'] = sum_df['power_sum'] * sum_df[cop_column]
+            sum_df = sum_df.resample('M').sum()
+            df = df.resample('M').mean()
+            for cop_column in cop_columns:
+                df[cop_column] = sum_df[f'heat_out_{cop_column}'] / sum_df['power_sum']
+            df = dm.round_df_to_x_decimal(df, 3)
+
+            formatting_time_delta = formatting_time_delta * 28
+        elif df.index[-1] - df.index[0] >= pd.Timedelta(weeks=3):
+            compress_data = 1
+            xaxis_title='<b>Week'
             # calculate weekly COPs
             sum_df = df.copy()
             sum_df['power_sum'] = sum_df[powerin_columns].sum(axis=1)
@@ -73,7 +92,10 @@ class SummaryBarGraph(GraphObject):
         x_val = df.index[0]
         while x_val <= df.index[-1]:
             x_axis_tick_val.append(x_val)# + pd.Timedelta(hours=(formatting_time_delta * math.floor(len(cop_column)/2))))
-            if compress_to_weeks:
+            if compress_data == 2:
+                x_axis_tick_text.append(self._format_x_axis_date_str(x_val, month_only=True))
+                x_val += pd.offsets.MonthEnd(1)
+            elif compress_data == 1:
                 first_date = x_val - pd.Timedelta(days=6)
                 last_date = x_val
                 if first_date < og_df.index[0]:
@@ -110,10 +132,10 @@ class SummaryBarGraph(GraphObject):
         stacked_fig.update_layout(
             # width=1300,
             yaxis1=dict(
-                title='<b>Avg. Daily kWh' if compress_to_weeks else '<b>kWh',
+                title='<b>Avg. Daily kWh' if compress_data > 0 else '<b>kWh',
             ),
             xaxis=dict(
-                title='<b>Week' if compress_to_weeks else '<b>Day',
+                title=xaxis_title,
                 tickmode = 'array',
                 tickvals = x_axis_tick_val,
                 ticktext = x_axis_tick_text  
