@@ -15,12 +15,10 @@ class COPTimeseries(GraphObject):
             if not dm.oat_variable in df_daily.columns:
                 raise Exception('No outdoor air temperature data available.')
             df_daily['Temp_OutdoorAir'] = df_daily[dm.oat_variable]
-        if not 'SystemCOP' in df_daily.columns:
-            df_daily['SystemCOP'] = df_daily[dm.sys_cop_variable]
 
         fig = make_subplots(specs = [[{'secondary_y':True}]])
         fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily[dm.sys_cop_variable],
-                                mode = 'markers', name = 'System COP',
+                                mode = 'markers', name = dm.get_pretty_name(dm.sys_cop_variable),
                                 marker=dict(color='darkred')), secondary_y = True)
         
         fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily[dm.oat_variable],

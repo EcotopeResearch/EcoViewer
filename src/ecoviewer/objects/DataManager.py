@@ -543,6 +543,12 @@ class DataManager:
             return self.apply_event_filters_to_df(self.daily_summary_df[group_columns], events_to_filter)
         return self.apply_event_filters_to_df(self.daily_summary_df, events_to_filter)
     
+    def get_pretty_name(self, column_name : str, default_on_fail : str = "COP") -> str:
+        try:
+            return self.get_pretty_names([column_name])[0][0]
+        except:
+            return default_on_fail
+    
     def get_pretty_names(self, column_names : list, replace_power_for_energy = False):
         pretty_names = []
         pretty_names_dict = {}

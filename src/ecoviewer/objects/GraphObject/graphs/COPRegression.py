@@ -49,7 +49,8 @@ class COPRegression(GraphObject):
             fig = px.scatter(df_daily, x='Temp_OutdoorAir', y=self.cop_column,
                         title=title,
                         size=self.power_col,
-                        labels={'Temp_OutdoorAir': '<b>Dry Bulb OAT (°F)', f'{self.cop_column}': '<b>COP', 
+                        labels={'Temp_OutdoorAir': '<b>Dry Bulb OAT (°F)', 
+                                f'{self.cop_column}': f"<b>{dm.get_pretty_name(self.cop_column)}", 
                                 'PrimaryEneryRatio': 'Primary Energy Ratio', 'Site': '<b>Site'},
                         color_discrete_sequence=["darkblue"],
                         hover_data={'Date': True}
@@ -60,7 +61,8 @@ class COPRegression(GraphObject):
         else:
             fig = px.scatter(df_daily, x='Temp_OutdoorAir', y=self.cop_column,
                         title=title, trendline="ols",
-                        labels={'Temp_OutdoorAir': '<b>Dry Bulb OAT (°F)', f'{self.cop_column}': '<b>COP', 
+                        labels={'Temp_OutdoorAir': '<b>Dry Bulb OAT (°F)', 
+                        f'{self.cop_column}': f"<b>{dm.get_pretty_name(self.cop_column)}", 
                                 'PrimaryEneryRatio': 'Primary Energy Ratio', 'Site': '<b>Site'},
                         color_discrete_sequence=["darkblue"],
                         hover_data={'Date': True}
