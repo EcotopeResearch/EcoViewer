@@ -71,6 +71,10 @@ class SummaryHourlyFlow(GraphObject):
         full_hourly_df = dm.get_hourly_flow_data_df()
         hourly_df = full_hourly_df[[dm.flow_variable]].copy()
 
+        hourly_df = hourly_df.dropna(subset=[dm.flow_variable])
+        daily_df = daily_df.dropna(subset=[dm.flow_variable])
+        daily_df = daily_df[daily_df[dm.flow_variable] > 0.0]
+
         daily_df['weekday'] = np.where(daily_df.index.weekday <= 4, 1, 0)
         hourly_df['weekday'] = np.where(hourly_df.index.weekday <= 4, 1, 0)
 
