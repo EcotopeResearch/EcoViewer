@@ -262,7 +262,9 @@ class DataManager:
             event_detail.replace("'",'')
             update_query = f"UPDATE site_events SET start_time_pt = '{start_date} 00:00:00', event_type = '{event_type}', event_detail =  '{event_detail}',"
             if not end_date is None:
-                update_query += f" end_time_pt = '{end_date} 23:59:00'," 
+                update_query += f" end_time_pt = '{end_date} 23:59:00',"
+            else:
+                update_query += f" end_time_pt = NULL,"
             update_query += f" last_modified_date = '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}', last_modified_by = '{self.user_email}' WHERE site_name = '{self.selected_table}' AND id = {id};"
             self.run_query(update_query)
             return
