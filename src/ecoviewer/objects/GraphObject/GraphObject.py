@@ -12,6 +12,17 @@ import os
 
 
 class GraphObject:
+    """
+    An object that contains a graph for display 
+
+    Attributes
+    ----------
+    dm : DataManager
+        The DataManager object for the current data pull
+    title : str
+        The title of the Graph type. This will be displayed if there is an error to tell the user
+        what graph could not be generated
+    """
     def __init__(self, dm : DataManager, title : str = "Graph"):
         self.title = title
         self.pkl_file_name = self.create_pkl_file_name(dm)
