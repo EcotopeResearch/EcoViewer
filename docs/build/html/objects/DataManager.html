@@ -1,0 +1,699 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Objects Documentation &#8212; EcoViewer 1.4.12 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/nature.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Objects Documentation" href="GraphObject/GraphObject.html" />
+    <link rel="prev" title="EcoPipeline Documentation" href="../index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="GraphObject/GraphObject.html" title="Objects Documentation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../index.html" title="EcoPipeline Documentation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">EcoViewer 1.4.12 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Objects Documentation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="objects-documentation">
+<h1>Objects Documentation<a class="headerlink" href="#objects-documentation" title="Permalink to this heading">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<span class="target" id="module-ecoviewer.objects.DataManager"></span><dl class="py class">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ecoviewer.objects.DataManager.</span></span><span class="sig-name descname"><span class="pre">DataManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw_data_creds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_creds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_email</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_table</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkbox_selections</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pkl_folder_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_csv_only_fields</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="field-list">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>raw_data_creds</strong><span class="classifier">dict</span></dt><dd><p>a dictionary containing the sql access information for the site data database. this should be in the form
+{</p>
+<blockquote>
+<div><p>‘host’:”host_name”,
+‘user’:”mysql_user_name”,
+‘password’:”mysql_pw”</p>
+</div></blockquote>
+<p>}
+database will be taken from the site details in the site database that can be accessed through the config_creds parameter</p>
+</dd>
+<dt><strong>config_creds</strong><span class="classifier">dict</span></dt><dd><p>a dictionary containing the sql access information for the site configuration database. this should be in the form
+{</p>
+<blockquote>
+<div><p>‘host’:”host_name”,
+‘user’:”mysql_user_name”,
+‘password’:”mysql_pw”,
+‘database’:”Site_Config_database_name”</p>
+</div></blockquote>
+<p>}</p>
+</dd>
+<dt><strong>user_email</strong><span class="classifier">str</span></dt><dd><p>The email address of the current user - used for checking permissions</p>
+</dd>
+<dt><strong>selected_table</strong><span class="classifier">str</span></dt><dd><p>The id of the selected data site</p>
+</dd>
+<dt><strong>start_date</strong><span class="classifier">str</span></dt><dd><p>String representation for the start date of the timeframe</p>
+</dd>
+<dt><strong>end_date</strong><span class="classifier">str</span></dt><dd><p>String representation for the start date of the timeframe</p>
+</dd>
+<dt><strong>checkbox_selections</strong><span class="classifier">list</span></dt><dd><p>List of selected checkbox values from user request</p>
+</dd>
+<dt><strong>pkl_folder_path</strong><span class="classifier">str</span></dt><dd><p>full path to directory conaining saved .pkl files for graph objects that use them</p>
+</dd>
+<dt><strong>exclude_csv_only_fields</strong><span class="classifier">bool</span></dt><dd><p>boolean to indicate whether to exclude fields from field_df that should only be present when users download raw data csvs</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.add_event_to_site_events" title="ecoviewer.objects.DataManager.DataManager.add_event_to_site_events"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_event_to_site_events</span></code></a>(start_date, ...)</p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.create_date_note" title="ecoviewer.objects.DataManager.DataManager.create_date_note"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_date_note</span></code></a>()</p></td>
+<td><p>returns [date_note, first_date, last_date]</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_no_raw_retrieve_msg" title="ecoviewer.objects.DataManager.DataManager.get_no_raw_retrieve_msg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_no_raw_retrieve_msg</span></code></a>()</p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_organized_mapping" title="ecoviewer.objects.DataManager.DataManager.get_organized_mapping"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_organized_mapping</span></code></a>(df_columns[, ...])</p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_user_permissions_from_db" title="ecoviewer.objects.DataManager.DataManager.get_user_permissions_from_db"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_user_permissions_from_db</span></code></a>(user_email, ...)</p></td>
+<td><p>retrieves site_df, graph_df, field_df and table_names based on the permisions a user email has</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.system_is_swing_tank" title="ecoviewer.objects.DataManager.DataManager.system_is_swing_tank"><code class="xref py py-obj docutils literal notranslate"><span class="pre">system_is_swing_tank</span></code></a>()</p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.update_site_event" title="ecoviewer.objects.DataManager.DataManager.update_site_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_site_event</span></code></a>(id, start_date, end_date, ...)</p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.user_is_ecotope" title="ecoviewer.objects.DataManager.DataManager.user_is_ecotope"><code class="xref py py-obj docutils literal notranslate"><span class="pre">user_is_ecotope</span></code></a>()</p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>add_default_date_message</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>apply_event_filters_to_df</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>delete_event</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>filter_graph_and_field_df</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>generate_daily_summary_query</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>generate_hourly_summary_query</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>generate_raw_data_query</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_annual_minute_df</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_attribute_for_site</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_average_cop</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_color_list</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_daily_data_df</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_daily_summary_data_df</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_df_from_query</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_fetch_from_query</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_hourly_flow_data_df</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_hourly_summary_data_df</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_ongoing_event_descriptions</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_ongoing_events</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_pretty_name</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_pretty_names</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_raw_data_df</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_selected_table</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_site_events</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_summary_groups</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_table_dropdown</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>graph_available</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>is_within_raw_data_limit</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>needs_reset_to_default_date_msg</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>parse_checklists_from_div</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>retrieve_event</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>round_df_to_x_decimal</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>run_query</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>value_in_checkbox_selection</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.add_default_date_message">
+<span class="sig-name descname"><span class="pre">add_default_date_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph_components</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.add_default_date_message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.add_event_to_site_events">
+<span class="sig-name descname"><span class="pre">add_event_to_site_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_detail</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.add_event_to_site_events" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>start_date</strong><span class="classifier">str</span></dt><dd><p>start date for event in the form ‘yyy-mm-dd’</p>
+</dd>
+<dt><strong>end_date</strong><span class="classifier">str</span></dt><dd><p>end date for event in the form ‘yyy-mm-dd’</p>
+</dd>
+<dt><strong>event_type</strong><span class="classifier">str</span></dt><dd><p>event type for the event.</p>
+</dd>
+<dt><strong>event_detail</strong><span class="classifier">str</span></dt><dd><p>100-character maximum string to upload to database as event detail/description. Quotes will be removed from this string.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.apply_event_filters_to_df">
+<span class="sig-name descname"><span class="pre">apply_event_filters_to_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">events_to_filter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.apply_event_filters_to_df" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.create_date_note">
+<span class="sig-name descname"><span class="pre">create_date_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.create_date_note" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns [date_note, first_date, last_date]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.delete_event">
+<span class="sig-name descname"><span class="pre">delete_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.delete_event" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.filter_graph_and_field_df">
+<span class="sig-name descname"><span class="pre">filter_graph_and_field_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checklist_values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.filter_graph_and_field_df" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.generate_daily_summary_query">
+<span class="sig-name descname"><span class="pre">generate_daily_summary_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default_days</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.generate_daily_summary_query" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.generate_hourly_summary_query">
+<span class="sig-name descname"><span class="pre">generate_hourly_summary_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">numHours</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">740</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.generate_hourly_summary_query" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.generate_raw_data_query">
+<span class="sig-name descname"><span class="pre">generate_raw_data_query</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.generate_raw_data_query" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_annual_minute_df">
+<span class="sig-name descname"><span class="pre">get_annual_minute_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">events_to_filter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_annual_minute_df" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_attribute_for_site">
+<span class="sig-name descname"><span class="pre">get_attribute_for_site</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_attribute_for_site" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_average_cop">
+<span class="sig-name descname"><span class="pre">get_average_cop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_average_cop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_color_list">
+<span class="sig-name descname"><span class="pre">get_color_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_color_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_daily_data_df">
+<span class="sig-name descname"><span class="pre">get_daily_data_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">events_to_filter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_daily_data_df" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_daily_summary_data_df">
+<span class="sig-name descname"><span class="pre">get_daily_summary_data_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">summary_group</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">events_to_filter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">summary_filtered</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_daily_summary_data_df" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_df_from_query">
+<span class="sig-name descname"><span class="pre">get_df_from_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_time_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_df_from_query" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_fetch_from_query">
+<span class="sig-name descname"><span class="pre">get_fetch_from_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_fetch_from_query" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_hourly_flow_data_df">
+<span class="sig-name descname"><span class="pre">get_hourly_flow_data_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">events_to_filter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_hourly_flow_data_df" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_hourly_summary_data_df">
+<span class="sig-name descname"><span class="pre">get_hourly_summary_data_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">summary_group</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">events_to_filter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_hourly_summary_data_df" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_no_raw_retrieve_msg">
+<span class="sig-name descname"><span class="pre">get_no_raw_retrieve_msg</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">P</span></span></span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_no_raw_retrieve_msg" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>no_raw_retrieval_msg: html.P</dt><dd><p>html component to communicate that time frame is too large to retrieve raw data</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_ongoing_event_descriptions">
+<span class="sig-name descname"><span class="pre">get_ongoing_event_descriptions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_ongoing_event_descriptions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_ongoing_events">
+<span class="sig-name descname"><span class="pre">get_ongoing_events</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_ongoing_events" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_organized_mapping">
+<span class="sig-name descname"><span class="pre">get_organized_mapping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_fields</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hourly_fields_only</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_organized_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>df_columns: list</strong></dt><dd><p>list of all the column names present in the Pandas dataframe containing data from the site</p>
+</dd>
+<dt><strong>all_fields</strong><span class="classifier">bool</span></dt><dd><p>set to True to get all fields including those not in the dataframe of site data</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt>organized_mapping: dictionary</dt><dd><p>dictionary mapping each graph to a list of site data dataframe columns that belong to that graph in the form
+{</p>
+<blockquote>
+<div><dl class="simple">
+<dt>graph_id<span class="classifier">{</span></dt><dd><p>“title” : graph_title,
+“y1_units” : y1_units,
+“y2_units” : y2_units,
+“y1_fields” : y1_fields,
+“y2_fields” : y2_fields</p>
+</dd>
+</dl>
+<p>}</p>
+</div></blockquote>
+<p>}</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_pretty_name">
+<span class="sig-name descname"><span class="pre">get_pretty_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_on_fail</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'COP'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_pretty_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_pretty_names">
+<span class="sig-name descname"><span class="pre">get_pretty_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replace_power_for_energy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_pretty_names" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_raw_data_df">
+<span class="sig-name descname"><span class="pre">get_raw_data_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_fields</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hourly_fields_only</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_raw_data_df" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_selected_table">
+<span class="sig-name descname"><span class="pre">get_selected_table</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_selected_table" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_site_events">
+<span class="sig-name descname"><span class="pre">get_site_events</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_site_events" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_summary_groups">
+<span class="sig-name descname"><span class="pre">get_summary_groups</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_summary_groups" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_table_dropdown">
+<span class="sig-name descname"><span class="pre">get_table_dropdown</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_table_dropdown" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_user_permissions_from_db">
+<span class="sig-name descname"><span class="pre">get_user_permissions_from_db</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user_email</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sql_dash_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_csv_only_fields</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_user_permissions_from_db" title="Permalink to this definition">¶</a></dt>
+<dd><p>retrieves site_df, graph_df, field_df and table_names based on the permisions a user email has</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>user_email</strong><span class="classifier">str</span></dt><dd><p>The email address of the user accessing the dash application</p>
+</dd>
+<dt><strong>sql_dash_config</strong><span class="classifier">dict</span></dt><dd><p>a dictionary containing the sql access information for the site configuration database. this should be in the form
+{</p>
+<blockquote>
+<div><p>‘host’:”host_name”,
+‘user’:”mysql_user_name”,
+‘password’:”mysql_pw”,
+‘database’:”Site_Config_database_name”</p>
+</div></blockquote>
+<p>}</p>
+</dd>
+<dt><strong>exclude_csv_only_fields</strong><span class="classifier">bool</span></dt><dd><p>boolean to indicate whether to exclude fields from field_df that should only be present when users download raw data csvs</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>site_df</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>a data frame containing site configuration data for each datasite available in the dashapp for a user</p>
+</dd>
+<dt><strong>graph_df</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>a data frame containing configuration data for each graph used in the dashapp</p>
+</dd>
+<dt><strong>field_df</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>a data frame containing field configuration data for each field available in the dashapp for a user</p>
+</dd>
+<dt><strong>table_names</strong><span class="classifier">list</span></dt><dd><p>a list of dictionaries that contain the appropriate displayed name and value for the dash applications site dropdown, taylored for the permissions of the user</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.graph_available">
+<span class="sig-name descname"><span class="pre">graph_available</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.graph_available" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.is_within_raw_data_limit">
+<span class="sig-name descname"><span class="pre">is_within_raw_data_limit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.is_within_raw_data_limit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.needs_reset_to_default_date_msg">
+<span class="sig-name descname"><span class="pre">needs_reset_to_default_date_msg</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.needs_reset_to_default_date_msg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.parse_checklists_from_div">
+<span class="sig-name descname"><span class="pre">parse_checklists_from_div</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">div_children</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.parse_checklists_from_div" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.retrieve_event">
+<span class="sig-name descname"><span class="pre">retrieve_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.retrieve_event" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.round_df_to_x_decimal">
+<span class="sig-name descname"><span class="pre">round_df_to_x_decimal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.round_df_to_x_decimal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.run_query">
+<span class="sig-name descname"><span class="pre">run_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.run_query" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.system_is_swing_tank">
+<span class="sig-name descname"><span class="pre">system_is_swing_tank</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.system_is_swing_tank" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>system_is_swing_tank: bool</dt><dd><p>returns True if the selected system is a swing tank system (based on if it has a swing_element_kw attribute). False otherwise.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.update_site_event">
+<span class="sig-name descname"><span class="pre">update_site_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_detail</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.update_site_event" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>id</strong><span class="classifier">int</span></dt><dd><p>the event id</p>
+</dd>
+<dt><strong>start_date</strong><span class="classifier">str</span></dt><dd><p>start date for event in the form ‘yyy-mm-dd’</p>
+</dd>
+<dt><strong>end_date</strong><span class="classifier">str</span></dt><dd><p>end date for event in the form ‘yyy-mm-dd’</p>
+</dd>
+<dt><strong>event_type</strong><span class="classifier">str</span></dt><dd><p>event type for the event.</p>
+</dd>
+<dt><strong>event_detail</strong><span class="classifier">str</span></dt><dd><p>100-character maximum string to upload to database as event detail/description. Quotes will be removed from this string.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.user_is_ecotope">
+<span class="sig-name descname"><span class="pre">user_is_ecotope</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.user_is_ecotope" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>user_is_ecotope: bool</dt><dd><p>returns True if user is from Ecotope. False otherwise.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.value_in_checkbox_selection">
+<span class="sig-name descname"><span class="pre">value_in_checkbox_selection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.value_in_checkbox_selection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Objects Documentation</a><ul>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager"><code class="docutils literal notranslate"><span class="pre">DataManager</span></code></a><ul>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.add_default_date_message"><code class="docutils literal notranslate"><span class="pre">DataManager.add_default_date_message()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.add_event_to_site_events"><code class="docutils literal notranslate"><span class="pre">DataManager.add_event_to_site_events()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.apply_event_filters_to_df"><code class="docutils literal notranslate"><span class="pre">DataManager.apply_event_filters_to_df()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.create_date_note"><code class="docutils literal notranslate"><span class="pre">DataManager.create_date_note()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.delete_event"><code class="docutils literal notranslate"><span class="pre">DataManager.delete_event()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.filter_graph_and_field_df"><code class="docutils literal notranslate"><span class="pre">DataManager.filter_graph_and_field_df()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.generate_daily_summary_query"><code class="docutils literal notranslate"><span class="pre">DataManager.generate_daily_summary_query()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.generate_hourly_summary_query"><code class="docutils literal notranslate"><span class="pre">DataManager.generate_hourly_summary_query()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.generate_raw_data_query"><code class="docutils literal notranslate"><span class="pre">DataManager.generate_raw_data_query()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_annual_minute_df"><code class="docutils literal notranslate"><span class="pre">DataManager.get_annual_minute_df()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_attribute_for_site"><code class="docutils literal notranslate"><span class="pre">DataManager.get_attribute_for_site()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_average_cop"><code class="docutils literal notranslate"><span class="pre">DataManager.get_average_cop()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_color_list"><code class="docutils literal notranslate"><span class="pre">DataManager.get_color_list()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_daily_data_df"><code class="docutils literal notranslate"><span class="pre">DataManager.get_daily_data_df()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_daily_summary_data_df"><code class="docutils literal notranslate"><span class="pre">DataManager.get_daily_summary_data_df()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_df_from_query"><code class="docutils literal notranslate"><span class="pre">DataManager.get_df_from_query()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_fetch_from_query"><code class="docutils literal notranslate"><span class="pre">DataManager.get_fetch_from_query()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_hourly_flow_data_df"><code class="docutils literal notranslate"><span class="pre">DataManager.get_hourly_flow_data_df()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_hourly_summary_data_df"><code class="docutils literal notranslate"><span class="pre">DataManager.get_hourly_summary_data_df()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_no_raw_retrieve_msg"><code class="docutils literal notranslate"><span class="pre">DataManager.get_no_raw_retrieve_msg()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_ongoing_event_descriptions"><code class="docutils literal notranslate"><span class="pre">DataManager.get_ongoing_event_descriptions()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_ongoing_events"><code class="docutils literal notranslate"><span class="pre">DataManager.get_ongoing_events()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_organized_mapping"><code class="docutils literal notranslate"><span class="pre">DataManager.get_organized_mapping()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_pretty_name"><code class="docutils literal notranslate"><span class="pre">DataManager.get_pretty_name()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_pretty_names"><code class="docutils literal notranslate"><span class="pre">DataManager.get_pretty_names()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_raw_data_df"><code class="docutils literal notranslate"><span class="pre">DataManager.get_raw_data_df()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_selected_table"><code class="docutils literal notranslate"><span class="pre">DataManager.get_selected_table()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_site_events"><code class="docutils literal notranslate"><span class="pre">DataManager.get_site_events()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_summary_groups"><code class="docutils literal notranslate"><span class="pre">DataManager.get_summary_groups()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_table_dropdown"><code class="docutils literal notranslate"><span class="pre">DataManager.get_table_dropdown()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_user_permissions_from_db"><code class="docutils literal notranslate"><span class="pre">DataManager.get_user_permissions_from_db()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.graph_available"><code class="docutils literal notranslate"><span class="pre">DataManager.graph_available()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.is_within_raw_data_limit"><code class="docutils literal notranslate"><span class="pre">DataManager.is_within_raw_data_limit()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.needs_reset_to_default_date_msg"><code class="docutils literal notranslate"><span class="pre">DataManager.needs_reset_to_default_date_msg()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.parse_checklists_from_div"><code class="docutils literal notranslate"><span class="pre">DataManager.parse_checklists_from_div()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.retrieve_event"><code class="docutils literal notranslate"><span class="pre">DataManager.retrieve_event()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.round_df_to_x_decimal"><code class="docutils literal notranslate"><span class="pre">DataManager.round_df_to_x_decimal()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.run_query"><code class="docutils literal notranslate"><span class="pre">DataManager.run_query()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.system_is_swing_tank"><code class="docutils literal notranslate"><span class="pre">DataManager.system_is_swing_tank()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.update_site_event"><code class="docutils literal notranslate"><span class="pre">DataManager.update_site_event()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.user_is_ecotope"><code class="docutils literal notranslate"><span class="pre">DataManager.user_is_ecotope()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.value_in_checkbox_selection"><code class="docutils literal notranslate"><span class="pre">DataManager.value_in_checkbox_selection()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="../index.html"
+                          title="previous chapter">EcoPipeline Documentation</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="GraphObject/GraphObject.html"
+                          title="next chapter">Objects Documentation</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/objects/DataManager.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="GraphObject/GraphObject.html" title="Objects Documentation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../index.html" title="EcoPipeline Documentation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">EcoViewer 1.4.12 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Objects Documentation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, Ecotope Inc..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.3.
+    </div>
+  </body>
+</html>

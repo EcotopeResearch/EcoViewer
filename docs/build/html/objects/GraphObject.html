@@ -1,0 +1,178 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Transform Documentation &#8212; EcoViewer 1.4.12 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/nature.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">EcoViewer 1.4.12 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Transform Documentation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="transform-documentation">
+<h1>Transform Documentation<a class="headerlink" href="#transform-documentation" title="Permalink to this heading">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<span class="target" id="module-ecoviewer.objects.GraphObject.GraphObject"></span><dl class="py class">
+<dt class="sig sig-object py" id="ecoviewer.objects.GraphObject.GraphObject.GraphObject">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ecoviewer.objects.GraphObject.GraphObject.</span></span><span class="sig-name descname"><span class="pre">GraphObject</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="DataManager.html#ecoviewer.objects.DataManager.DataManager" title="ecoviewer.objects.DataManager.DataManager"><span class="pre">DataManager</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Graph'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>An object that contains a graph for display</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dm</strong><span class="classifier">DataManager</span></dt><dd><p>The DataManager object for the current data pull</p>
+</dd>
+<dt><strong>title</strong><span class="classifier">str</span></dt><dd><p>The title of the Graph type. This will be displayed if there is an error to tell the user
+what graph could not be generated</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>check_if_file_exists</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>create_graph</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>create_pkl_file_name</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_error_msg</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_graph</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>pickle_graph</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.GraphObject.GraphObject.GraphObject.check_if_file_exists">
+<span class="sig-name descname"><span class="pre">check_if_file_exists</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject.check_if_file_exists" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.GraphObject.GraphObject.GraphObject.create_graph">
+<span class="sig-name descname"><span class="pre">create_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="DataManager.html#ecoviewer.objects.DataManager.DataManager" title="ecoviewer.objects.DataManager.DataManager"><span class="pre">DataManager</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject.create_graph" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.GraphObject.GraphObject.GraphObject.create_pkl_file_name">
+<span class="sig-name descname"><span class="pre">create_pkl_file_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="DataManager.html#ecoviewer.objects.DataManager.DataManager" title="ecoviewer.objects.DataManager.DataManager"><span class="pre">DataManager</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject.create_pkl_file_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.GraphObject.GraphObject.GraphObject.get_error_msg">
+<span class="sig-name descname"><span class="pre">get_error_msg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject.get_error_msg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.GraphObject.GraphObject.GraphObject.get_graph">
+<span class="sig-name descname"><span class="pre">get_graph</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject.get_graph" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.GraphObject.GraphObject.GraphObject.pickle_graph">
+<span class="sig-name descname"><span class="pre">pickle_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject.pickle_graph" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Transform Documentation</a><ul>
+<li><a class="reference internal" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject"><code class="docutils literal notranslate"><span class="pre">GraphObject</span></code></a><ul>
+<li><a class="reference internal" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject.check_if_file_exists"><code class="docutils literal notranslate"><span class="pre">GraphObject.check_if_file_exists()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject.create_graph"><code class="docutils literal notranslate"><span class="pre">GraphObject.create_graph()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject.create_pkl_file_name"><code class="docutils literal notranslate"><span class="pre">GraphObject.create_pkl_file_name()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject.get_error_msg"><code class="docutils literal notranslate"><span class="pre">GraphObject.get_error_msg()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject.get_graph"><code class="docutils literal notranslate"><span class="pre">GraphObject.get_graph()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject.pickle_graph"><code class="docutils literal notranslate"><span class="pre">GraphObject.pickle_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/objects/GraphObject.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">EcoViewer 1.4.12 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Transform Documentation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, Ecotope Inc..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.3.
+    </div>
+  </body>
+</html>
