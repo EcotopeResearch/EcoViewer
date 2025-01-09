@@ -118,10 +118,10 @@ def create_event_log_table(dm : DataManager, msg_p : html.P = None) -> html.Div:
     Returns
     -------
     event_log_table: html.Div
-        html div that contains a table tof events from the queried site for the current date range
+        html div that contains a table of all events from the queried site
     """
     try:
-        event_df = dm.get_site_events()
+        event_df = dm.get_site_events(filter_by_date = False)
         if event_df.shape[0] == 0:
             # return error on empty event_df
             return html.Div([

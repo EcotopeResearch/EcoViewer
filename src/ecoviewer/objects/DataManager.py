@@ -719,9 +719,21 @@ class DataManager:
             return filtered_df
         return df
     
-    def get_site_events(self) -> pd.DataFrame:
+    def get_site_events(self, filter_by_date : bool = True) -> pd.DataFrame:
+        """
+        Parameters
+        ----------
+        filter_by_date : bool
+            Set to True to only return events that take place within current timeframe. Set to False to return
+            all events regardless of timeframe.
+
+        Returns
+        -------
+        event_log_table: pd.Dataframe
+            Dataframe containing site events for queried site
+        """
         query = f"SELECT id, start_time_pt, end_time_pt, event_type, event_detail FROM site_events WHERE site_name = '{self.selected_table}'"
-        if self.start_date != None and self.end_date != None:
+        if filter_by_date and self.start_date != None and self.end_date != None:
             query += f" AND (start_time_pt <= '{self.start_date}' OR start_time_pt < '{self.end_date}')"
             query += f" AND (end_time_pt > '{self.start_date}' OR end_time_pt >= '{self.end_date}')"
         query += " ORDER BY end_time_pt IS NULL DESC, end_time_pt DESC"
@@ -730,7 +742,7 @@ class DataManager:
         return events
     
     def delete_event(self, event_id : int):
-        events = self.get_site_events()
+        events = self.get_site_events(filter_by_date = False)
         if not event_id in events['id'].values:
             raise Exception("Event id not found in site events.")
         elif self.user_is_ecotope():
