@@ -291,7 +291,6 @@ def create_summary_table(dm : DataManager) -> html.Div:
         })
 
         return html.Div([
-            html.H2("Summary"),
             dash_table.DataTable(
                 data=df.to_dict('records'),
                 columns=[{"name": i, "id": i, "presentation": "markdown"} for i in df.columns],
