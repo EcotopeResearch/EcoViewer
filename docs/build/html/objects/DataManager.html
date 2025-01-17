@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Objects Documentation &#8212; EcoViewer 1.4.12 documentation</title>
+    <title>Objects Documentation &#8212; EcoViewer 1.5.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/nature.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -32,7 +32,7 @@
         <li class="right" >
           <a href="../index.html" title="EcoPipeline Documentation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">EcoViewer 1.4.12 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">EcoViewer 1.5.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Objects Documentation</a></li> 
       </ul>
     </div>  
@@ -117,24 +117,31 @@ database will be taken from the site details in the site database that can be ac
 </dl>
 </p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_user_permissions_from_db" title="ecoviewer.objects.DataManager.DataManager.get_user_permissions_from_db"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_user_permissions_from_db</span></code></a>(user_email, ...)</p></td>
-<td><p>retrieves site_df, graph_df, field_df and table_names based on the permisions a user email has</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.system_is_swing_tank" title="ecoviewer.objects.DataManager.DataManager.system_is_swing_tank"><code class="xref py py-obj docutils literal notranslate"><span class="pre">system_is_swing_tank</span></code></a>()</p></td>
-<td><p><dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p></p></dd>
-</dl>
-</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.update_site_event" title="ecoviewer.objects.DataManager.DataManager.update_site_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_site_event</span></code></a>(id, start_date, end_date, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_site_events" title="ecoviewer.objects.DataManager.DataManager.get_site_events"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_site_events</span></code></a>([filter_by_date, ...])</p></td>
 <td><p><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p></p></dd>
 </dl>
 </p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.user_is_ecotope" title="ecoviewer.objects.DataManager.DataManager.user_is_ecotope"><code class="xref py py-obj docutils literal notranslate"><span class="pre">user_is_ecotope</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.get_user_permissions_from_db" title="ecoviewer.objects.DataManager.DataManager.get_user_permissions_from_db"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_user_permissions_from_db</span></code></a>(user_email, ...)</p></td>
+<td><p>retrieves site_df, graph_df, field_df and table_names based on the permisions a user email has</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.system_is_swing_tank" title="ecoviewer.objects.DataManager.DataManager.system_is_swing_tank"><code class="xref py py-obj docutils literal notranslate"><span class="pre">system_is_swing_tank</span></code></a>()</p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.update_site_event" title="ecoviewer.objects.DataManager.DataManager.update_site_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_site_event</span></code></a>(id, start_date, end_date, ...)</p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ecoviewer.objects.DataManager.DataManager.user_is_ecotope" title="ecoviewer.objects.DataManager.DataManager.user_is_ecotope"><code class="xref py py-obj docutils literal notranslate"><span class="pre">user_is_ecotope</span></code></a>()</p></td>
 <td><p><dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p></p></dd>
@@ -214,37 +221,34 @@ database will be taken from the site details in the site database that can be ac
 <tr class="row-odd"><td><p><strong>get_selected_table</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_site_events</strong></p></td>
+<tr class="row-even"><td><p><strong>get_summary_groups</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_summary_groups</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_table_dropdown</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_table_dropdown</strong></p></td>
+<tr class="row-even"><td><p><strong>graph_available</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>graph_available</strong></p></td>
+<tr class="row-odd"><td><p><strong>is_within_raw_data_limit</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>is_within_raw_data_limit</strong></p></td>
+<tr class="row-even"><td><p><strong>needs_reset_to_default_date_msg</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>needs_reset_to_default_date_msg</strong></p></td>
+<tr class="row-odd"><td><p><strong>parse_checklists_from_div</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>parse_checklists_from_div</strong></p></td>
+<tr class="row-even"><td><p><strong>retrieve_event</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>retrieve_event</strong></p></td>
+<tr class="row-odd"><td><p><strong>round_df_to_x_decimal</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>round_df_to_x_decimal</strong></p></td>
+<tr class="row-even"><td><p><strong>run_query</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>run_query</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>value_in_checkbox_selection</strong></p></td>
+<tr class="row-odd"><td><p><strong>value_in_checkbox_selection</strong></p></td>
 <td></td>
 </tr>
 </tbody>
@@ -438,8 +442,29 @@ database will be taken from the site details in the site database that can be ac
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_site_events">
-<span class="sig-name descname"><span class="pre">get_site_events</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_site_events" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">get_site_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter_by_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_types</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#ecoviewer.objects.DataManager.DataManager.get_site_events" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filter_by_date</strong><span class="classifier">bool</span></dt><dd><p>Set to True to only return events that take place within current timeframe. Set to False to return
+all events regardless of timeframe.</p>
+</dd>
+<dt><strong>event_types</strong><span class="classifier">list</span></dt><dd><p>list of event types to return, If left as empty list, all event types will be returned</p>
+</dd>
+<dt><strong>start_date</strong><span class="classifier">str</span></dt><dd><p>String representation for the start date of the timeframe</p>
+</dd>
+<dt><strong>end_date</strong><span class="classifier">str</span></dt><dd><p>String representation for the start date of the timeframe</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>event_log_table: pd.Dataframe</dt><dd><p>Dataframe containing site events for queried site</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ecoviewer.objects.DataManager.DataManager.get_summary_groups">
@@ -687,7 +712,7 @@ database will be taken from the site details in the site database that can be ac
         <li class="right" >
           <a href="../index.html" title="EcoPipeline Documentation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">EcoViewer 1.4.12 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">EcoViewer 1.5.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Objects Documentation</a></li> 
       </ul>
     </div>

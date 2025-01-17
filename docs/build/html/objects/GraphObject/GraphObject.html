@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Objects Documentation &#8212; EcoViewer 1.4.12 documentation</title>
+    <title>Objects Documentation &#8212; EcoViewer 1.5.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/nature.css" />
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
@@ -14,6 +14,7 @@
     <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Display Documentation" href="../../display/displayutils.html" />
     <link rel="prev" title="Objects Documentation" href="../DataManager.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -26,9 +27,12 @@
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
+          <a href="../../display/displayutils.html" title="Display Documentation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
           <a href="../DataManager.html" title="Objects Documentation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">EcoViewer 1.4.12 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">EcoViewer 1.5.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Objects Documentation</a></li> 
       </ul>
     </div>  
@@ -44,7 +48,7 @@
 </div>
 <span class="target" id="module-ecoviewer.objects.GraphObject.GraphObject"></span><dl class="py class">
 <dt class="sig sig-object py" id="ecoviewer.objects.GraphObject.GraphObject.GraphObject">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ecoviewer.objects.GraphObject.GraphObject.</span></span><span class="sig-name descname"><span class="pre">GraphObject</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../DataManager.html#ecoviewer.objects.DataManager.DataManager" title="ecoviewer.objects.DataManager.DataManager"><span class="pre">DataManager</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Graph'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ecoviewer.objects.GraphObject.GraphObject.</span></span><span class="sig-name descname"><span class="pre">GraphObject</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../DataManager.html#ecoviewer.objects.DataManager.DataManager" title="ecoviewer.objects.DataManager.DataManager"><span class="pre">DataManager</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Graph'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_reports</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_filters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date_filtered</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>An object that contains a graph for display</p>
 <dl class="field-list simple">
@@ -54,6 +58,12 @@
 </dd>
 <dt><strong>title</strong><span class="classifier">str</span></dt><dd><p>The title of the Graph type. This will be displayed if there is an error to tell the user
 what graph could not be generated</p>
+</dd>
+<dt><strong>event_reports</strong><span class="classifier">list</span></dt><dd><p>A list of event identifiers that need to be reported when they affect the graph</p>
+</dd>
+<dt><strong>event_filters</strong><span class="classifier">list</span></dt><dd><p>A list of event identifiers that need to be filtered out of the data collected for the graph</p>
+</dd>
+<dt><strong>date_filtered</strong><span class="classifier">bool</span></dt><dd><p>True if graph is filtered by the user input date range, False otherwise</p>
 </dd>
 </dl>
 </dd>
@@ -71,6 +81,12 @@ what graph could not be generated</p>
 <td></td>
 </tr>
 <tr class="row-even"><td><p><strong>get_error_msg</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_event_note</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_events_in_timeframe</strong></p></td>
 <td></td>
 </tr>
 <tr class="row-odd"><td><p><strong>get_graph</strong></p></td>
@@ -99,6 +115,16 @@ what graph could not be generated</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="ecoviewer.objects.GraphObject.GraphObject.GraphObject.get_error_msg">
 <span class="sig-name descname"><span class="pre">get_error_msg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject.get_error_msg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.GraphObject.GraphObject.GraphObject.get_event_note">
+<span class="sig-name descname"><span class="pre">get_event_note</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../DataManager.html#ecoviewer.objects.DataManager.DataManager" title="ecoviewer.objects.DataManager.DataManager"><span class="pre">DataManager</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject.get_event_note" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ecoviewer.objects.GraphObject.GraphObject.GraphObject.get_events_in_timeframe">
+<span class="sig-name descname"><span class="pre">get_events_in_timeframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../DataManager.html#ecoviewer.objects.DataManager.DataManager" title="ecoviewer.objects.DataManager.DataManager"><span class="pre">DataManager</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject.get_events_in_timeframe" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -131,6 +157,8 @@ what graph could not be generated</p>
 <li><a class="reference internal" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject.create_graph"><code class="docutils literal notranslate"><span class="pre">GraphObject.create_graph()</span></code></a></li>
 <li><a class="reference internal" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject.create_pkl_file_name"><code class="docutils literal notranslate"><span class="pre">GraphObject.create_pkl_file_name()</span></code></a></li>
 <li><a class="reference internal" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject.get_error_msg"><code class="docutils literal notranslate"><span class="pre">GraphObject.get_error_msg()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject.get_event_note"><code class="docutils literal notranslate"><span class="pre">GraphObject.get_event_note()</span></code></a></li>
+<li><a class="reference internal" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject.get_events_in_timeframe"><code class="docutils literal notranslate"><span class="pre">GraphObject.get_events_in_timeframe()</span></code></a></li>
 <li><a class="reference internal" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject.get_graph"><code class="docutils literal notranslate"><span class="pre">GraphObject.get_graph()</span></code></a></li>
 <li><a class="reference internal" href="#ecoviewer.objects.GraphObject.GraphObject.GraphObject.pickle_graph"><code class="docutils literal notranslate"><span class="pre">GraphObject.pickle_graph()</span></code></a></li>
 </ul>
@@ -144,6 +172,11 @@ what graph could not be generated</p>
     <h4>Previous topic</h4>
     <p class="topless"><a href="../DataManager.html"
                           title="previous chapter">Objects Documentation</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="../../display/displayutils.html"
+                          title="next chapter">Display Documentation</a></p>
   </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
@@ -176,9 +209,12 @@ what graph could not be generated</p>
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
+          <a href="../../display/displayutils.html" title="Display Documentation"
+             >next</a> |</li>
+        <li class="right" >
           <a href="../DataManager.html" title="Objects Documentation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">EcoViewer 1.4.12 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">EcoViewer 1.5.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Objects Documentation</a></li> 
       </ul>
     </div>

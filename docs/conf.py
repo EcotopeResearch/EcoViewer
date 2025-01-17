@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.abspath('../src/ecoviewer'))
 project = 'EcoViewer'
 copyright = '2024, Ecotope Inc.'
 author = 'Ecotope Inc'
-release = '1.4.12'
+release = '1.5.2'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
