@@ -70,9 +70,11 @@ def test_raw_data_graph(mock_data_manager):
     mock_data_manager.is_within_raw_data_limit.return_value = True
     mock_data_manager.get_raw_data_df.return_value = [test_raw_df.copy(), test_organized_mapping]
     mock_data_manager.value_in_checkbox_selection.return_value = True
+    mock_data_manager.get_site_events.return_value = pd.DataFrame()
     ret_value = create_graph(mock_data_manager, 'raw_data')
     assert isinstance(ret_value, list)
-    assert len(ret_value) == 2
+    assert len(ret_value) == 3
+    assert ret_value[2] is None
     assert isinstance(ret_value[0], html.P)
     assert ret_value[0].style == {'color': 'red', 'textAlign': 'center'}
     assert isinstance(ret_value[0].children, list)
