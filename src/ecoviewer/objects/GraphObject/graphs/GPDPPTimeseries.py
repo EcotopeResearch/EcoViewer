@@ -10,10 +10,10 @@ import plotly.express as px
 class GPDPPTimeseries(GraphObject):
     def __init__(self, dm : DataManager, title : str = "Daily Hot Water Usage Graph", summary_group : str = None):
         self.summary_group = summary_group
-        super().__init__(dm, title)
+        super().__init__(dm, title, event_reports=['HW_LOSS'],event_filters=['HW_LOSS'])
 
     def create_graph(self, dm : DataManager):
-        df_daily = dm.get_daily_data_df(events_to_filter=['HW_LOSS'])
+        df_daily = dm.get_daily_data_df(events_to_filter=self.event_filters)
 
         df_daily['Flow_CityWater_Total'] = df_daily[dm.flow_variable] * (60 * 24) #average GPM * 60min/hr * 24hr/day
         df_daily['Flow_CityWater_PP'] = round(df_daily['Flow_CityWater_Total'] / dm.occupant_capacity, 2)

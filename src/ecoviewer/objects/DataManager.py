@@ -719,13 +719,19 @@ class DataManager:
             return filtered_df
         return df
     
-    def get_site_events(self, filter_by_date : bool = True) -> pd.DataFrame:
+    def get_site_events(self, filter_by_date : bool = True, event_types : list = [], start_date : str = None, end_date : str = None) -> pd.DataFrame:
         """
         Parameters
         ----------
         filter_by_date : bool
             Set to True to only return events that take place within current timeframe. Set to False to return
             all events regardless of timeframe.
+        event_types : list
+            list of event types to return, If left as empty list, all event types will be returned
+        start_date : str
+            String representation for the start date of the timeframe
+        end_date : str
+            String representation for the start date of the timeframe
 
         Returns
         -------
@@ -733,9 +739,15 @@ class DataManager:
             Dataframe containing site events for queried site
         """
         query = f"SELECT id, start_time_pt, end_time_pt, event_type, event_detail FROM site_events WHERE site_name = '{self.selected_table}'"
-        if filter_by_date and self.start_date != None and self.end_date != None:
-            query += f" AND (start_time_pt <= '{self.start_date}' OR start_time_pt < '{self.end_date}')"
-            query += f" AND (end_time_pt > '{self.start_date}' OR end_time_pt >= '{self.end_date}')"
+        if filter_by_date and start_date != None and end_date != None:
+            query += f" AND (start_time_pt <= '{start_date}' OR start_time_pt < '{end_date}')"
+            query += f" AND (end_time_pt > '{start_date}' OR end_time_pt >= '{end_date}')"
+        if len(event_types) > 0:
+            query += " AND event_type IN ("
+            query += f"'{event_types[0]}'"
+            for event_type in event_types[1:]:
+                query += f",'{event_type}'"
+            query += ");"
         query += " ORDER BY end_time_pt IS NULL DESC, end_time_pt DESC"
 
         events = self.get_df_from_query(query,False)

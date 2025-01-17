@@ -1,5 +1,6 @@
 from ecoviewer.objects.GraphObject.GraphObject import GraphObject
 from ecoviewer.objects.DataManager import DataManager
+from ecoviewer.constants.constants import *
 import plotly.graph_objects as go
 from dash import dcc
 import plotly.express as px
@@ -7,15 +8,25 @@ import plotly.express as px
 class SummaryDailyPowerByHour(GraphObject):
     def __init__(self, dm : DataManager, title : str = "Average Daily Power Graph", summary_group : str = None):
         self.summary_group = summary_group
-        super().__init__(dm, title)
+        self.start_day = dm.start_date
+        self.end_day = dm.end_date
+        super().__init__(dm, title,event_reports=typical_tracked_events, event_filters=['DATA_LOSS_COP'])
+
+    def get_events_in_timeframe(self, dm : DataManager):
+        return dm.get_site_events(filter_by_date = self.date_filtered, event_types=self.event_reports, 
+                                      start_date=self.start_day, end_date=self.end_day)
 
     def create_graph(self, dm : DataManager):
-        df = dm.get_daily_summary_data_df(self.summary_group,['DATA_LOSS_COP'])
-        hourly_df = dm.get_hourly_summary_data_df(self.summary_group,['DATA_LOSS_COP'])
+        df = dm.get_daily_summary_data_df(self.summary_group,self.event_filters)
+        hourly_df = dm.get_hourly_summary_data_df(self.summary_group,self.event_filters)
         if hourly_df.shape[0] <= 0:
             raise Exception("No data availabe for time period.")
         powerin_columns = [col for col in df.columns if col.startswith('PowerIn_') and df[col].dtype == "float64"]
         power_colors = dm.get_color_list(powerin_columns)
+        
+        if dm.start_date is None and dm.end_date is None:
+            self.start_day = hourly_df.index[-1]
+            self.end_day = hourly_df.index[0]
 
         nls_df = hourly_df[hourly_df['load_shift_day'] == 0]
         ls_df = hourly_df[hourly_df['load_shift_day'] == 1]

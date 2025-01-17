@@ -1,5 +1,6 @@
 from ecoviewer.objects.GraphObject.GraphObject import GraphObject
 from ecoviewer.objects.DataManager import DataManager
+from ecoviewer.constants.constants import *
 from plotly.subplots import make_subplots
 import pandas as pd
 import plotly.graph_objects as go
@@ -12,7 +13,13 @@ class RawDataSubPlots(GraphObject):
             "loadUp" : "green",
             "shed" : "blue"
         }
-        super().__init__(dm, title)
+        self.start_day = dm.start_date
+        self.end_day = dm.end_date
+        super().__init__(dm, title, event_reports=typical_tracked_events)
+
+    def get_events_in_timeframe(self, dm : DataManager):
+        return dm.get_site_events(filter_by_date = self.date_filtered, event_types=self.event_reports, 
+                                      start_date=self.start_day, end_date=self.end_day)
 
     def clean_df(self, df : pd.DataFrame, organized_mapping):
         for key, value in organized_mapping.items():
@@ -36,6 +43,9 @@ class RawDataSubPlots(GraphObject):
         if df.empty:
             raise Exception("No data available for parameters specified.")
         self.clean_df(df, organized_mapping)
+        if dm.start_date is None and dm.end_date is None:
+            self.start_day = df.index[-1]
+            self.end_day = df.index[0]
         # Load the JSON data from the file
         subplot_titles = []
         for key, value in organized_mapping.items():

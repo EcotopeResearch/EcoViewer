@@ -22,10 +22,19 @@ class GraphObject:
     title : str
         The title of the Graph type. This will be displayed if there is an error to tell the user
         what graph could not be generated
+    event_reports : list
+        A list of event identifiers that need to be reported when they affect the graph
+    event_filters : list
+        A list of event identifiers that need to be filtered out of the data collected for the graph
+    date_filtered : bool
+        True if graph is filtered by the user input date range, False otherwise
     """
-    def __init__(self, dm : DataManager, title : str = "Graph"):
+    def __init__(self, dm : DataManager, title : str = "Graph", event_reports : list = [], event_filters : list = [], date_filtered : bool = True):
         self.title = title
         self.pkl_file_name = self.create_pkl_file_name(dm)
+        self.event_reports = event_reports
+        self.event_filters = event_filters
+        self.date_filtered = date_filtered
         # load pickle if it exists
         if not self.pkl_file_name is None and self.check_if_file_exists(dm.pkl_folder_path):
             try:
@@ -35,6 +44,14 @@ class GraphObject:
         else:
             try:
                 self.graph = self.create_graph(dm)
+                if len(self.event_reports) > 0:
+                    if isinstance(self.graph, list):
+                        self.graph.append(self.get_event_note(dm))
+                    else:
+                        self.graph = html.Div([
+                            self.graph,
+                            self.get_event_note(dm)
+                        ])
             except Exception as e:
                 self.graph = self.get_error_msg(f"Could not generate {self.title}: {str(e)}")
 
@@ -45,6 +62,32 @@ class GraphObject:
     def get_graph(self):
         return self.graph
     
+    def get_event_note(self, dm : DataManager):
+        event_df = self.get_events_in_timeframe(dm)
+        seen_filtered_events = False
+        if event_df.shape[0] <= 0:
+            # possibly add in a note for  what types of events are filtered?
+            return None
+        note_list = ["Above graph includes data collected during the following events:",html.Br()]
+        for index, row in event_df.iterrows():
+            start_date = row['start_time_pt'].strftime('%m-%d-%Y')
+            end_date = row['end_time_pt'].strftime('%m-%d-%Y')
+            if row['event_type'] in self.event_filters:
+                note_list.append(f"{row['event_type']}*: {start_date} - {end_date}")
+                seen_filtered_events = True
+            else:
+                note_list.append(f"{row['event_type']}: {start_date} - {end_date}")
+            note_list.append(html.Br())
+        note_list.append("Check Event Log tab for more information.")
+        if seen_filtered_events:
+            note_list.append(html.Br())
+            note_list.append("*Event occured during timeframe but is filtered out of graph data")
+        return html.P(style={'color': 'red', 'textAlign': 'left'}, children=note_list)
+    
+    def get_events_in_timeframe(self, dm : DataManager):
+        return dm.get_site_events(filter_by_date = self.date_filtered, event_types=self.event_reports, 
+                                      start_date=dm.start_date, end_date=dm.end_date)
+
     def get_error_msg(self, error_str : str):
         return html.P(
             style={'color': 'red', 'textAlign': 'center'}, 

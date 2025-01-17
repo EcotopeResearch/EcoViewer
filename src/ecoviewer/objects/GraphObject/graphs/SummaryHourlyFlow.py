@@ -51,16 +51,16 @@ class SummaryHourlyFlow(GraphObject):
                 row = 1,
                 col = 2)
         
-        fig.add_trace(go.Scatter(x = weekday.index, y = highVolWeekdayProfile / dm.occupant_capacity, name = 'Peak Volume', marker = dict(color = "darkblue")), row = 1, col = 1)
+        fig.add_trace(go.Scatter(x = weekday.index, y = highVolWeekdayProfile / dm.occupant_capacity, name = 'Peak Flow', marker = dict(color = "darkblue")), row = 1, col = 1)
         fig.add_trace(go.Scatter(x = weekday.index, y = highPeakWeekdayProfile / dm.occupant_capacity, name = 'Peak Norm', marker = dict(color = "darkred")), row = 1, col = 1)
-        fig.add_trace(go.Scatter(x = weekend.index, y = highVolWeekendProfile / dm.occupant_capacity, name = 'Peak Volume', marker = dict(color = "darkblue"), showlegend = False), row = 1, col = 2)
+        fig.add_trace(go.Scatter(x = weekend.index, y = highVolWeekendProfile / dm.occupant_capacity, name = 'Peak Flow', marker = dict(color = "darkblue"), showlegend = False), row = 1, col = 2)
         fig.add_trace(go.Scatter(x = weekend.index, y = highPeakWeekendProfile / dm.occupant_capacity, name = 'Peak Norm', marker = dict(color = "darkred"), showlegend = False), row = 1, col = 2)
 
 
         fig.update_layout(title = '<b>Hourly DHW Flow')
         fig.update_xaxes(title = '<b>Weekday', row = 1, col = 1)
         fig.update_xaxes(title = '<b>Weekend', row = 1, col = 2)
-        fig.update_yaxes(title = '<b>Gallons', row = 1, col = 1)
+        fig.update_yaxes(title = '<b>Gallons/Minute', row = 1, col = 1)
 
         return dcc.Graph(figure=fig)
     

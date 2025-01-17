@@ -1,5 +1,6 @@
 from ecoviewer.objects.GraphObject.GraphObject import GraphObject
 from ecoviewer.objects.DataManager import DataManager
+from ecoviewer.constants.constants import *
 import math
 import pandas as pd
 import plotly.graph_objects as go
@@ -11,7 +12,13 @@ from datetime import datetime
 class SummaryBarGraph(GraphObject):
     def __init__(self, dm : DataManager, title : str = "Energy and COP Bar Graph", summary_group : str = None):
         self.summary_group = summary_group
-        super().__init__(dm, title)
+        self.start_day = dm.start_date
+        self.end_day = dm.end_date
+        super().__init__(dm, title, event_reports=typical_tracked_events, event_filters=['DATA_LOSS_COP'])
+        
+    def get_events_in_timeframe(self, dm : DataManager):
+        return dm.get_site_events(filter_by_date = self.date_filtered, event_types=self.event_reports, 
+                                      start_date=self.start_day, end_date=self.end_day)
 
     def _format_x_axis_date_str(self, dt_1 : datetime, dt_2 : datetime = None, month_only : bool = False) -> str:
         months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -42,7 +49,7 @@ class SummaryBarGraph(GraphObject):
 
     def create_graph(self, dm : DataManager):
         # Filter columns with the prefix "PowerIn_" and exclude "PowerIn_Total"
-        og_df = dm.get_daily_summary_data_df(self.summary_group,['DATA_LOSS_COP'])
+        og_df = dm.get_daily_summary_data_df(self.summary_group,self.event_filters)
         if og_df.shape[0] <= 0:
             raise Exception("No power or COP data to display for time period.")
         powerin_columns = [col for col in og_df.columns if col.startswith('PowerIn_') and 'PowerIn_Total' not in col and og_df[col].dtype == "float64"]
@@ -51,6 +58,9 @@ class SummaryBarGraph(GraphObject):
             raise Exception("No power or COP data to display for time period.")
 
         df = og_df[powerin_columns+cop_columns].copy()
+        if dm.start_date is None and dm.end_date is None:
+            self.start_day = df.index[-1]
+            self.end_day = df.index[0]
         # compress to weeks if more than 3 weeks selected
         compress_data = 0 # 0 = days, 1 = weeks, 2 = months
         formatting_time_delta = min(4, math.floor(24/(len(cop_columns) +1))) # TODO error if there are more than 23 cop columns

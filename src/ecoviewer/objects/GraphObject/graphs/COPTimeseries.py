@@ -7,10 +7,10 @@ import plotly.graph_objects as go
 class COPTimeseries(GraphObject):
     def __init__(self, dm : DataManager, title : str = "System COP Timeseries", summary_group : str = None):
         self.summary_group = summary_group
-        super().__init__(dm, title)
+        super().__init__(dm, title, event_reports=['DATA_LOSS_COP','EQUIPMENT_MALFUNCTION','HW_LOSS'], date_filtered=False, event_filters=['DATA_LOSS_COP'])
 
     def create_graph(self, dm : DataManager):
-        df_daily = dm.get_daily_data_df(events_to_filter=['DATA_LOSS_COP'])
+        df_daily = dm.get_daily_data_df(events_to_filter=self.event_filters)
         if not 'Temp_OutdoorAir' in df_daily.columns:
             if not dm.oat_variable in df_daily.columns:
                 raise Exception('No outdoor air temperature data available.')
