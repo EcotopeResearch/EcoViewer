@@ -11,6 +11,9 @@ class SummaryDHWTemps(GraphObject):
 
     def create_graph(self, dm : DataManager):
         df = dm.get_raw_data_df(self.summary_group,['PIPELINE_ERR'])[0]
+        # special filter
+        if dm.get_attribute_for_site("flow_filter") > 0:
+            df = df[df[dm.flow_variable] >= dm.get_attribute_for_site("flow_filter")].copy()
 
         if df.shape[0] <= 0:
             raise Exception("No data availabe for time period.")
