@@ -11,6 +11,9 @@ class COPRegression(GraphObject):
         self.cop_column = cop_column
         self.custom_cop_column = True
         self.power_col = power_col
+        #WIP
+        # self.intercept = 0.0
+        # self.slope = 0.0
         if cop_column is None:
             self.custom_cop_column = False
             self.cop_column = dm.sys_cop_variable
@@ -44,6 +47,11 @@ class COPRegression(GraphObject):
             # Perform Weighted Least Squares regression
             wls_model = sm.WLS(y, X_with_const, weights=weights)
             wls_result = wls_model.fit()
+
+            #WIP
+            # self.intercept = wls_result.params['const']
+            # self.slope = wls_result.params['Temp_OutdoorAir']
+
             # Get the predicted values for the trendline
             df_daily['trendline'] = wls_result.predict(X_with_const)
             fig = px.scatter(df_daily, x='Temp_OutdoorAir', y=self.cop_column,
@@ -67,6 +75,11 @@ class COPRegression(GraphObject):
                         color_discrete_sequence=["darkblue"],
                         hover_data={'Date': True}
                 )
+            # WIP
+            # trendline_results = px.get_trendline_results(fig)
+            # ols_model = trendline_results.iloc[0]["px_fit_results"].params  # Get statsmodels OLS results
+            # self.slope =ols_model[0]
+            # self.intercept=ols_model[1]
         
-
+        # print(f"Weighted Trendline equation: y = {self.slope:.2f}x + {self.intercept:.2f}")
         return dcc.Graph(figure=fig)

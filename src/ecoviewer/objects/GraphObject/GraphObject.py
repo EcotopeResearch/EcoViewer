@@ -71,7 +71,10 @@ class GraphObject:
         note_list = ["Above graph includes data collected during the following events:",html.Br()]
         for index, row in event_df.iterrows():
             start_date = row['start_time_pt'].strftime('%m-%d-%Y')
-            end_date = row['end_time_pt'].strftime('%m-%d-%Y')
+            if not 'end_time_pt' in event_df.columns or row['end_time_pt'] is None or pd.isna(row['end_time_pt']):
+                end_date = 'ONGOING'
+            else:
+                end_date = row['end_time_pt'].strftime('%m-%d-%Y')
             if row['event_type'] in self.event_filters:
                 note_list.append(f"{row['event_type']}*: {start_date} - {end_date}")
                 seen_filtered_events = True

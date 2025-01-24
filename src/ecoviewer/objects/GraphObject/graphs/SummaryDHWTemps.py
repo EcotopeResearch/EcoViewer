@@ -1,5 +1,6 @@
 from ecoviewer.objects.GraphObject.GraphObject import GraphObject
 from ecoviewer.objects.DataManager import DataManager
+from ecoviewer.display.displayutils import get_date_range_string
 from dash import dcc
 import plotly.express as px
 import plotly.graph_objects as go
@@ -10,13 +11,15 @@ class SummaryDHWTemps(GraphObject):
         super().__init__(dm, title)
 
     def create_graph(self, dm : DataManager):
-        df = dm.get_raw_data_df(self.summary_group,['PIPELINE_ERR'])[0]
+        df = dm.apply_event_filters_to_df(dm.get_raw_data_df()[0], ['PIPELINE_ERR'])
+        
         # special filter
         if dm.get_attribute_for_site("flow_filter") > 0:
             df = df[df[dm.flow_variable] >= dm.get_attribute_for_site("flow_filter")].copy()
 
         if df.shape[0] <= 0:
             raise Exception("No data availabe for time period.")
+        
         # default tracked temperatures 
         temp_cols = ["Temp_DHWSupply", "Temp_MXVHotInlet", "Temp_StorageHotOutlet", "Temp_HotOutlet"]
         # additional tracked temperatures custom per site
@@ -35,7 +38,7 @@ class SummaryDHWTemps(GraphObject):
         for col, color in zip(selected_columns, colors):
             fig.add_trace(go.Box(y = df[col], name = '<b>' + names[col], marker = dict(color = color)))
 
-        fig.update_layout(title="<b>DHW Temperatures", yaxis_title=" ")
+        fig.update_layout(title=f"<b>DHW Temperatures<br><span style='font-size:14px;'>{get_date_range_string(df)}</span>", yaxis_title=" ")
 
         return dcc.Graph(figure=fig)
     

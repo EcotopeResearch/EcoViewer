@@ -634,8 +634,13 @@ class DataManager:
         elif self.organized_mapping is None:
             self.organized_mapping = self.get_organized_mapping(self.raw_df.columns, all_fields)
         return self.raw_df, self.organized_mapping
+    
+    def get_entire_raw_data_df(self, events_to_filter : list = []) -> pd.DataFrame:
+        query = self.generate_raw_data_query(whole_table=True)
+        entire_raw_df = self.get_df_from_query(query)
+        return self.apply_event_filters_to_df(entire_raw_df, events_to_filter)
         
-    def generate_raw_data_query(self):
+    def generate_raw_data_query(self, whole_table = False):
         query = f"SELECT {self.min_table}.*, "
         if self.state_tracking:
             query += f"{self.hour_table}.system_state, "
@@ -658,7 +663,9 @@ class DataManager:
         if self.min_table != self.day_table:
             query += f"LEFT JOIN {self.day_table} ON {self.min_table}.time_pt = {self.day_table}.time_pt "
 
-        if self.start_date != None and self.end_date != None:
+        if whole_table:
+            query +=  f"ORDER BY {self.min_table}.time_pt ASC"
+        elif self.start_date != None and self.end_date != None:
             query += f"WHERE {self.min_table}.time_pt >= '{self.start_date}' AND {self.min_table}.time_pt <= '{self.end_date} 23:59:59' ORDER BY {self.min_table}.time_pt ASC"
         else:
             query += f"ORDER BY {self.min_table}.time_pt DESC LIMIT 4000"
@@ -740,8 +747,8 @@ class DataManager:
         """
         query = f"SELECT id, start_time_pt, end_time_pt, event_type, event_detail FROM site_events WHERE site_name = '{self.selected_table}'"
         if filter_by_date and start_date != None and end_date != None:
-            query += f" AND (start_time_pt <= '{start_date}' OR start_time_pt < '{end_date}')"
-            query += f" AND (end_time_pt > '{start_date}' OR end_time_pt >= '{end_date}')"
+            query += f" AND start_time_pt < '{end_date}'"
+            query += f" AND (end_time_pt > '{start_date}' OR end_time_pt IS NULL)"
         if len(event_types) > 0:
             query += " AND event_type IN ("
             query += f"'{event_types[0]}'"

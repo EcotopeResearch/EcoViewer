@@ -59,8 +59,8 @@ class SummaryBarGraph(GraphObject):
 
         df = og_df[powerin_columns+cop_columns].copy()
         if dm.start_date is None and dm.end_date is None:
-            self.start_day = df.index[-1]
-            self.end_day = df.index[0]
+            self.start_day = df.index[0]
+            self.end_day = df.index[-1]
         # compress to weeks if more than 3 weeks selected
         compress_data = 0 # 0 = days, 1 = weeks, 2 = months
         formatting_time_delta = min(4, math.floor(24/(len(cop_columns) +1))) # TODO error if there are more than 23 cop columns

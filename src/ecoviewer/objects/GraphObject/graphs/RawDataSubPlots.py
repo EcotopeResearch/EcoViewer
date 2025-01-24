@@ -18,6 +18,8 @@ class RawDataSubPlots(GraphObject):
         super().__init__(dm, title, event_reports=typical_tracked_events)
 
     def get_events_in_timeframe(self, dm : DataManager):
+        if not dm.is_within_raw_data_limit():
+            return pd.DataFrame()
         return dm.get_site_events(filter_by_date = self.date_filtered, event_types=self.event_reports, 
                                       start_date=self.start_day, end_date=self.end_day)
 
@@ -44,8 +46,8 @@ class RawDataSubPlots(GraphObject):
             raise Exception("No data available for parameters specified.")
         self.clean_df(df, organized_mapping)
         if dm.start_date is None and dm.end_date is None:
-            self.start_day = df.index[-1]
-            self.end_day = df.index[0]
+            self.start_day = df.index[0]
+            self.end_day = df.index[-1]
         # Load the JSON data from the file
         subplot_titles = []
         for key, value in organized_mapping.items():

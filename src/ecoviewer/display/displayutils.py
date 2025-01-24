@@ -186,6 +186,21 @@ def create_event_log_table(dm : DataManager, msg_p : html.P = None) -> html.Div:
                     children=[html.Br(),f"Could not load event log: {str(e)}"]
                 )
             ])
+    
+def get_date_range_string(df : pd.DataFrame) -> str:
+    """
+    Parameters
+    ----------
+    df: pd.Dataframe
+        Pandas dataframe indexed by timestamp
+    Returns
+    -------
+    date_range: str
+        date range string in the form '%m/%d/%y - %m/%d/%y'
+    """
+    first_date = df.index[0]
+    last_date = df.index[-1]
+    return f"{first_date.strftime('%m/%d/%y')} - {last_date.strftime('%m/%d/%y')}"
 
 def get_display_schematic(dm : DataManager, app : Dash) -> html.Div:
     """
@@ -205,7 +220,6 @@ def get_display_schematic(dm : DataManager, app : Dash) -> html.Div:
     meta_data_table: html.Div
         html div that contains a two column table to describe the site's meta data
     """
-
     schematic_img = dm.get_attribute_for_site('custom_dict_display_1')
     additional_img = dm.get_attribute_for_site('custom_dict_display_2')
 

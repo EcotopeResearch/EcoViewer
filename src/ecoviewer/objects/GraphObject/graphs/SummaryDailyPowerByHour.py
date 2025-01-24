@@ -1,5 +1,6 @@
 from ecoviewer.objects.GraphObject.GraphObject import GraphObject
 from ecoviewer.objects.DataManager import DataManager
+from ecoviewer.display.displayutils import get_date_range_string
 from ecoviewer.constants.constants import *
 import plotly.graph_objects as go
 from dash import dcc
@@ -25,8 +26,8 @@ class SummaryDailyPowerByHour(GraphObject):
         power_colors = dm.get_color_list(powerin_columns)
         
         if dm.start_date is None and dm.end_date is None:
-            self.start_day = hourly_df.index[-1]
-            self.end_day = hourly_df.index[0]
+            self.start_day = hourly_df.index[0]
+            self.end_day = hourly_df.index[-1]
 
         nls_df = hourly_df[hourly_df['load_shift_day'] == 0]
         ls_df = hourly_df[hourly_df['load_shift_day'] == 1]
@@ -40,7 +41,7 @@ class SummaryDailyPowerByHour(GraphObject):
         power_df = hourly_df.groupby('hr').mean(numeric_only = True)
         power_df = dm.round_df_to_x_decimal(power_df, 3)
 
-        power_fig = px.line(title = "<b>Average Daily Power")
+        power_fig = px.line(title = f"<b>Average Daily Power<br><span style='font-size:14px;'>{get_date_range_string(hourly_df)}</span>")
         power_pretty_names, power_pretty_names_dict = dm.get_pretty_names(powerin_columns)
         for i in range(len(powerin_columns)):
             column_name = powerin_columns[i]
