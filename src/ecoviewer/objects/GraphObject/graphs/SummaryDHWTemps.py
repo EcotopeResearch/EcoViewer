@@ -5,7 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 class SummaryDHWTemps(GraphObject):
-    def __init__(self, dm : DataManager, title : str = "DHW Temps", summary_group : str = None):
+    def __init__(self, dm : DataManager, title : str = "DHW Temperatures", summary_group : str = None):
         self.summary_group = summary_group
         super().__init__(dm, title)
 
@@ -14,8 +14,14 @@ class SummaryDHWTemps(GraphObject):
 
         if df.shape[0] <= 0:
             raise Exception("No data availabe for time period.")
-        
+        # default tracked temperatures 
         temp_cols = ["Temp_DHWSupply", "Temp_MXVHotInlet", "Temp_StorageHotOutlet", "Temp_HotOutlet"]
+        # additional tracked temperatures custom per site
+        for i in range(1,3):
+            tracked_temp = dm.get_attribute_for_site(f"tracked_temperature_{i}")
+            if not tracked_temp is None:
+                temp_cols.append(tracked_temp) 
+
         selected_columns = [col for col in df.columns if any(temp_col in col for temp_col in temp_cols) and "Temp_DHWSupply2" not in col]
         
         names = dm.get_pretty_names(selected_columns, False)[1]
