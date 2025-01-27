@@ -68,10 +68,16 @@ class GraphObject:
         if event_df.shape[0] <= 0:
             # possibly add in a note for  what types of events are filtered?
             return None
+        
+        # For huge lists
+        counts = event_df["event_type"].value_counts()
+        large_instance_events = counts[counts > 3]
+        filtered_event_df = event_df[~event_df["event_type"].isin(large_instance_events.index)]
+
         note_list = ["Above graph includes data collected during the following events:",html.Br()]
-        for index, row in event_df.iterrows():
+        for index, row in filtered_event_df.iterrows():
             start_date = row['start_time_pt'].strftime('%m-%d-%Y')
-            if not 'end_time_pt' in event_df.columns or row['end_time_pt'] is None or pd.isna(row['end_time_pt']):
+            if not 'end_time_pt' in filtered_event_df.columns or row['end_time_pt'] is None or pd.isna(row['end_time_pt']):
                 end_date = 'ONGOING'
             else:
                 end_date = row['end_time_pt'].strftime('%m-%d-%Y')
@@ -80,6 +86,13 @@ class GraphObject:
                 seen_filtered_events = True
             else:
                 note_list.append(f"{row['event_type']}: {start_date} - {end_date}")
+            note_list.append(html.Br())
+        for event_type, event_count in large_instance_events.items():
+            if event_type in self.event_filters:
+                note_list.append(f"{event_type}*: {event_count} instances")
+                seen_filtered_events = True
+            else:
+                note_list.append(f"{event_type}: {event_count} instances")
             note_list.append(html.Br())
         note_list.append("Check Event Log tab for more information.")
         if seen_filtered_events:
