@@ -1,5 +1,7 @@
 from ecoviewer.objects.GraphObject.GraphObject import GraphObject
 from ecoviewer.objects.DataManager import DataManager
+from ecoviewer.display.displayutils import get_date_range_string
+from ecoviewer.constants.constants import *
 from dash import dcc
 import plotly.express as px
 import pandas as pd
@@ -17,15 +19,14 @@ class COPRegression(GraphObject):
         if cop_column is None:
             self.custom_cop_column = False
             self.cop_column = dm.sys_cop_variable
-        super().__init__(dm, title)
+        super().__init__(dm, title, event_reports=typical_tracked_events, event_filters=['EQUIPMENT_MALFUNCTION','DATA_LOSS_COP'])
 
     def create_graph(self, dm : DataManager):
-        events_to_filter=['EQUIPMENT_MALFUNCTION','DATA_LOSS_COP']
         if dm.system_is_swing_tank() and not 'PARTIAL_OCCUPANCY' in dm.get_ongoing_events():
-            events_to_filter.append('PARTIAL_OCCUPANCY')
+            self.event_filters.append('PARTIAL_OCCUPANCY')
         if not 'INSTALLATION_ERROR' in dm.get_ongoing_events():
-            events_to_filter.append('INSTALLATION_ERROR')
-        df_daily = dm.get_daily_data_df(events_to_filter=events_to_filter)
+            self.event_filters.append('INSTALLATION_ERROR')
+        df_daily = dm.get_daily_data_df(events_to_filter=self.event_filters)
         if not 'Temp_OutdoorAir' in df_daily.columns:
             if not dm.oat_variable in df_daily.columns:
                 raise Exception('No outdoor air temperature data available.')
@@ -34,7 +35,7 @@ class COPRegression(GraphObject):
         df_daily = df_daily[df_daily['Temp_OutdoorAir'].notna()]
         df_daily['Date'] = pd.to_datetime(df_daily.index).date
         # create graph
-        title='<b>Outdoor Air Temperature & System COP Regression'
+        title=f"<b>Outdoor Air Temperature & System COP Regression<br><span style='font-size:14px;'>{get_date_range_string(df_daily)}</span>"
         if self.custom_cop_column:
             title=f'<b>Outdoor Air Temperature (OAT) & Space Cooling COP Regression'
         if not self.power_col is None and self.power_col in df_daily.columns.tolist():
