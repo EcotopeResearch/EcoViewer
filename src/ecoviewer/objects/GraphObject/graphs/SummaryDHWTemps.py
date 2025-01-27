@@ -34,11 +34,45 @@ class SummaryDHWTemps(GraphObject):
         colors = dm.get_color_list(selected_columns)
 
         fig = go.Figure()
-    
-        for col, color in zip(selected_columns, colors):
-            fig.add_trace(go.Box(y = df[col], name = '<b>' + names[col], marker = dict(color = color)))
 
-        fig.update_layout(title=f"<b>DHW Temperatures<br><span style='font-size:14px;'>{get_date_range_string(df)}</span>", yaxis_title=" ")
+        x_pos = 0  # Initialize x-position for primary axis box plots
+        x_pos_secondary = len(selected_columns) - 1  # Start x-position for secondary y-axis box plots
+        x_labels = [""] * len(selected_columns)
+
+        for col, color in zip(selected_columns, colors):
+            if 'CityWater' in col:
+                # put on a different axis (because of likely temp difference) to make graph clearer
+                fig.add_trace(go.Box(
+                    y = df[col], name = '<b>' + names[col],
+                    marker = dict(color = color), yaxis='y2',
+                ))
+                fig.update_layout(
+                    yaxis2=dict(
+                        title="City Water Temperature (F)",
+                        overlaying="y",
+                        side="right"
+                    ),
+                    legend=dict(
+                        x=1.05,
+                    )
+                )
+                x_labels[x_pos_secondary] = '<b>' + names[col]
+                x_pos_secondary -= 1
+            else:
+                fig.add_trace(go.Box(
+                    y = df[col], name = '<b>' + names[col],
+                    marker = dict(color = color)
+                ))
+                x_labels[x_pos] = '<b>' + names[col]
+                x_pos += 1
+
+        fig.update_layout(title=f"<b>DHW Temperatures<br><span style='font-size:14px;'>{get_date_range_string(df)}</span>", 
+                          yaxis_title="DHW Temperature (F)",
+                          xaxis=dict(
+                            categoryorder="array",  # Use custom ordering
+                            categoryarray=x_labels,  # Specify the order
+                        )
+        )
 
         return dcc.Graph(figure=fig)
     

@@ -1,5 +1,6 @@
 from ecoviewer.objects.GraphObject.GraphObject import GraphObject
 from ecoviewer.objects.DataManager import DataManager
+from ecoviewer.constants.constants import *
 from dash import dcc
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
@@ -7,7 +8,7 @@ import plotly.graph_objects as go
 class COPTimeseries(GraphObject):
     def __init__(self, dm : DataManager, title : str = "System COP Timeseries", summary_group : str = None):
         self.summary_group = summary_group
-        super().__init__(dm, title, event_reports=['DATA_LOSS_COP','EQUIPMENT_MALFUNCTION','HW_LOSS'], date_filtered=False, event_filters=['DATA_LOSS_COP'])
+        super().__init__(dm, title, event_reports=typical_tracked_events, date_filtered=False, event_filters=['DATA_LOSS_COP'])
 
     def create_graph(self, dm : DataManager):
         df_daily = dm.get_daily_data_df(events_to_filter=self.event_filters)

@@ -1,6 +1,6 @@
 from ecoviewer.objects.GraphObject.GraphObject import GraphObject
 from ecoviewer.objects.DataManager import DataManager
-from plotly.subplots import make_subplots
+from ecoviewer.constants.constants import *
 import pandas as pd
 import plotly.graph_objects as go
 import numpy as np
@@ -10,7 +10,7 @@ import plotly.express as px
 class GPDPPTimeseries(GraphObject):
     def __init__(self, dm : DataManager, title : str = "Daily Hot Water Usage Graph", summary_group : str = None):
         self.summary_group = summary_group
-        super().__init__(dm, title, event_reports=['HW_LOSS'],event_filters=['HW_LOSS'])
+        super().__init__(dm, title, event_reports=typical_tracked_events,event_filters=['HW_LOSS'])
 
     def create_graph(self, dm : DataManager):
         df_daily = dm.get_daily_data_df(events_to_filter=self.event_filters)
