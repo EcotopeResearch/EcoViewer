@@ -28,7 +28,7 @@ class SummaryPieGraph(GraphObject):
         # sums = sums.sort_values(ascending=False)
         power_colors = dm.get_color_list(sums.index.tolist())
         pie_fig = px.pie(names=power_pretty_names, values=sums.values, 
-                         title=f"<b>Distribution of Energy<br><span style='font-size:14px;'>{get_date_range_string(df)}</span>",
+                         title=f"<b>Distribution of Energy"#<br><span style='font-size:14px;'>{get_date_range_string(df)}</span>",
                          color_discrete_sequence=power_colors,
                          category_orders={'names': power_pretty_names}
                         )
