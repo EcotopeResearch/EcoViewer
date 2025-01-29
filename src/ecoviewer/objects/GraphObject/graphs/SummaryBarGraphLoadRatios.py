@@ -39,14 +39,14 @@ class SummaryBarGraphLoadRatios(GraphObject):
             return f"{month_1} {day_1}, {year_1} - {month_2} {day_2}, {year_2}"
 
     def create_graph(self, dm : DataManager):
-        
+
         og_df = dm.get_daily_summary_data_df(self.summary_group,['PIPELINE_ERR'])
         
         if og_df.shape[0] <= 0:
-            raise Exception("No power or COP data to display for time period.")
+            raise Exception("No power or load data to display for time period.")
 
-        load_columns = ['HeatOut_TM', 'HeatOut_Primary', 'test']
-        output_columns = ['HeatOut_HPWH1', 'HeatOut_HPWH2', 'PowerIn_SwingTank']
+        load_columns = ['HeatOut_TM', 'HeatOut_Primary', 'HeatOut_DHWUsage']
+        output_columns = ['HeatOut_HPWH1', 'HeatOut_HPWH2', 'PowerIn_SwingTank', 'HeatOut_HPWH', 'PowerIn_EWH']
 
         load_columns = [col for col in load_columns if col in og_df.columns]
         output_columns = [col for col in output_columns if col in og_df.columns]
