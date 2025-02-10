@@ -328,6 +328,13 @@ def create_summary_table(dm : DataManager) -> html.Div:
                             'width': '50%',
                             'whiteSpace': 'normal',
                             'height': 'auto'
+                        },
+                        {
+                            'if': {
+                                'filter_query': '{Ongoing Events} contains "DATA_LOSS"'  # Contains check instead of equals
+                            },
+                            'backgroundColor': 'rgb(255, 200, 200)',  # Light red background
+                            'color': 'black'  # Ensure text readability
                         }
                     ],
                 style_header={
