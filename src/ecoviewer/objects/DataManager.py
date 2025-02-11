@@ -421,12 +421,21 @@ class DataManager:
 
         return site_df, graph_df, field_df
     
-    def get_table_dropdown(self):
+    def get_table_dropdown(self, filter: str = None):
+        """
+        Retrieves options for table drop down
+
+        Parameters
+        ----------
+        filter : str
+            Filter for certain types of HVAC components (HPWH, DOA, RTF, etc.)
+        """
         display_drop_down = []
         if self.user_is_ecotope():
             display_drop_down.append({'label': 'SUMMARY TABLE', 'value' : 'summary_table'})
         for name in self.site_df.index.to_list():
-            display_drop_down.append({'label': self.site_df.loc[name, "pretty_name"], 'value' : name})
+            if filter is None or filter in self.site_df.loc[name, "pretty_name"]:
+                display_drop_down.append({'label': self.site_df.loc[name, "pretty_name"], 'value' : name})
         return display_drop_down
     
     def get_attribute_for_site(self, attribute : str, site_name : str = None):
