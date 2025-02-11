@@ -176,14 +176,12 @@ class DataManager:
         return self.selected_table
     
     def get_average_cop(self):
-        filters_for_cop = ['DATA_LOSS_COP']
-        if self.system_is_swing_tank() and not 'PARTIAL_OCCUPANCY' in self.get_ongoing_events():
+        filters_for_cop = ['DATA_LOSS_COP','INSTALLATION_ERROR']
+        if self.system_is_swing_tank():
             filters_for_cop.append('PARTIAL_OCCUPANCY')
-        if not 'INSTALLATION_ERROR' in self.get_ongoing_events():
-            filters_for_cop.append('INSTALLATION_ERROR')
         query = f"SELECT time_pt, {self.sys_cop_variable} FROM {self.day_table}"
         cop_df = self.get_df_from_query(query)
-        cop_df = self.apply_event_filters_to_df(cop_df, filters_for_cop) # TODO add commissioning
+        cop_df = self.apply_event_filters_to_df(cop_df, filters_for_cop, exclude_ongoing=True) # TODO add commissioning
         return cop_df[self.sys_cop_variable].mean()
     
     def get_ongoing_events(self) -> list:
@@ -712,7 +710,7 @@ class DataManager:
         #     raise Exception("Not enough data. A years worth of data is required to produce this graph.")
         return self.apply_event_filters_to_df(self.annual_minute_df, events_to_filter), self.sera_first_day.strftime('%m/%d/%Y'), self.sera_last_day.strftime('%m/%d/%Y')
     
-    def apply_event_filters_to_df(self, df : pd.DataFrame, events_to_filter : list):
+    def apply_event_filters_to_df(self, df : pd.DataFrame, events_to_filter : list, exclude_ongoing :bool = False):
         # TODO this could be optimized with a hash map of already searched filters
         if len(events_to_filter) > 0:
             filtered_df = df.copy()
@@ -720,7 +718,11 @@ class DataManager:
             query = f"{query}'{events_to_filter[0]}'"
             for event_type in events_to_filter[1:]:
                 query = f"{query},'{event_type}'"
-            query = f"{query});"
+            query = f"{query})"
+            if exclude_ongoing:
+                query = f"{query} AND NOT end_time_pt IS NULL;"
+            else:
+                query = f"{query};"
 
             time_ranges = self.get_fetch_from_query(query)
             time_ranges = [(pd.to_datetime(start_time), pd.to_datetime(end_time) if not end_time is None else None) 
