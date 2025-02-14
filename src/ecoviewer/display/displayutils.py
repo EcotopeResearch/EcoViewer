@@ -32,7 +32,7 @@ def create_meta_data_table(dm : DataManager, app : Dash, anonymize_data : bool =
     elif not wh_unit_name is None:
          primary_model = f"{wh_unit_name}"
     swing_tank_volume = dm.get_attribute_for_site('swing_tank_volume')
-    zip_code = dm.get_attribute_for_site('zip_code')
+    ashrae_cz = dm.get_attribute_for_site('ASHRAE_climate')
     swing_t_elem = dm.get_attribute_for_site('swing_element_kw')
     primary_volume = dm.get_attribute_for_site('tank_size_gallons')
     installation_year = dm.get_attribute_for_site('unit_installation_year')
@@ -52,7 +52,7 @@ def create_meta_data_table(dm : DataManager, app : Dash, anonymize_data : bool =
 
     mapping = {
         "Address" : dm.get_attribute_for_site('address') if dm.get_attribute_for_site('address') is not None else "Unknown", 
-        "Zip Code" : zip_code if not (zip_code is None or pd.isna(zip_code)) else "Unknown",
+        "ASHRAE Climate Zone" : ashrae_cz if not (ashrae_cz is None or pd.isna(ashrae_cz)) else "Unknown",
         "NOAA Weather Station" : dm.get_attribute_for_site('noaa_station'),
         "Building Specifications/Type" : building_specs,
         "Number of Occupants" : f"{round(occupant_capacity)} Occupants" if not (occupant_capacity is None or pd.isna(occupant_capacity)) and occupant_capacity > 1 else None,
@@ -263,7 +263,7 @@ def create_summary_table(dm : DataManager) -> html.Div:
     """
     try:
         site_names = []
-        zip_codes = []
+        ashrae_czs = []
         equipment_type = []
         expected_cop = []
         actual_cop = []
@@ -273,8 +273,8 @@ def create_summary_table(dm : DataManager) -> html.Div:
         for site in all_sites:
             exp_cop = dm.get_attribute_for_site("expected_COP", site_name=site)
             if not exp_cop is None and not pd.isna(exp_cop):
-                zip_code = dm.get_attribute_for_site('zip_code', site_name=site)
-                zip_codes.append(zip_code if not (zip_code is None or pd.isna(zip_code)) else "Unknown")
+                ashrae_cz = dm.get_attribute_for_site('ASHRAE_climate', site_name=site)
+                ashrae_czs.append(ashrae_cz if not (ashrae_cz is None or pd.isna(ashrae_cz)) else "Unknown")
                 site_dm = DataManager(dm.raw_data_creds,dm.config_creds,dm.user_email,site)
                 site_names.append(site_dm.get_attribute_for_site("pretty_name"))
                 wh_unit_name = site_dm.get_attribute_for_site('wh_unit_name')
@@ -296,7 +296,7 @@ def create_summary_table(dm : DataManager) -> html.Div:
 
         df = pd.DataFrame({
             "Site": site_names,
-            "Zip Code": zip_codes,
+            "ASHRAE CZ": ashrae_czs,
             "Equipment": equipment_type,
             "Expected COP": expected_cop,
             "Actual Average COP":actual_cop,
