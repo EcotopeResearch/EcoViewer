@@ -254,55 +254,21 @@ def get_no_raw_retrieve_msg() -> html.P:
             f"Time frame is too large to retrieve raw data. To view raw data, set time frame to {max_raw_data_days} days or less and ensure the 'Retrieve Raw Data' checkbox is selected."
         ])
 
-def create_summary_table(dm : DataManager) -> html.Div:
+def create_summary_table(dm : DataManager, category : str = None) -> html.Div:
     """
     Parameters
     ----------
     dm : DataManager
         The DataManager object for the current data pull
+    category : str
+        The category of system type for the table
     """
+    custom_style_conditionals = []
     try:
-        site_names = []
-        ashrae_czs = []
-        equipment_type = []
-        expected_cop = []
-        actual_cop = []
-        ongoing_events = []
-        event_descriptions = []
-        all_sites = dm.site_df.index.tolist()
-        for site in all_sites:
-            exp_cop = dm.get_attribute_for_site("expected_COP", site_name=site)
-            if not exp_cop is None and not pd.isna(exp_cop):
-                ashrae_cz = dm.get_attribute_for_site('ASHRAE_climate', site_name=site)
-                ashrae_czs.append(ashrae_cz if not (ashrae_cz is None or pd.isna(ashrae_cz)) else "Unknown")
-                site_dm = DataManager(dm.raw_data_creds,dm.config_creds,dm.user_email,site)
-                site_names.append(site_dm.get_attribute_for_site("pretty_name"))
-                wh_unit_name = site_dm.get_attribute_for_site('wh_unit_name')
-                wh_manufacturer = site_dm.get_attribute_for_site('wh_manufacturer')
-                primary_model = None
-                if not wh_manufacturer is None and not wh_unit_name is None:
-                    primary_model = f"{wh_manufacturer} {wh_unit_name}"
-                elif not wh_manufacturer is None:
-                    primary_model = f"{wh_manufacturer}"
-                elif not wh_unit_name is None:
-                    primary_model = f"{wh_unit_name}"
-                equipment_type.append(primary_model)
-                expected_cop.append(exp_cop)
-                actual_cop.append(round(site_dm.get_average_cop(),2))
-                site_ongoing_events = site_dm.get_ongoing_events()
-                site_ongoing_event_descriptions = site_dm.get_ongoing_event_descriptions()
-                ongoing_events.append(", ".join(site_ongoing_events) if len(site_ongoing_events) > 0 else "No ongoing events.")
-                event_descriptions.append(" ".join(site_ongoing_event_descriptions) if len(site_ongoing_event_descriptions) > 0 else "N/A")
-
-        df = pd.DataFrame({
-            "Site": site_names,
-            "ASHRAE CZ": ashrae_czs,
-            "Equipment": equipment_type,
-            "Expected COP": expected_cop,
-            "Actual Average COP":actual_cop,
-            "Ongoing Events": ongoing_events,
-            "Details" : event_descriptions
-        })
+        if category is None or category == '-' or category == 'MF CHPWH' or category == 'Light Commercial HPWH':
+            df, custom_style_conditionals = hpwh_summary_table(dm)
+        else:
+            df, custom_style_conditionals = hvac_summary_table(dm, category)
 
         return html.Div([
             dash_table.DataTable(
@@ -310,33 +276,7 @@ def create_summary_table(dm : DataManager) -> html.Div:
                 columns=[{"name": i, "id": i, "presentation": "markdown"} for i in df.columns],
                 style_cell={'textAlign': 'left'},
                 style_as_list_view=True,
-                style_data_conditional=[
-                        {
-                            'if': {'column_id': 'Zip Code'},
-                            'backgroundColor': 'rgb(240, 240, 240)'
-                        },
-                        {
-                            'if': {'column_id': 'Expected COP'},
-                            'backgroundColor': 'rgb(240, 240, 240)'
-                        },
-                        {
-                            'if': {'column_id': 'Ongoing Events'},
-                            'backgroundColor': 'rgb(240, 240, 240)'
-                        },
-                        {
-                            'if': {'column_id': 'Details'}, 
-                            'width': '50%',
-                            'whiteSpace': 'normal',
-                            'height': 'auto'
-                        },
-                        {
-                            'if': {
-                                'filter_query': '{Ongoing Events} contains "DATA_LOSS"'  # Contains check instead of equals
-                            },
-                            'backgroundColor': 'rgb(255, 200, 200)',  # Light red background
-                            'color': 'black'  # Ensure text readability
-                        }
-                    ],
+                style_data_conditional=custom_style_conditionals,
                 style_header={
                     'backgroundColor': 'rgb(230, 230, 230)',
                     'fontWeight': 'bold'
@@ -351,6 +291,125 @@ def create_summary_table(dm : DataManager) -> html.Div:
                     children=[html.Br(),f"Could not load summary table: {str(e)}"]
                 )
             ])
+
+def hvac_summary_table(dm : DataManager, category : str):
+    custom_style_conditionals= [
+        {
+            'if': {'column_id': 'ASHRAE CZ'},
+            'backgroundColor': 'rgb(240, 240, 240)'
+        },
+        {
+            'if': {'column_id': 'Details'}, 
+            'width': '50%',
+            'whiteSpace': 'normal',
+            'height': 'auto'
+        },
+        {
+            
+            'if': {
+                'filter_query': '{Ongoing Events} contains "DATA_LOSS"'  # Contains check instead of equals
+            },
+            'backgroundColor': 'rgb(255, 200, 200)',  # Light red background
+            'color': 'black'  # Ensure text readability
+        }
+    ]
+    site_names = []
+    ashrae_czs = []
+    ongoing_events = []
+    event_descriptions = []
+    all_sites = dm.site_df.index.tolist()
+    for site in all_sites:
+        site_category = dm.get_attribute_for_site("category", site_name=site)
+        if not site_category is None and site_category == category:
+            ashrae_cz = dm.get_attribute_for_site('ASHRAE_climate', site_name=site)
+            ashrae_czs.append(ashrae_cz if not (ashrae_cz is None or pd.isna(ashrae_cz)) else "Unknown")
+            site_dm = DataManager(dm.raw_data_creds,dm.config_creds,dm.user_email,site)
+            site_names.append(site_dm.get_attribute_for_site("pretty_name"))
+            site_ongoing_events = site_dm.get_ongoing_events()
+            site_ongoing_event_descriptions = site_dm.get_ongoing_event_descriptions()
+            ongoing_events.append(", ".join(site_ongoing_events) if len(site_ongoing_events) > 0 else "No ongoing events.")
+            event_descriptions.append(" ".join(site_ongoing_event_descriptions) if len(site_ongoing_event_descriptions) > 0 else "N/A")
+
+    df = pd.DataFrame({
+        "Site": site_names,
+        "ASHRAE CZ": ashrae_czs,
+        "Ongoing Events": ongoing_events,
+        "Details" : event_descriptions
+    })
+
+    return df, custom_style_conditionals
+
+def hpwh_summary_table(dm : DataManager):
+    custom_style_conditionals= [
+        {
+            'if': {'column_id': 'ASHRAE CZ'},
+            'backgroundColor': 'rgb(240, 240, 240)'
+        },
+        {
+            'if': {'column_id': 'Expected COP'},
+            'backgroundColor': 'rgb(240, 240, 240)'
+        },
+        {
+            'if': {'column_id': 'Ongoing Events'},
+            'backgroundColor': 'rgb(240, 240, 240)'
+        },
+        {
+            'if': {'column_id': 'Details'}, 
+            'width': '50%',
+            'whiteSpace': 'normal',
+            'height': 'auto'
+        },
+        {
+            'if': {
+                'filter_query': '{Ongoing Events} contains "DATA_LOSS"'  # Contains check instead of equals
+            },
+            'backgroundColor': 'rgb(255, 200, 200)',  # Light red background
+            'color': 'black'  # Ensure text readability
+        }
+    ]
+    site_names = []
+    ashrae_czs = []
+    equipment_type = []
+    expected_cop = []
+    actual_cop = []
+    ongoing_events = []
+    event_descriptions = []
+    all_sites = dm.site_df.index.tolist()
+    for site in all_sites:
+        exp_cop = dm.get_attribute_for_site("expected_COP", site_name=site)
+        if not exp_cop is None and not pd.isna(exp_cop):
+            ashrae_cz = dm.get_attribute_for_site('ASHRAE_climate', site_name=site)
+            ashrae_czs.append(ashrae_cz if not (ashrae_cz is None or pd.isna(ashrae_cz)) else "Unknown")
+            site_dm = DataManager(dm.raw_data_creds,dm.config_creds,dm.user_email,site)
+            site_names.append(site_dm.get_attribute_for_site("pretty_name"))
+            wh_unit_name = site_dm.get_attribute_for_site('wh_unit_name')
+            wh_manufacturer = site_dm.get_attribute_for_site('wh_manufacturer')
+            primary_model = None
+            if not wh_manufacturer is None and not wh_unit_name is None:
+                primary_model = f"{wh_manufacturer} {wh_unit_name}"
+            elif not wh_manufacturer is None:
+                primary_model = f"{wh_manufacturer}"
+            elif not wh_unit_name is None:
+                primary_model = f"{wh_unit_name}"
+            equipment_type.append(primary_model)
+            expected_cop.append(exp_cop)
+            actual_cop.append(round(site_dm.get_average_cop(),2))
+            site_ongoing_events = site_dm.get_ongoing_events()
+            site_ongoing_event_descriptions = site_dm.get_ongoing_event_descriptions()
+            ongoing_events.append(", ".join(site_ongoing_events) if len(site_ongoing_events) > 0 else "No ongoing events.")
+            event_descriptions.append(" ".join(site_ongoing_event_descriptions) if len(site_ongoing_event_descriptions) > 0 else "N/A")
+
+    df = pd.DataFrame({
+        "Site": site_names,
+        "ASHRAE CZ": ashrae_czs,
+        "Equipment": equipment_type,
+        "Expected COP": expected_cop,
+        "Actual Average COP":actual_cop,
+        "Ongoing Events": ongoing_events,
+        "Details" : event_descriptions
+    })
+
+    return df, custom_style_conditionals
 
 def create_data_dictionary(organized_mapping):
     """

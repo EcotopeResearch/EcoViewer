@@ -429,7 +429,7 @@ class DataManager:
             Filter for certain types of HVAC components (HPWH, DOA, RTF, etc.)
         """
         display_drop_down = []
-        if self.user_is_ecotope() and filter is None:
+        if self.user_is_ecotope():
             display_drop_down.append({'label': 'SUMMARY TABLE', 'value' : 'summary_table'})
         for name in self.site_df.index.to_list():
             if filter is None or filter == self.site_df.loc[name, "category"]:
