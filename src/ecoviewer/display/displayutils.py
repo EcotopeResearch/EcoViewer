@@ -301,6 +301,7 @@ def hvac_summary_table(dm : DataManager, category : str):
         {
             'if': {'column_id': 'Details'}, 
             'width': '50%',
+            'backgroundColor': 'rgb(240, 240, 240)',
             'whiteSpace': 'normal',
             'height': 'auto'
         },
