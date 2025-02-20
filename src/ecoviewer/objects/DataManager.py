@@ -419,6 +419,35 @@ class DataManager:
 
         return site_df, graph_df, field_df
     
+    def is_download_available(self, sql_dash_config : dict, site_name : str) -> bool:
+        """ 
+        Determine if user has permission to download data from site
+        """
+        if site_name is None or site_name == 'summary_table':
+            return False
+        cnx = mysql.connector.connect(**sql_dash_config)
+        cursor = cnx.cursor()
+        email_groups = [self.user_email, self.user_email.split('@')[-1]]
+        site_query = f"SELECT download_access FROM site_access WHERE site_name = '{site_name}'"
+        site_query += """
+            AND user_group IN (
+            SELECT user_group from user_groups WHERE email_address IN ({})
+            );
+        """.format(', '.join(['%s'] * len(email_groups)))
+        cursor.execute(site_query, email_groups)
+        result = cursor.fetchall()
+        print(result)
+        cursor.close()
+        cnx.close()
+        try:
+            if len(result) > 0:
+                for user_group in result:
+                    if user_group[0] == True:
+                        return True
+        except Exception as e:
+            print(f"Exception encountered : {e}")
+        return False
+    
     def get_table_dropdown(self, filter: str = None):
         """
         Retrieves options for table drop down
