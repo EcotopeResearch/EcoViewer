@@ -40,9 +40,13 @@ class DataManager:
         full path to directory conaining saved .pkl files for graph objects that use them
     exclude_csv_only_fields : bool
             boolean to indicate whether to exclude fields from field_df that should only be present when users download raw data csvs
+    annon_overwrite : bool
+        overwrite annonymize_names value
+    annon_value : bool
+     value to overwrite annonymize_names with
     """
     def __init__(self, raw_data_creds : dict, config_creds : dict, user_email : str, selected_table : str = None, start_date : str = None, end_date : str = None, checkbox_selections : list = [],
-                 pkl_folder_path : str = None, exclude_csv_only_fields : bool = True):
+                 pkl_folder_path : str = None, exclude_csv_only_fields : bool = True, annon_overwrite : bool = False, annon_value : bool = True):
         self.pkl_folder_path = pkl_folder_path
         self.raw_data_creds = raw_data_creds
         self.config_creds = config_creds
@@ -50,6 +54,9 @@ class DataManager:
         self.user_email = user_email
         self._check_mysql_creds()
         self.site_df, self.graph_df, self.field_df = self.get_user_permissions_from_db(user_email, self.config_creds, exclude_csv_only_fields)
+        self.annonymize_names = annon_value
+        if not annon_overwrite:
+            self.annonymize_names = self.set_annonymize_names()
         self.selected_table = selected_table
         if self.site_df.empty:
             raise Exception("User does not have permission to access data.")
@@ -147,7 +154,7 @@ class DataManager:
         last_date = result[0][0]
 
         return [
-                f"Possible range for {self.site_df.loc[self.selected_table, 'pretty_name']}:",
+                f"Possible range for {self.get_site_display_name(self.selected_table)}:",
                 html.Br(),
                 f"{first_date.strftime('%m/%d/%y')} - {last_date.strftime('%m/%d/%y')}",
                 html.Br(),
@@ -419,6 +426,27 @@ class DataManager:
 
         return site_df, graph_df, field_df
     
+    def set_annonymize_names(self) -> bool:
+        """ 
+        Determine if user has permission to download data from site
+        """
+        cnx = mysql.connector.connect(**self.config_creds)
+        cursor = cnx.cursor()
+        email_groups = [self.user_email, self.user_email.split('@')[-1]]
+        site_query = """
+            SELECT user_group from user_groups WHERE annonymize_sites = FALSE and email_address IN ({});
+        """.format(', '.join(['%s'] * len(email_groups)))
+        cursor.execute(site_query, email_groups)
+        result = cursor.fetchall()
+        cursor.close()
+        cnx.close()
+        try:
+            if len(result) > 0:
+                return False
+        except Exception as e:
+            print(f"Exception encountered : {e}")
+        return True
+    
     def is_download_available(self, sql_dash_config : dict, site_name : str) -> bool:
         """ 
         Determine if user has permission to download data from site
@@ -436,7 +464,6 @@ class DataManager:
         """.format(', '.join(['%s'] * len(email_groups)))
         cursor.execute(site_query, email_groups)
         result = cursor.fetchall()
-        print(result)
         cursor.close()
         cnx.close()
         try:
@@ -447,6 +474,13 @@ class DataManager:
         except Exception as e:
             print(f"Exception encountered : {e}")
         return False
+    
+    def get_site_display_name(self, site :str) -> str:
+        if self.annonymize_names:
+            return self.site_df.loc[site, "annon_name"]
+        else:
+            return self.site_df.loc[site, "pretty_name"]
+
     
     def get_table_dropdown(self, filter: str = None):
         """
@@ -460,9 +494,11 @@ class DataManager:
         display_drop_down = []
         if self.user_is_ecotope():
             display_drop_down.append({'label': 'SUMMARY TABLE', 'value' : 'summary_table'})
+        if self.annonymize_names:
+            self.site_df = self.site_df.sort_values('annon_name')
         for name in self.site_df.index.to_list():
             if filter is None or filter == self.site_df.loc[name, "category"]:
-                display_drop_down.append({'label': self.site_df.loc[name, "pretty_name"], 'value' : name})
+                display_drop_down.append({'label': self.get_site_display_name(name), 'value' : name})
         return display_drop_down
     
     def get_attribute_for_site(self, attribute : str, site_name : str = None):

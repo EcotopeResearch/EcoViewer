@@ -324,8 +324,8 @@ def hvac_summary_table(dm : DataManager, category : str):
         if not site_category is None and site_category == category:
             ashrae_cz = dm.get_attribute_for_site('ASHRAE_climate', site_name=site)
             ashrae_czs.append(ashrae_cz if not (ashrae_cz is None or pd.isna(ashrae_cz)) else "Unknown")
-            site_dm = DataManager(dm.raw_data_creds,dm.config_creds,dm.user_email,site)
-            site_names.append(site_dm.get_attribute_for_site("pretty_name"))
+            site_dm = DataManager(dm.raw_data_creds,dm.config_creds,dm.user_email,site, annon_overwrite=True, annon_value=dm.annonymize_names)
+            site_names.append(site_dm.get_site_display_name(site))
             site_ongoing_events = site_dm.get_ongoing_events()
             site_ongoing_event_descriptions = site_dm.get_ongoing_event_descriptions()
             ongoing_events.append(", ".join(site_ongoing_events) if len(site_ongoing_events) > 0 else "No ongoing events.")
@@ -381,8 +381,8 @@ def hpwh_summary_table(dm : DataManager):
         if not exp_cop is None and not pd.isna(exp_cop):
             ashrae_cz = dm.get_attribute_for_site('ASHRAE_climate', site_name=site)
             ashrae_czs.append(ashrae_cz if not (ashrae_cz is None or pd.isna(ashrae_cz)) else "Unknown")
-            site_dm = DataManager(dm.raw_data_creds,dm.config_creds,dm.user_email,site)
-            site_names.append(site_dm.get_attribute_for_site("pretty_name"))
+            site_dm = DataManager(dm.raw_data_creds,dm.config_creds,dm.user_email,site, annon_overwrite=True, annon_value=dm.annonymize_names)
+            site_names.append(site_dm.get_site_display_name(site))
             wh_unit_name = site_dm.get_attribute_for_site('wh_unit_name')
             wh_manufacturer = site_dm.get_attribute_for_site('wh_manufacturer')
             primary_model = None
