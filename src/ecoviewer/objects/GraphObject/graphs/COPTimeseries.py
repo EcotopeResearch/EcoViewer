@@ -11,12 +11,13 @@ class COPTimeseries(GraphObject):
     def __init__(self, dm : DataManager, title : str = "System COP Timeseries", summary_group : str = None):
         self.summary_group = summary_group
         self.seen_events = []
+        self.cop_affecting_events = ['COMMISIONING','DATA_LOSS_COP','EQUIPMENT_MALFUNCTION','HW_OUTAGE','HW_LOSS',
+            'INSTALLATION_ERROR','PARTIAL_OCCUPANCY','POWER_OUTAGE','SETPOINT_ADJUSTMENT','SYSTEM_MAINTENANCE']
         self.shader_colors = {
-            'DATA_LOSS' : 'yellow',
             'DATA_LOSS_COP' : 'red',
             'EQUIPMENT_MALFUNCTION' : 'orange',
             'HW_OUTAGE' : 'darkred',
-            'HW_LOSS' : 'seagreen',
+            'HW_LOSS' : 'yellow',
             'PARTIAL_OCCUPANCY' : 'violet',
             'POWER_OUTAGE' : "grey",
             'SETPOINT_ADJUSTMENT' : 'darkviolet',
@@ -24,7 +25,7 @@ class COPTimeseries(GraphObject):
             'INSTALLATION_ERROR': 'darkblue',
             'COMMISIONING' : 'limegreen'
         }
-        super().__init__(dm, title, event_reports=typical_tracked_events, date_filtered=False, event_filters=[])
+        super().__init__(dm, title, event_reports=self.cop_affecting_events, date_filtered=False, event_filters=[])
 
     def create_graph(self, dm : DataManager):
         df_daily = dm.get_daily_data_df(events_to_filter=self.event_filters)
@@ -36,7 +37,7 @@ class COPTimeseries(GraphObject):
         fig = make_subplots(specs = [[{'secondary_y':True}]])
 
         # deal with erroneous COP values 
-        site_events_df = dm.get_site_events(event_types = typical_tracked_events)
+        site_events_df = dm.get_site_events(event_types = self.cop_affecting_events)
         if site_events_df.shape[0] > 0:
             for index, row in site_events_df.loc[site_events_df['event_type'] == 'DATA_LOSS_COP'].iterrows():
                 if row['end_time_pt'] is None or pd.isnull(row['end_time_pt']):
