@@ -231,8 +231,10 @@ class DataManager:
                 raise Exception("Cannot add event. Must include start date.")
             if event_type is None:
                 raise Exception("Cannot add event. Must include event type.")
-            event_detail.replace('"','')
-            event_detail.replace("'",'')
+            event_detail = event_detail.replace('"','')
+            event_detail = event_detail.replace("'",'')
+            start_date = self._clean_date_str(start_date)
+            end_date = self._clean_date_str(end_date)
             if end_date is None:
                 insert_query = "INSERT INTO site_events (start_time_pt, site_name, event_type, event_detail, last_modified_date, last_modified_by)" 
                 insert_query += f" VALUES ('{start_date} 00:00:00', '{self.selected_table}', '{event_type}', '{event_detail}', '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}','{self.user_email}')"
@@ -242,6 +244,11 @@ class DataManager:
             self.run_query(insert_query)
             return
         raise Exception("User does not have permission to add event.")
+    
+    def _clean_date_str(self, date_str : str) -> str:
+        if not date_str is None and 'T' in date_str:
+            date_str = date_str.split('T')[0]
+        return date_str
     
     def update_site_event(self, id, start_date, end_date, event_type, event_detail):
         """
@@ -263,10 +270,13 @@ class DataManager:
                 raise Exception("Cannot add event. Must include start date.")
             if event_type is None:
                 raise Exception("Cannot add event. Must include event type.")
-            event_detail.replace('"','')
-            event_detail.replace("'",'')
+            start_date = self._clean_date_str(start_date)
+            end_date = self._clean_date_str(end_date)
+            event_detail = event_detail.replace('"','')
+            event_detail = event_detail.replace("'",'')
             update_query = f"UPDATE site_events SET start_time_pt = '{start_date} 00:00:00', event_type = '{event_type}', event_detail =  '{event_detail}',"
             if not end_date is None:
+                print(f"updating {start_date} - {end_date}")
                 update_query += f" end_time_pt = '{end_date} 23:59:00',"
             else:
                 update_query += f" end_time_pt = NULL,"
