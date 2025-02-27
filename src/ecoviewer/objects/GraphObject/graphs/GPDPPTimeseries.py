@@ -16,6 +16,7 @@ class GPDPPTimeseries(GraphObject):
         df_daily = dm.get_daily_data_df(events_to_filter=self.event_filters)
 
         df_daily['Flow_CityWater_Total'] = df_daily[dm.flow_variable] * (60 * 24) #average GPM * 60min/hr * 24hr/day
+        df_daily = df_daily[df_daily["Flow_CityWater_Total"].notna()] # filter nulls out
         df_daily['Flow_CityWater_PP'] = round(df_daily['Flow_CityWater_Total'] / dm.occupant_capacity, 2)
         percentile = 0.95
         mean_day = df_daily[dm.flow_variable].mean() * 24 * 60
