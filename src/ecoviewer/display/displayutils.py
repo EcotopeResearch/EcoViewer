@@ -53,7 +53,6 @@ def create_meta_data_table(dm : DataManager, app : Dash, anonymize_data : bool =
     mapping = {
         "Address" : dm.get_attribute_for_site('address') if dm.get_attribute_for_site('address') is not None else "Unknown", 
         "ASHRAE Climate Zone" : ashrae_cz if not (ashrae_cz is None or pd.isna(ashrae_cz)) else "Unknown",
-        "NOAA Weather Station" : dm.get_attribute_for_site('noaa_station'),
         "Building Specifications/Type" : building_specs,
         "Number of Occupants" : f"{round(occupant_capacity)} Occupants" if not (occupant_capacity is None or pd.isna(occupant_capacity)) and occupant_capacity > 1 else None,
         "Primary System Model" : primary_model, 
