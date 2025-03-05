@@ -263,11 +263,12 @@ def create_summary_table(dm : DataManager, category : str = None) -> html.Div:
         The category of system type for the table
     """
     custom_style_conditionals = []
+    additional_msg = None
     try:
         if category is None or category == '-' or category == 'MF CHPWH' or category == 'Light Commercial HPWH':
-            df, custom_style_conditionals = hpwh_summary_table(dm)
+            df, custom_style_conditionals, additional_msg = hpwh_summary_table(dm)
         else:
-            df, custom_style_conditionals = hvac_summary_table(dm, category)
+            df, custom_style_conditionals, additional_msg = hvac_summary_table(dm, category)
 
         return html.Div([
             dash_table.DataTable(
@@ -280,7 +281,8 @@ def create_summary_table(dm : DataManager, category : str = None) -> html.Div:
                     'backgroundColor': 'rgb(230, 230, 230)',
                     'fontWeight': 'bold'
                 },
-            )
+            ),
+            additional_msg
         ])
 
     except Exception as e:
@@ -337,7 +339,7 @@ def hvac_summary_table(dm : DataManager, category : str):
         "Details" : event_descriptions
     })
 
-    return df, custom_style_conditionals
+    return df, custom_style_conditionals, None
 
 def hpwh_summary_table(dm : DataManager):
     custom_style_conditionals= [
@@ -347,6 +349,10 @@ def hpwh_summary_table(dm : DataManager):
         },
         {
             'if': {'column_id': 'Expected COP'},
+            'backgroundColor': 'rgb(240, 240, 240)'
+        },
+        {
+            'if': {'column_id': 'Projected COP'},
             'backgroundColor': 'rgb(240, 240, 240)'
         },
         {
@@ -372,9 +378,18 @@ def hpwh_summary_table(dm : DataManager):
     equipment_type = []
     expected_cop = []
     actual_cop = []
+    projected_cop = []
+    opt_cop = []
     ongoing_events = []
     event_descriptions = []
     all_sites = dm.site_df.index.tolist()
+    cop_error_msg = None
+    msg_holder = html.P( 
+            children=[
+                html.Br(),
+                "* a COP value of -1 indicates that there has not been enough data collected to calculate this value."
+            ]
+        )
     for site in all_sites:
         exp_cop = dm.get_attribute_for_site("expected_COP", site_name=site)
         if not exp_cop is None and not pd.isna(exp_cop):
@@ -394,6 +409,23 @@ def hpwh_summary_table(dm : DataManager):
             equipment_type.append(primary_model)
             expected_cop.append(exp_cop)
             actual_cop.append(round(site_dm.get_average_cop(),2))
+            proj_cop = site_dm.get_annual_extrapolated_COP(['DATA_LOSS_COP','INSTALLATION_ERROR','PARTIAL_OCCUPANCY','SYSTEM_MAINTENANCE',
+                                                                            'EQUIPMENT_MALFUNCTION','HW_OUTAGE','HW_LOSS'],
+                                                                        ['INSTALLATION_ERROR','PARTIAL_OCCUPANCY','EQUIPMENT_MALFUNCTION','HW_LOSS'])
+            optim_cop = site_dm.get_annual_extrapolated_COP(['DATA_LOSS_COP','INSTALLATION_ERROR','PARTIAL_OCCUPANCY', 
+                                                                      'SYSTEM_MAINTENANCE','EQUIPMENT_MALFUNCTION','HW_OUTAGE','HW_LOSS'])
+            
+            if proj_cop == -1:
+                cop_error_msg = msg_holder
+                projected_cop.append(f"{round(proj_cop,2)}*")
+            else:
+                projected_cop.append(round(proj_cop,2))
+            
+            if optim_cop == -1:
+                cop_error_msg = msg_holder
+                opt_cop.append(f"{round(optim_cop,2)}*")
+            else:
+                opt_cop.append(round(optim_cop,2))
             site_ongoing_events = site_dm.get_ongoing_events()
             site_ongoing_event_descriptions = site_dm.get_ongoing_event_descriptions()
             ongoing_events.append(", ".join(site_ongoing_events) if len(site_ongoing_events) > 0 else "No ongoing events.")
@@ -405,11 +437,13 @@ def hpwh_summary_table(dm : DataManager):
         "Equipment": equipment_type,
         "Expected COP": expected_cop,
         "Actual Average COP":actual_cop,
+        "Projected COP":projected_cop,
+        "Optimized COP": opt_cop,
         "Ongoing Events": ongoing_events,
         "Details" : event_descriptions
     })
 
-    return df, custom_style_conditionals
+    return df, custom_style_conditionals, cop_error_msg
 
 def create_data_dictionary(organized_mapping):
     """

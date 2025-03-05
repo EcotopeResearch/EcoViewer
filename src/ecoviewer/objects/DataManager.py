@@ -5,6 +5,8 @@ from dash import html
 from datetime import datetime, timedelta
 from ecoviewer.constants.constants import *
 from plotly.colors import DEFAULT_PLOTLY_COLORS
+from ecoengine import get_oat_buckets
+import numpy as np
 
 class DataManager:
     """
@@ -188,8 +190,57 @@ class DataManager:
             filters_for_cop.append('PARTIAL_OCCUPANCY')
         query = f"SELECT time_pt, {self.sys_cop_variable} FROM {self.day_table}"
         cop_df = self.get_df_from_query(query)
-        cop_df = self.apply_event_filters_to_df(cop_df, filters_for_cop, exclude_ongoing=True) # TODO add commissioning
+        cop_df = self.apply_event_filters_to_df(cop_df, filters_for_cop, exclude_ongoing=filters_for_cop[1:]) # TODO add commissioning
         return cop_df[self.sys_cop_variable].mean()
+    
+    def get_annual_extrapolated_COP(self, event_filters : list = [], include_ongoing_events : list =[]):
+        """
+        Get extrapolated COP using the annual outdoor air temperature for the location via ecoengine
+        
+        Parameters
+        ----------
+        event_filters : list
+            list of event types to filter out of the data in the calculation
+        include_ongoing_events : list
+            list of event types to avoid filtering ongoing events out of the calculation
+
+        Returns
+        -------
+        COP_val : float
+            the COP value estimate for the year, or -1 if it could not be calculated
+        """
+        # TODO add a derate for equipment COP?
+        query = f"SELECT time_pt, {self.sys_cop_variable}, {self.oat_variable} FROM {self.day_table}"
+        cop_df = self.get_df_from_query(query)
+        if len(event_filters) > 0:
+            cop_df = self.apply_event_filters_to_df(cop_df, event_filters, exclude_ongoing=include_ongoing_events) # TODO add commissioning
+        cop_df = cop_df.dropna(subset=[self.sys_cop_variable, self.oat_variable])
+        if cop_df.shape[0] < 2:
+            print("not enough data to get COP")
+            return -1
+        bucket_dict = {}
+        try:
+            bucket_dict = get_oat_buckets(int(self.get_attribute_for_site('zip_code'))) # TODO replace with real zip
+        except Exception as e:
+            print(e)
+            return -1 # error
+        average_cop = 0
+        # print("I am here ", cop_df)
+        m = 0
+        b = 0
+        polyfit_made = False
+        for bucket in bucket_dict.keys():
+            if ((cop_df[self.oat_variable] >= bucket) & (cop_df[self.oat_variable] < bucket+5)).any():
+                average_bucket_cop = cop_df.loc[(cop_df[self.oat_variable] >= bucket) & (cop_df[self.oat_variable] < bucket+5), self.sys_cop_variable].mean()
+                # print(f"got this average for {bucket} bucket: {average_bucket_cop}")
+            else:
+                if not polyfit_made:
+                    m, b = np.polyfit(cop_df[self.oat_variable], cop_df[self.sys_cop_variable], 1)
+                average_bucket_cop = max(m * bucket + b, 0.95 if self.system_is_swing_tank() else 0)
+                # print(f"no  average for {bucket}, so estimated to be {average_bucket_cop}")
+            average_cop += average_bucket_cop * bucket_dict[bucket]
+        return average_cop/365
+
     
     def get_ongoing_events(self) -> list:
         if self.ongoing_events is None:
@@ -785,7 +836,7 @@ class DataManager:
         #     raise Exception("Not enough data. A years worth of data is required to produce this graph.")
         return self.apply_event_filters_to_df(self.annual_minute_df, events_to_filter), self.sera_first_day.strftime('%m/%d/%Y'), self.sera_last_day.strftime('%m/%d/%Y')
     
-    def apply_event_filters_to_df(self, df : pd.DataFrame, events_to_filter : list, exclude_ongoing :bool = False):
+    def apply_event_filters_to_df(self, df : pd.DataFrame, events_to_filter : list, exclude_ongoing : list = []):
         # TODO this could be optimized with a hash map of already searched filters
         if len(events_to_filter) > 0:
             filtered_df = df.copy()
@@ -794,8 +845,12 @@ class DataManager:
             for event_type in events_to_filter[1:]:
                 query = f"{query},'{event_type}'"
             query = f"{query})"
-            if exclude_ongoing:
-                query = f"{query} AND NOT end_time_pt IS NULL;"
+            if len(exclude_ongoing) > 0:
+                query = f"{query} AND NOT (end_time_pt IS NULL AND event_type IN ("
+                query = f"{query}'{exclude_ongoing[0]}'"
+                for ex_on_event_type in exclude_ongoing[1:]:
+                    query = f"{query},'{ex_on_event_type}'"
+                query = f"{query}));"
             else:
                 query = f"{query};"
 
