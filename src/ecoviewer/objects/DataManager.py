@@ -585,7 +585,7 @@ class DataManager:
         df[float_cols.columns] = float_cols.round(x)
         return df
     
-    def get_df_from_query(self, query : str, set_time_index : bool = True) -> pd.DataFrame:
+    def get_df_from_query(self, query : str, set_time_index : bool = True, concat_tpt : bool = False) -> pd.DataFrame:
         cnx = mysql.connector.connect(
             host=self.raw_data_creds['host'],
             user=self.raw_data_creds['user'],
@@ -602,6 +602,9 @@ class DataManager:
         cnx.close()
         df = df.dropna(axis=1, how='all')
         if set_time_index and not df.empty:
+            if concat_tpt:
+                df['time_pt'] = df['tpt']
+                df = df.drop(['tpt'], axis=1)
             df = df.set_index('time_pt')
             # round float columns to 3 decimal places
             df = self.round_df_to_x_decimal(df, 3)
@@ -755,7 +758,7 @@ class DataManager:
         if self.raw_df is None:
             # raw df has not already been generated
             query = self.generate_raw_data_query()
-            self.raw_df = self.get_df_from_query(query)
+            self.raw_df = self.get_df_from_query(query, concat_tpt=True)
             cop_columns = [col for col in self.raw_df.columns if 'COP' in col]
             self.raw_df[cop_columns] = self.raw_df[cop_columns].fillna(method='ffill')
             if 'OAT_NOAA' in self.raw_df.columns:
@@ -770,11 +773,12 @@ class DataManager:
     
     def get_entire_raw_data_df(self, events_to_filter : list = []) -> pd.DataFrame:
         query = self.generate_raw_data_query(whole_table=True)
-        entire_raw_df = self.get_df_from_query(query)
+        entire_raw_df = self.get_df_from_query(query, concat_tpt=True)
+
         return self.apply_event_filters_to_df(entire_raw_df, events_to_filter)
         
     def generate_raw_data_query(self, whole_table = False):
-        query = f"SELECT {self.min_table}.*, "
+        query = f"SELECT time_table.tpt, {self.min_table}.*, "
         if self.state_tracking:
             query += f"{self.hour_table}.system_state, "
         
@@ -789,19 +793,28 @@ class DataManager:
         if not self.sys_cop_variable in ['COP_Equipment', 'COP_DHWSys_2'] and self.field_df[(self.field_df['field_name'] == self.sys_cop_variable) & (self.field_df['site_name'] == self.selected_table)].shape[0] > 0:
             query += f"{self.day_table}.{self.sys_cop_variable}, "
         query += f"IF(DAYOFWEEK({self.min_table}.time_pt) IN (1, 7), FALSE, TRUE) AS weekday, " +\
-            f"HOUR({self.min_table}.time_pt) AS hr FROM {self.min_table} "
+            f"HOUR({self.min_table}.time_pt) AS hr FROM "
+        
+        query += f"(SELECT time_pt AS tpt FROM {self.min_table}"
+        if self.min_table != self.hour_table:
+            query += f" UNION SELECT time_pt AS tpt FROM {self.hour_table}"
+        if self.min_table != self.day_table:
+            query += f" UNION SELECT time_pt AS tpt FROM {self.day_table}"
+        query += ") time_table "
+
+        query += f"LEFT JOIN {self.min_table} ON time_table.tpt = {self.min_table}.time_pt "
         #TODO these two if statements are a work around for LBL. MAybe figure out better solution
         if self.min_table != self.hour_table:
-            query += f"LEFT JOIN {self.hour_table} ON {self.min_table}.time_pt = {self.hour_table}.time_pt "
+            query += f"LEFT JOIN {self.hour_table} ON time_table.tpt = {self.hour_table}.time_pt "
         if self.min_table != self.day_table:
-            query += f"LEFT JOIN {self.day_table} ON {self.min_table}.time_pt = {self.day_table}.time_pt "
+            query += f"LEFT JOIN {self.day_table} ON time_table.tpt = {self.day_table}.time_pt "
 
         if whole_table:
-            query +=  f"ORDER BY {self.min_table}.time_pt ASC"
+            query +=  f"ORDER BY time_table.tpt ASC"
         elif self.start_date != None and self.end_date != None:
-            query += f"WHERE {self.min_table}.time_pt >= '{self.start_date}' AND {self.min_table}.time_pt <= '{self.end_date} 23:59:59' ORDER BY {self.min_table}.time_pt ASC"
+            query += f"WHERE time_table.tpt >= '{self.start_date}' AND time_table.tpt <= '{self.end_date} 23:59:59' ORDER BY time_table.tpt ASC"
         else:
-            query += f"ORDER BY {self.min_table}.time_pt DESC LIMIT 4000"
+            query += f"ORDER BY time_table.tpt DESC LIMIT 4000"
             query = f"SELECT * FROM ({query}) AS subquery ORDER BY subquery.time_pt ASC;"
 
         return query
