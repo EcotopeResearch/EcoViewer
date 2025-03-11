@@ -81,6 +81,9 @@ class RawDataSubPlots(GraphObject):
             for field_dict in y1_fields:
                 name = field_dict["readable_name"]
                 column_name = field_dict["column_name"]
+                if 'COP' in column_name:
+                    cop_columns.append(column_name)
+                    df[column_name] = df[column_name].round(1)
                 y_axis = 'y1'
                 secondary_y = False
                 fig.add_trace(
@@ -105,6 +108,7 @@ class RawDataSubPlots(GraphObject):
                 column_name = field_dict["column_name"]
                 if 'COP' in column_name:
                     cop_columns.append(column_name)
+                    df[column_name] = df[column_name].round(1)
                 y_axis = 'y2'
                 secondary_y = True
                 fig.add_trace(

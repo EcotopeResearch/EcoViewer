@@ -62,7 +62,7 @@ class COPRegression(GraphObject):
                                 f'{self.cop_column}': f"<b>{dm.get_pretty_name(self.cop_column)}", 
                                 'PrimaryEneryRatio': 'Primary Energy Ratio', 'Site': '<b>Site'},
                         color_discrete_sequence=["darkblue"],
-                        hover_data={'Date': True}
+                        hover_data={'Date': True, self.cop_column: ':.1f'}
                 )
             fig.add_traces(
                 px.line(df_daily, x='Temp_OutdoorAir', y='trendline').data
@@ -74,7 +74,7 @@ class COPRegression(GraphObject):
                         f'{self.cop_column}': f"<b>{dm.get_pretty_name(self.cop_column)}", 
                                 'PrimaryEneryRatio': 'Primary Energy Ratio', 'Site': '<b>Site'},
                         color_discrete_sequence=["darkblue"],
-                        hover_data={'Date': True}
+                        hover_data={'Date': True, self.cop_column: ':.1f'}
                 )
             # WIP
             # trendline_results = px.get_trendline_results(fig)

@@ -157,7 +157,7 @@ class SummaryBarGraph(GraphObject):
         # Add the additional columns as separate bars next to the stacks
         if len(cop_columns) > 0:
             cop_pretty_names, cop_pretty_name_dict = dm.get_pretty_names(cop_columns)
-            df = dm.round_df_to_x_decimal(df, 2)
+            df = dm.round_df_to_x_decimal(df, 1)
             for i in range(len(cop_columns)):
             # for col in cop_columns:
                 col = cop_columns[i]

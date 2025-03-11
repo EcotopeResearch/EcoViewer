@@ -28,8 +28,11 @@ class GraphObject:
         A list of event identifiers that need to be filtered out of the data collected for the graph
     date_filtered : bool
         True if graph is filtered by the user input date range, False otherwise
+    display_event_note : bool
+        set to true if you would like a note reporting events to be displayed at bottom of graph. False if not
     """
-    def __init__(self, dm : DataManager, title : str = "Graph", event_reports : list = [], event_filters : list = [], date_filtered : bool = True):
+    def __init__(self, dm : DataManager, title : str = "Graph", event_reports : list = [], event_filters : list = [], date_filtered : bool = True,
+                 display_event_note : bool = False):
         self.title = title
         self.pkl_file_name = self.create_pkl_file_name(dm)
         self.event_reports = event_reports
@@ -44,7 +47,7 @@ class GraphObject:
         else:
             try:
                 self.graph = self.create_graph(dm)
-                if len(self.event_reports) > 0:
+                if display_event_note and len(self.event_reports) > 0:
                     if isinstance(self.graph, list):
                         self.graph.append(self.get_event_note(dm))
                     else:

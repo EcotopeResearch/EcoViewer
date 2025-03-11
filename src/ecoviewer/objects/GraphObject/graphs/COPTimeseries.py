@@ -25,7 +25,8 @@ class COPTimeseries(GraphObject):
             'INSTALLATION_ERROR': 'darkblue',
             'COMMISIONING' : 'limegreen'
         }
-        super().__init__(dm, title, event_reports=self.cop_affecting_events, date_filtered=False, event_filters=[])
+        super().__init__(dm, title, event_reports=self.cop_affecting_events, date_filtered=False, event_filters=[],
+                         display_event_note=True)
 
     def create_graph(self, dm : DataManager):
         df_daily = dm.get_daily_data_df(events_to_filter=self.event_filters)
@@ -48,7 +49,8 @@ class COPTimeseries(GraphObject):
 
         fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily[dm.sys_cop_variable],
                                 mode = 'markers', name = dm.get_pretty_name(dm.sys_cop_variable),
-                                marker=dict(color='darkred')), secondary_y = True)
+                                marker=dict(color='darkred'), text=df_daily[dm.sys_cop_variable].apply(lambda val: f"{val:.1f}")), 
+                                secondary_y = True)
         
         fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily[dm.oat_variable],
                                 mode = 'markers', name = 'Outdoor Air Temerature',

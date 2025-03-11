@@ -191,7 +191,8 @@ class DataManager:
         query = f"SELECT time_pt, {self.sys_cop_variable} FROM {self.day_table}"
         cop_df = self.get_df_from_query(query)
         cop_df = self.apply_event_filters_to_df(cop_df, filters_for_cop, exclude_ongoing=filters_for_cop[1:]) # TODO add commissioning
-        return cop_df[self.sys_cop_variable].mean()
+        ret_val = cop_df[self.sys_cop_variable].mean()
+        return round(ret_val, 1)
     
     def get_annual_extrapolated_COP(self, event_filters : list = [], include_ongoing_events : list =[]):
         """
@@ -239,7 +240,7 @@ class DataManager:
                 average_bucket_cop = max(m * bucket + b, 0.95 if self.system_is_swing_tank() else 0)
                 # print(f"no  average for {bucket}, so estimated to be {average_bucket_cop}")
             average_cop += average_bucket_cop * bucket_dict[bucket]
-        return average_cop/365
+        return round(average_cop/365.0,1)
 
     
     def get_ongoing_events(self) -> list:
@@ -671,6 +672,10 @@ class DataManager:
                 filtered_df = filtered_field_df
             group_columns = [col for col in self.daily_summary_df.columns if col in filtered_df['field_name'].tolist()]
             self.daily_summary_df = self.daily_summary_df[group_columns]
+            # round COP
+            cop_columns = [col for col in self.daily_summary_df if 'COP' in col]
+            for cop_col in cop_columns:
+                self.daily_summary_df[cop_col] = self.daily_summary_df[cop_col].round(1)
 
         if not summary_group is None:
             # filter for particular summary group
@@ -824,7 +829,6 @@ class DataManager:
             query = f"SELECT * FROM {self.day_table};"
             self.entire_daily_df = self.get_df_from_query(query)
         return self.apply_event_filters_to_df(self.entire_daily_df, events_to_filter)
-
 
     def get_hourly_flow_data_df(self, events_to_filter : list = []) -> pd.DataFrame:
         if self.entire_hourly_df is None:
