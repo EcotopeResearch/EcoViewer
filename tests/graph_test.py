@@ -73,7 +73,7 @@ def test_raw_data_graph(mock_data_manager):
     mock_data_manager.get_site_events.return_value = pd.DataFrame()
     ret_value = create_graph(mock_data_manager, 'raw_data')
     assert isinstance(ret_value, list)
-    assert len(ret_value) == 3
+    assert len(ret_value) == 2
     assert ret_value[2] is None
     assert isinstance(ret_value[0], html.P)
     assert ret_value[0].style == {'color': 'red', 'textAlign': 'center'}
