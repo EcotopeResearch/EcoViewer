@@ -74,7 +74,6 @@ def test_raw_data_graph(mock_data_manager):
     ret_value = create_graph(mock_data_manager, 'raw_data')
     assert isinstance(ret_value, list)
     assert len(ret_value) == 2
-    assert ret_value[2] is None
     assert isinstance(ret_value[0], html.P)
     assert ret_value[0].style == {'color': 'red', 'textAlign': 'center'}
     assert isinstance(ret_value[0].children, list)
