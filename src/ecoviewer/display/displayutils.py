@@ -356,14 +356,15 @@ def hpwh_summary_table(dm : DataManager):
             'backgroundColor': 'rgb(240, 240, 240)'
         },
         {
-            'if': {'column_id': 'Ongoing Events'},
+            'if': {'column_id': 'COP Name'},
             'backgroundColor': 'rgb(240, 240, 240)'
         },
         {
             'if': {'column_id': 'Details'}, 
             'width': '50%',
             'whiteSpace': 'normal',
-            'height': 'auto'
+            'height': 'auto',
+            'backgroundColor': 'rgb(240, 240, 240)'
         },
         {
             'if': {
@@ -380,6 +381,7 @@ def hpwh_summary_table(dm : DataManager):
     actual_cop = []
     projected_cop = []
     opt_cop = []
+    cop_names = []
     ongoing_events = []
     event_descriptions = []
     all_sites = dm.site_df.index.tolist()
@@ -426,6 +428,8 @@ def hpwh_summary_table(dm : DataManager):
                 opt_cop.append(f"{round(optim_cop,2)}*")
             else:
                 opt_cop.append(round(optim_cop,2))
+            
+            cop_names.append(site_dm.get_pretty_name(site_dm.sys_cop_variable))
             site_ongoing_events = site_dm.get_ongoing_events()
             site_ongoing_event_descriptions = site_dm.get_ongoing_event_descriptions()
             ongoing_events.append(", ".join(site_ongoing_events) if len(site_ongoing_events) > 0 else "No ongoing events.")
@@ -439,6 +443,7 @@ def hpwh_summary_table(dm : DataManager):
         "Actual Average COP":actual_cop,
         "Projected COP":projected_cop,
         "Optimized COP": opt_cop,
+        "COP Name" : cop_names,
         "Ongoing Events": ongoing_events,
         "Details" : event_descriptions
     })
