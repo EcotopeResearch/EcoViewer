@@ -74,7 +74,7 @@ class COPTimeseries(GraphObject):
                 elif row['start_time_pt'] < df_daily.index[0]:
                     row['start_time_pt'] = df_daily.index[0]
                 
-                if row['end_time_pt'] is None or pd.isnull(row['end_time_pt']):
+                if not 'end_time_pt' in site_events_df.columns or row['end_time_pt'] is None or pd.isnull(row['end_time_pt']):
                     row['end_time_pt'] = df_daily.index[-1]
                 elif row['end_time_pt'] <= df_daily.index[0]:
                     continue
