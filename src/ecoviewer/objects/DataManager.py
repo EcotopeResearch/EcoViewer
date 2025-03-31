@@ -763,7 +763,7 @@ class DataManager:
         if self.raw_df is None:
             # raw df has not already been generated
             query = self.generate_raw_data_query()
-            self.raw_df = self.get_df_from_query(query, concat_tpt=True)
+            self.raw_df = self.get_df_from_query(query, concat_tpt=True)#, concat_tpt=True when doing COP fix TODO
             cop_columns = [col for col in self.raw_df.columns if 'COP' in col]
             self.raw_df[cop_columns] = self.raw_df[cop_columns].fillna(method='ffill')
             if 'OAT_NOAA' in self.raw_df.columns:
@@ -781,8 +781,42 @@ class DataManager:
         entire_raw_df = self.get_df_from_query(query, concat_tpt=True)
 
         return self.apply_event_filters_to_df(entire_raw_df, events_to_filter)
+    
+    def generate_raw_data_query_old(self, whole_table = False):
+         query = f"SELECT {self.min_table}.*, "
+         if self.state_tracking:
+             query += f"{self.hour_table}.system_state, "
+ 
+         # conditionals because some sites don't have these
+         if self.field_df[(self.field_df['field_name'] == 'OAT_NOAA') & (self.field_df['site_name'] == self.selected_table)].shape[0] > 0:
+             query += f"{self.hour_table}.OAT_NOAA, "
+         # TODO figure out better way to do COP
+         if self.field_df[(self.field_df['field_name'] == 'COP_Equipment') & (self.field_df['site_name'] == self.selected_table)].shape[0] > 0:
+             query += f"{self.day_table}.COP_Equipment, "
+         if self.field_df[(self.field_df['field_name'] == 'COP_DHWSys_2') & (self.field_df['site_name'] == self.selected_table)].shape[0] > 0:
+             query += f"{self.day_table}.COP_DHWSys_2, "
+         if not self.sys_cop_variable in ['COP_Equipment', 'COP_DHWSys_2'] and self.field_df[(self.field_df['field_name'] == self.sys_cop_variable) & (self.field_df['site_name'] == self.selected_table)].shape[0] > 0:
+             query += f"{self.day_table}.{self.sys_cop_variable}, "
+         query += f"IF(DAYOFWEEK({self.min_table}.time_pt) IN (1, 7), FALSE, TRUE) AS weekday, " +\
+             f"HOUR({self.min_table}.time_pt) AS hr FROM {self.min_table} "
+         #TODO these two if statements are a work around for LBL. MAybe figure out better solution
+         if self.min_table != self.hour_table:
+             query += f"LEFT JOIN {self.hour_table} ON {self.min_table}.time_pt = {self.hour_table}.time_pt "
+         if self.min_table != self.day_table:
+             query += f"LEFT JOIN {self.day_table} ON {self.min_table}.time_pt = {self.day_table}.time_pt "
+ 
+         if whole_table:
+             query +=  f"ORDER BY {self.min_table}.time_pt ASC"
+         elif self.start_date != None and self.end_date != None:
+             query += f"WHERE {self.min_table}.time_pt >= '{self.start_date}' AND {self.min_table}.time_pt <= '{self.end_date} 23:59:59' ORDER BY {self.min_table}.time_pt ASC"
+         else:
+             query += f"ORDER BY {self.min_table}.time_pt DESC LIMIT 4000"
+             query = f"SELECT * FROM ({query}) AS subquery ORDER BY subquery.time_pt ASC;"
+ 
+         return query
         
     def generate_raw_data_query(self, whole_table = False):
+        # TODO make this function more efficient
         query = f"SELECT time_table.tpt, {self.min_table}.*, "
         if self.state_tracking:
             query += f"{self.hour_table}.system_state, "
@@ -820,7 +854,7 @@ class DataManager:
             query += f"WHERE time_table.tpt >= '{self.start_date}' AND time_table.tpt <= '{self.end_date} 23:59:59' ORDER BY time_table.tpt ASC"
         else:
             query += f"ORDER BY time_table.tpt DESC LIMIT 4000"
-            query = f"SELECT * FROM ({query}) AS subquery ORDER BY subquery.time_pt ASC;"
+            query = f"SELECT * FROM ({query}) AS subquery ORDER BY subquery.tpt ASC;"
 
         return query
     
