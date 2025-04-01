@@ -49,6 +49,8 @@ class SummaryBarGraph(GraphObject):
 
     def create_graph(self, dm : DataManager):
         # Filter columns with the prefix "PowerIn_" and exclude "PowerIn_Total"
+        if self.summary_group is None:
+            raise Exception("Summary Group not configured for site.")
         og_df = dm.get_daily_summary_data_df(self.summary_group,self.event_filters)
         if og_df.shape[0] <= 0:
             raise Exception("No power or COP data to display for time period.")

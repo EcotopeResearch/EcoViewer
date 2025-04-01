@@ -39,7 +39,8 @@ class SummaryBarGraphLoadRatios(GraphObject):
             return f"{month_1} {day_1}, {year_1} - {month_2} {day_2}, {year_2}"
 
     def create_graph(self, dm : DataManager):
-
+        if self.summary_group is None:
+            raise Exception("Summary Group not configured for site.")
         og_df = dm.get_daily_summary_data_df(self.summary_group,['PIPELINE_ERR'])
         
         if og_df.shape[0] <= 0:

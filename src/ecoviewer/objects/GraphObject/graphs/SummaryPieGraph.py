@@ -16,7 +16,8 @@ class SummaryPieGraph(GraphObject):
         return dm.get_site_events(filter_by_date = self.date_filtered, event_types=self.event_reports, 
                                       start_date=self.start_day, end_date=self.end_day)
     def create_graph(self, dm : DataManager):
-        
+        if self.summary_group is None:
+            raise Exception("Summary Group not configured for site.")
         df = dm.get_daily_summary_data_df(self.summary_group,self.event_filters)
         if df.shape[0] <= 0:
             raise Exception("No data availabe for time period.")

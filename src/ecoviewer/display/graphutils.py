@@ -170,6 +170,11 @@ def create_summary_graphs(dm : DataManager):
                    'summary_cop_regression', 'summary_cop_timeseries', 'summary_flow_boxwhisker', 'summary_erv_performance', 
                    'summary_ohp_performance', 'summary_SERA_pie', 'summary_SERA_monthly', 'summary_DHW_temps']
     # summary group graphs
+    if len(unique_groups) == 0:
+        for graph_type in summary_group_graph_types:
+            if dm.graph_available(graph_type):
+                graph_components.append(create_graph(dm, graph_type, None, power_value=dm.sys_power_variable))
+
     for unique_group in unique_groups:
         # Title if multiple groups:
         if len(unique_groups) > 1:

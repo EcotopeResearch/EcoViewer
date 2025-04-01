@@ -18,6 +18,8 @@ class SummaryDailyPowerByHour(GraphObject):
                                       start_date=self.start_day, end_date=self.end_day)
 
     def create_graph(self, dm : DataManager):
+        if self.summary_group is None:
+            raise Exception("Summary Group not configured for site.")
         df = dm.get_daily_summary_data_df(self.summary_group,self.event_filters)
         hourly_df = dm.get_hourly_summary_data_df(self.summary_group,self.event_filters)
         if hourly_df.shape[0] <= 0:
