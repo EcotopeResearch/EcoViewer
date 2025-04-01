@@ -127,12 +127,13 @@ class SummaryBarGraph(GraphObject):
         power_colors = dm.get_color_list(powerin_columns)
         power_pretty_names, power_pretty_names_dict = dm.get_pretty_names(powerin_columns, True)
         for power_column in powerin_columns:
-            energy_dataframe[power_pretty_names_dict[power_column]] = energy_dataframe[power_column]
+            energy_dataframe[power_pretty_names_dict[power_column]] = energy_dataframe[power_column].round(0)
 
         cop_colors = dm.get_color_list(cop_columns, i=len(powerin_columns)) # start color index after power columns to avoid color conflict
         stacked_fig = px.bar(energy_dataframe, x=energy_dataframe.index, y=power_pretty_names, color_discrete_sequence=power_colors, title='<b>Energy and COP',
                     labels={'index': 'Data Point'}, 
                     height=400)
+        stacked_fig.update_layout(title_font=dict(size=24))
         
         num_data_points = len(df)
         x_shift = pd.Timedelta(hours=formatting_time_delta)  # Adjust this value to control the horizontal spacing between the bars
@@ -143,12 +144,16 @@ class SummaryBarGraph(GraphObject):
             # width=1300,
             yaxis1=dict(
                 title='<b>Avg. Daily kWh' if compress_data > 0 else '<b>kWh',
+                title_font=dict(size=18),
+                tickfont=dict(size= 16)
             ),
             xaxis=dict(
                 title=xaxis_title,
+                title_font=dict(size=18),
                 tickmode = 'array',
                 tickvals = x_axis_tick_val,
-                ticktext = x_axis_tick_text  
+                ticktext = x_axis_tick_text,
+                tickfont=dict(size=16)  
             ),
             margin=dict(l=10, r=10),
             legend=dict(x=1.1)
@@ -165,15 +170,15 @@ class SummaryBarGraph(GraphObject):
                 x_positions_shifted = [x + x_shift for x in df.index]
                 stacked_fig.add_trace(go.Bar(
                     x=x_positions_shifted, 
-                    y=df[col], 
+                    y=round(df[col],1), 
                     name=cop_pretty_name, 
                     marker=dict(color=cop_colors[i]),
                     yaxis = 'y2',
                     customdata=np.transpose([x_axis_tick_text, [cop_pretty_name]*len(x_axis_tick_text)]),
                     hovertemplate="<br>".join([
-                        "variable=%{customdata[1]}",
-                        "time_pt=%{customdata[0]}",
-                        "value=%{y}",
+                        "Variable: %{customdata[1]}",
+                        "Date: %{customdata[0]}",
+                        "%{y}",
                     ])
                     ))
                 x_shift += pd.Timedelta(hours=formatting_time_delta)
@@ -183,6 +188,8 @@ class SummaryBarGraph(GraphObject):
             stacked_fig.update_layout(
                 yaxis2=dict(
                     title='<b>COP',
+                    title_font=dict(size=18),
+                    tickfont=dict(size=16),
                     overlaying='y',
                     side='right'
                 ),

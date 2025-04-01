@@ -149,9 +149,11 @@ def create_event_log_table(dm : DataManager, msg_p : html.P = None) -> html.Div:
                 data=event_df.to_dict('records'),
                 columns=[{"name": i, "id": i, "presentation": "markdown"} for i in event_df.columns],
                 style_cell={'textAlign': 'left'},
+                style_data={'padding':'5px'},
                 style_as_list_view=True,
                 style_header={
-                    'backgroundColor': 'rgb(230, 230, 230)',
+                    'backgroundColor':'rgb(190, 216, 230)',
+                    'fontSize':'20px',
                     'fontWeight': 'bold'
                 },
                 style_data_conditional=[
@@ -274,12 +276,15 @@ def create_summary_table(dm : DataManager, category : str = None) -> html.Div:
             dash_table.DataTable(
                 data=df.to_dict('records'),
                 columns=[{"name": i, "id": i, "presentation": "markdown"} for i in df.columns],
-                style_cell={'textAlign': 'left'},
-                style_as_list_view=True,
+                style_cell={'textAlign': 'center'},
+                style_data={'textAlign': 'center', 'padding': '5px'},
+                style_as_list_view=False,
                 style_data_conditional=custom_style_conditionals,
                 style_header={
-                    'backgroundColor': 'rgb(230, 230, 230)',
-                    'fontWeight': 'bold'
+                    'backgroundColor': 'rgb(190, 216, 230)',
+                    'fontWeight': 'bold',
+                    'fontSize':'20px',
+                    'whiteSpace': 'normal',
                 },
             ),
             additional_msg
@@ -349,7 +354,8 @@ def hpwh_summary_table(dm : DataManager):
         },
         {
             'if': {'column_id': 'Expected COP'},
-            'backgroundColor': 'rgb(240, 240, 240)'
+            'backgroundColor': 'rgb(240, 240, 240)',
+            'width':'15%',
         },
         {
             'if': {'column_id': 'Projected COP'},
@@ -365,6 +371,10 @@ def hpwh_summary_table(dm : DataManager):
             'whiteSpace': 'normal',
             'height': 'auto',
             'backgroundColor': 'rgb(240, 240, 240)'
+        },
+        {
+            'if': {'column_id': 'Average COP'},
+            'width':'15%',
         },
         {
             'if': {
@@ -409,8 +419,9 @@ def hpwh_summary_table(dm : DataManager):
             elif not wh_unit_name is None:
                 primary_model = f"{wh_unit_name}"
             equipment_type.append(primary_model)
-            expected_cop.append(exp_cop)
-            actual_cop.append(round(site_dm.get_average_cop(),2))
+
+            expected_cop.append(str(exp_cop))
+            actual_cop.append(round(site_dm.get_average_cop(),1))
             proj_cop = site_dm.get_annual_extrapolated_COP(['DATA_LOSS_COP','INSTALLATION_ERROR','PARTIAL_OCCUPANCY','SYSTEM_MAINTENANCE',
                                                                             'EQUIPMENT_MALFUNCTION','HW_OUTAGE','HW_LOSS'],
                                                                         ['INSTALLATION_ERROR','PARTIAL_OCCUPANCY','EQUIPMENT_MALFUNCTION','HW_LOSS'])
@@ -430,6 +441,7 @@ def hpwh_summary_table(dm : DataManager):
                 opt_cop.append(round(optim_cop,2))
             
             cop_names.append(site_dm.get_pretty_name(site_dm.sys_cop_variable))
+
             site_ongoing_events = site_dm.get_ongoing_events()
             site_ongoing_event_descriptions = site_dm.get_ongoing_event_descriptions()
             ongoing_events.append(", ".join(site_ongoing_events) if len(site_ongoing_events) > 0 else "No ongoing events.")
@@ -440,7 +452,7 @@ def hpwh_summary_table(dm : DataManager):
         "ASHRAE CZ": ashrae_czs,
         "Equipment": equipment_type,
         "Expected COP": expected_cop,
-        "Actual Average COP":actual_cop,
+        "Average COP":actual_cop,
         "Projected COP":projected_cop,
         "Optimized COP": opt_cop,
         "COP Name" : cop_names,

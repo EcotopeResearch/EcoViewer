@@ -25,10 +25,10 @@ class GPDPPTimeseries(GraphObject):
         high_daily_usage = percentile_day / dm.occupant_capacity
 
         units = 'Gallons/Person/Day' if dm.occupant_capacity > 1 else 'Gallons/Day'
-
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily.Flow_CityWater_PP, mode = 'markers',
-                                marker = dict(size=5, color = 'darkblue'), showlegend=False))
+        fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily.Flow_CityWater_PP.round(1), mode = 'markers',
+                                marker = dict(size=5, color = 'rgb(56,166,165)'), showlegend=False,
+                                hovertemplate="<b>Date:</b> %{x|%Y-%m-%d}<br><b>Usage:</b> %{y:.1f} " + units))
         
         fig.add_trace(go.Scatter(
         x=[df_daily.index.min() - pd.Timedelta(hours = 23), df_daily.index.max() + pd.Timedelta(hours = 23)],
@@ -43,13 +43,14 @@ class GPDPPTimeseries(GraphObject):
         x=[df_daily.index.min() - pd.Timedelta(hours = 23), df_daily.index.max() + pd.Timedelta(hours = 23)],
         y=[high_daily_usage, high_daily_usage],
         mode="lines",
-        line=dict(color="darkgreen", dash="dash"),
+        line=dict(color="darkblue", dash="dash"),
         name="95th Percentile Usage",
         hoverinfo="text",
         hovertext=f"95th Percentile Usage: {high_daily_usage:.2f} {units}"))
 
-        fig.update_layout(title = '<b>Daily Hot Water Usage')
-        fig.update_yaxes(title = f'<b>{units}')
-        fig.update_xaxes(title = '<b>Time')
+       
+        fig.update_layout(title={'text':'<b>Daily Hot Water Usage</b>','font':{'size':24}})
+        fig.update_yaxes(title_text=f'<b>{units}</b>',title_font={'size':18})
+        fig.update_xaxes(title_text='<b>Time</b>',title_font={'size':18})
 
         return dcc.Graph(figure=fig)
