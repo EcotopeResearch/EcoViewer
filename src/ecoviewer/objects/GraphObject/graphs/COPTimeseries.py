@@ -19,20 +19,22 @@ class COPTimeseries(GraphObject):
 
         fig = make_subplots(specs = [[{'secondary_y':True}]])
         fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily[dm.sys_cop_variable],
-                                mode = 'markers', name = dm.get_pretty_name(dm.sys_cop_variable),
-                                marker=dict(color='darkred')), secondary_y = True)
+                                mode = 'markers', name = '<b>' + dm.get_pretty_name(dm.sys_cop_variable),
+                                marker=dict(color='firebrick')), secondary_y = True)
         
-        fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily[dm.oat_variable],
-                                mode = 'markers', name = 'Outdoor Air Temerature',
-                                marker=dict(color='darkgreen')), secondary_y = False)
+        fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily[dm.oat_variable].round(1),
+                                mode = 'markers', name = '<b>Outdoor Air Temp (F)',
+                                marker=dict(color='olivedrab')), secondary_y = False)
         
-        fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily[dm.city_water_temp],
-                                mode = 'markers', name = 'City Water Temperature',
-                                marker=dict(color='darkblue')), secondary_y = False)
+        fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily[dm.city_water_temp].round(1),
+                                mode = 'markers', name = '<b>City Water Temp (F)',
+                                marker=dict(color='rgb(56,166,165)')), secondary_y = False)
 
-        fig.update_layout(title = f'<b>{self.title}')
-        fig.update_xaxes(title = '<b>Date')
-        fig.update_yaxes(title = '<b>System COP', secondary_y = True)
-        fig.update_yaxes(title = '<b>Daily Average Air and Water Temperature (F)', secondary_y = False)
+      
+        fig.update_layout(
+        title={'text': f'<b>{self.title}</b>', 'font': {'size': 24}},
+        xaxis={'title': '<b>Date', 'title_font': {'size': 18}, 'tickfont': {'size': 18}},
+        yaxis={'title': '<b>Daily Average Temperature (F)</b>', 'title_font': {'size': 18}, 'tickfont': {'size': 18}},
+        yaxis2={'title': '<b>System COP</b>', 'title_font': {'size': 18}, 'tickfont': {'size': 18}})
 
         return dcc.Graph(figure=fig)

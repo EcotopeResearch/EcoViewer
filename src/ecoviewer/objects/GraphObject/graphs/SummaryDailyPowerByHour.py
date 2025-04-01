@@ -47,25 +47,30 @@ class SummaryDailyPowerByHour(GraphObject):
             column_name = powerin_columns[i]
             if column_name in power_df.columns:
                 pretty_name = power_pretty_names_dict[column_name]
-                trace = go.Scatter(x=power_df.index, y=power_df[column_name], name=f"{pretty_name}", mode='lines',
-                                   line=dict(color=power_colors[i]),)
+                trace = go.Scatter(x=power_df.index, y=power_df[column_name].round(1), name=f"{pretty_name}", mode='lines',
+                                   line=dict(color=power_colors[i], width=5),)
                 power_fig.add_trace(trace)
                 # TODO figure out colors for LS and NLS lines
-                trace = go.Scatter(x=ls_df.index, y=ls_df[column_name], name=f"Load Shift Day {pretty_name}", mode='lines')
+                trace = go.Scatter(x=ls_df.index, y=ls_df[column_name].round(1), name=f"Load Shift Day {pretty_name}", mode='lines')
                 power_fig.add_trace(trace)
-                trace = go.Scatter(x=nls_df.index, y=nls_df[column_name], name=f"Normal Day {pretty_name}", mode='lines')
+                trace = go.Scatter(x=nls_df.index, y=nls_df[column_name].round(1), name=f"Normal Day {pretty_name}", mode='lines')
                 power_fig.add_trace(trace)
 
         power_fig.update_layout(
             # width=1300,
             yaxis1=dict(
                 title='<b>kW',
+                title_font=dict(size= 18),
+                tickfont=dict(size=18)
             ),
             xaxis=dict(
                 title='<b>Hour',
+                title_font=dict(size= 18),
+                tickfont=dict(size=18)
             ),
             legend=dict(x=1.2),
             margin=dict(l=10, r=10),
+            title_font=dict(size=24)
         )
         
         return dcc.Graph(figure=power_fig)

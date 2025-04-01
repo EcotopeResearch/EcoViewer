@@ -55,18 +55,26 @@ class COPRegression(GraphObject):
 
             # Get the predicted values for the trendline
             df_daily['trendline'] = wls_result.predict(X_with_const)
-            fig = px.scatter(df_daily, x='Temp_OutdoorAir', y=self.cop_column,
+
+            #rounding
+            df_daily['Temp_OutdoorAir'] = df_daily['Temp_OutdoorAir'].round(1)
+            df_daily['rounded_cop'] = df_daily[self.cop_column].round(1)
+            df_daily['rounded_power'] = df_daily[self.power_col].round(1)
+
+            fig = px.scatter(df_daily, x='Temp_OutdoorAir', y='rounded_cop',
                         title=title,
-                        size=self.power_col,
+                        size='rounded_power',
                         labels={'Temp_OutdoorAir': '<b>Dry Bulb OAT (°F)', 
-                                f'{self.cop_column}': f"<b>{dm.get_pretty_name(self.cop_column)}", 
-                                'PrimaryEneryRatio': 'Primary Energy Ratio', 'Site': '<b>Site'},
+                                'rounded_cop': f"<b>{dm.get_pretty_name(self.cop_column)}", 
+                                'rounded_power': 'Power Weight', 'Site': '<b>Site'},
                         color_discrete_sequence=["darkblue"],
                         hover_data={'Date': True}
                 )
             fig.add_traces(
                 px.line(df_daily, x='Temp_OutdoorAir', y='trendline').data
             )
+
+
         else:
             fig = px.scatter(df_daily, x='Temp_OutdoorAir', y=self.cop_column,
                         title=title, trendline="ols",
@@ -81,6 +89,12 @@ class COPRegression(GraphObject):
             # ols_model = trendline_results.iloc[0]["px_fit_results"].params  # Get statsmodels OLS results
             # self.slope =ols_model[0]
             # self.intercept=ols_model[1]
+
+        fig.update_layout(
+        title={'font': {'size': 24}},
+        xaxis={'title': {'font': {'size': 18}}, 'tickfont': {'size': 18}},
+        yaxis={'title': {'font': {'size': 18}}, 'tickfont': {'size': 18}})
+
         
         # print(f"Weighted Trendline equation: y = {self.slope:.2f}x + {self.intercept:.2f}")
         return dcc.Graph(figure=fig)
