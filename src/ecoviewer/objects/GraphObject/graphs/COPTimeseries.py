@@ -34,15 +34,15 @@ class COPTimeseries(GraphObject):
         air_temp_label = '<b>Outdoor Air Temp (F)'
         water_temp_label = '<b>City Water Temp (F)'
 
-        if dm.city_water_temp == 'Temp_HPWHInlet':
-            water_temp_label = '<b>HPWH Inlet Water Temp (F)'
-        if dm.oat_variable == 'Temp_AmbientAir':
-            air_temp_label = '<b>Ambient Air Temp (F)'
-
         if not 'Temp_OutdoorAir' in df_daily.columns:
             if not dm.oat_variable in df_daily.columns:
                 raise Exception('No outdoor air temperature data available.')
             df_daily['Temp_OutdoorAir'] = df_daily[dm.oat_variable]
+
+        if dm.city_water_temp == 'Temp_HPWHInlet':
+            water_temp_label = '<b>HPWH Inlet Water Temp (F)'
+        if dm.oat_variable == 'Temp_AmbientAir':
+            air_temp_label = '<b>Ambient Air Temp (F)'
 
         fig = make_subplots(specs = [[{'secondary_y':True}]])
 
