@@ -30,10 +30,19 @@ class COPTimeseries(GraphObject):
 
     def create_graph(self, dm : DataManager):
         df_daily = dm.get_daily_data_df(events_to_filter=self.event_filters)
+
+        air_temp_label = '<b>Outdoor Air Temp (F)'
+        water_temp_label = '<b>City Water Temp (F)'
+
         if not 'Temp_OutdoorAir' in df_daily.columns:
             if not dm.oat_variable in df_daily.columns:
                 raise Exception('No outdoor air temperature data available.')
             df_daily['Temp_OutdoorAir'] = df_daily[dm.oat_variable]
+
+        if dm.city_water_temp == 'Temp_HPWHInlet':
+            water_temp_label = '<b>HPWH Inlet Water Temp (F)'
+        if dm.oat_variable == 'Temp_AmbientAir':
+            air_temp_label = '<b>Ambient Air Temp (F)'
 
         fig = make_subplots(specs = [[{'secondary_y':True}]])
 
@@ -53,13 +62,12 @@ class COPTimeseries(GraphObject):
                                 secondary_y = True)
         
         fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily[dm.oat_variable].round(1),
-                                mode = 'markers', name = '<b>Outdoor Air Temp (F)',
+                                mode = 'markers', name = air_temp_label,
                                 marker=dict(color='olivedrab')), secondary_y = False)
         
         fig.add_trace(go.Scatter(x = df_daily.index, y = df_daily[dm.city_water_temp].round(1),
-                                mode = 'markers', name = '<b>City Water Temp (F)',
+                                mode = 'markers', name = water_temp_label,
                                 marker=dict(color='rgb(56,166,165)')), secondary_y = False)
-
       
         fig.update_layout(
         title={'text': f'<b>{self.title}</b>', 'font': {'size': 24}},
