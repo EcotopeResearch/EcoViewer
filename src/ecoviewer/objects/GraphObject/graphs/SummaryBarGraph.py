@@ -129,7 +129,7 @@ class SummaryBarGraph(GraphObject):
         power_colors = dm.get_color_list(powerin_columns)
         power_pretty_names, power_pretty_names_dict = dm.get_pretty_names(powerin_columns, True)
         for power_column in powerin_columns:
-            energy_dataframe[power_pretty_names_dict[power_column]] = energy_dataframe[power_column].round(0)
+            energy_dataframe[power_pretty_names_dict[power_column]] = energy_dataframe[power_column].round(1)
 
         cop_colors = dm.get_color_list(cop_columns, i=len(powerin_columns)) # start color index after power columns to avoid color conflict
         stacked_fig = px.bar(energy_dataframe, x=energy_dataframe.index, y=power_pretty_names, color_discrete_sequence=power_colors, title='<b>Energy and COP',
