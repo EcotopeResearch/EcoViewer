@@ -59,7 +59,7 @@ class COPRegression(GraphObject):
             #rounding
             df_daily['Temp_OutdoorAir'] = df_daily['Temp_OutdoorAir'].round(1)
             df_daily['rounded_cop'] = df_daily[self.cop_column].round(1)
-            df_daily['rounded_power'] = df_daily[self.power_col].round(1)
+            df_daily['rounded_power'] = df_daily[self.power_col].round(3)
 
             fig = px.scatter(df_daily, x='Temp_OutdoorAir', y='rounded_cop',
                         title=title,

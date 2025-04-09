@@ -26,8 +26,12 @@ from ecoviewer.objects.GraphObject.graphs.PickleGraph import PickleGraph
 from ecoviewer.objects.GraphObject.graphs.SummaryDHWTemps import SummaryDHWTemps
 
 state_colors = {
-    "loadUp" : "green",
-    "shed" : "blue"}
+            "Load Up" : "green",
+            "Shed" : "blue",
+            "Grid Emergency" : "yellow",
+            "Critical Peak" : "red",
+            "Advanced Load Up" : "purple"
+        }
 
 def get_state_colors():
     return state_colors

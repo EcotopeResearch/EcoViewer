@@ -11,7 +11,10 @@ class RawDataSubPlots(GraphObject):
     def __init__(self, dm : DataManager, title : str = "Raw Data Plots"):
         self.state_colors = {
             "loadUp" : "green",
-            "shed" : "blue"
+            "shed" : "blue",
+            "gridEmergency" : "yellow",
+            "criticalPeak" : "red",
+            "advancedLoadUp" : "purple"
         }
         self.start_day = dm.start_date
         self.end_day = dm.end_date
